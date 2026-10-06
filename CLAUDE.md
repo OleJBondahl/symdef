@@ -3,7 +3,7 @@
 Standard-agnostic Python toolkit for graphical-symbol data. It reads TOML symbol files, resolves
 composition, lints the wiring contract, renders SVG, and builds a resolved JSON bundle plus an SVG
 gallery. Data packages hold only data and reuse this toolkit: `electrical-symbols` (a package
-of the a host application monorepo, `../a host application`) now, ISO 14617 and ISA 5.1 later. Alpha,
+of the a host application repo, `../a host application-dev`) now, ISO 14617 and ISA 5.1 later. Alpha,
 single owner.
 
 a host application consumes this repo by an exact git tag (its decision 0015): `electrical-symbols`,
