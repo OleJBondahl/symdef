@@ -3,7 +3,7 @@
 Standard-agnostic toolkit for graphical-symbol data. Symbols are TOML files; the toolkit loads
 them, resolves composition, lints the wiring contract, renders SVG, and builds a resolved JSON
 bundle plus a gallery. Data packages hold only data and reuse the toolkit and its gates:
-`electrical-symbols` (IEC 60617-style symbols, in the a host application monorepo) now, ISO 14617 and
+`electrical-symbols` (IEC 60617-style symbols, a host application' `packages/electrical-symbols`) now, ISO 14617 and
 ISA 5.1 later.
 
 Status: alpha. The toolkit the spec below describes is built: reading, resolving, linting, SVG and
