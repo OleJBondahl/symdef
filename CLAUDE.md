@@ -1,4 +1,4 @@
-# graphical-symbols: agent guide
+# symdef: agent guide
 
 Standard-agnostic Python toolkit for graphical-symbol data. It reads TOML symbol files, resolves
 composition, lints the wiring contract, renders SVG, and builds a resolved JSON bundle plus an SVG
@@ -6,12 +6,10 @@ gallery. Data packages hold only data and reuse this toolkit: `electrical-symbol
 of the a host application repo, `../a host application-dev`) now, ISO 14617 and ISA 5.1 later. Alpha,
 single owner.
 
-a host application consumes this repo by an exact git tag (its decision 0015): `electrical-symbols`,
-`a host application-layout` and `a host application-render` import it. A change a host application needs lands here
-first, green and tagged `vX.Y.Z`, then a host application bumps its pin. So a breaking change to a public
-name is a coordinated change: it is released under a new tag, and the pin bump in a host application
-carries the matching edit there. No code, test or script in this repo imports or names a
-a host application package. The docs may name the toolkit's users.
+a host application is
+one user. It pins an exact PyPI version, and its `electrical-symbols` package is an IEC 60617
+data package. A change a host application needs lands here first, released as `vX.Y.Z` on PyPI, then
+a host application bumps its pin. No code, test or script here imports or names a a host application package.
 
 ## The spec decides
 
@@ -38,7 +36,8 @@ spec section 11 exactly as written; a new name gets a decision entry.
 
 ## Rules
 
-- Python 3.15 (`.python-version`), `uv` only (never bare `python` or `pip`), ruff, ty, pytest, hypothesis,
+- Python 3.15 (`.python-version`); `requires-python` is `>=3.14`, and `just
+  ci` runs the tests on 3.14 too, `uv` only (never bare `python` or `pip`), ruff, ty, pytest, hypothesis,
   vulture, deal. Every dependency pinned to the exact latest stable version. Runtime dependency:
   `deal` only (`jsonschema` may be a dev dependency for the agreement test). TOML is read with the
   standard library's `tomllib`.
