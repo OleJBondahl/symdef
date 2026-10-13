@@ -41,6 +41,7 @@ from symdef.orient import orient, translate
 from symdef.project import build, check, init
 from symdef.repeat import repeat
 from symdef.svg import to_fragment, to_svg
+from symdef.svg_mm import to_fragment_mm
 from symdef.units import DEFAULT_MODULE_MM, GRID_DIVISION, on_grid, snap
 
 __all__ = [
@@ -95,6 +96,7 @@ __all__ = [
     "snap",
     "stale_build",
     "to_fragment",
+    "to_fragment_mm",
     "to_svg",
     "translate",
     "write_build",
