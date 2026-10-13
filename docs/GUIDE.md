@@ -217,6 +217,12 @@ slots and wire lanes; `texts` maps slot ids to sample text. `to_fragment(symbol)
 placeable `<g>` fragment instead of a document (D39). Both are total: any input renders (D32).
 `body_box`, `keepout_box` and `slot_box` give the boxes, and `on_grid` and `snap` the grid.
 
+`to_fragment_mm` (D52) returns the same fragment with every size in millimetres and no scale
+transform. Coordinates and radii are multiplied by `module_mm`. Stroke widths come from
+`weights_mm`, dash lengths from `dash_mm`, and the font size from `font_mm`, all in the caller's
+millimetres. Use it when a drawing must show each size exactly as given. `to_svg` and
+`to_fragment` keep their output.
+
 ## Consuming
 
 Install with `uv add symdef`, or pin the toolkit to an exact version from PyPI, never a range:

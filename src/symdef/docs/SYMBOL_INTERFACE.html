@@ -31,7 +31,7 @@
 
 <h1>Symbol interface design guide</h1>
 <p class="meta">Binding spec for the <code>symdef</code> toolkit and the data repos built on it.
-Agreed with the repo owner on 2026-09-19; amended 2026-10-07 for 0.5.0 (see the change list).</p>
+Agreed with the repo owner on 2026-09-19; amended 2026-10-07 for 0.5.0 and 2026-10-13 for 0.6.0 (see the change list).</p>
 
 <div class="note">
 <strong>This guide is the only design document.</strong> It changes only through a designer-approved spec,
@@ -41,6 +41,7 @@ with a dated entry in the change list below and in <code>docs/DECISIONS.md</code
 <h2 id="changes">Change list</h2>
 <table>
 <tr><th>Date</th><th>Version</th><th>Change</th></tr>
+<tr><td>2026-10-13</td><td>0.6.0</td><td><code>to_fragment_mm(symbol, *, module_mm, weights_mm, dash_mm, font_family, font_mm, cap_ratio)</code> writes a fragment in millimetres with no scale transform: coordinates times the module; stroke widths, dash lengths and font size are the caller's mm; text capitals centred on the anchor by the caller's capital ratio; <code>to_svg</code> and <code>to_fragment</code> output unchanged (D52).</td></tr>
 <tr><td>2026-10-07</td><td>0.5.0</td><td>A set declares its own words: <code>library.toml</code> gains <code>[vocabulary]</code> (<code>path_kinds</code>, <code>potentials</code>, <code>links</code>) and <code>[rules] required_slots</code> (D46). <code>PathKind</code> and <code>Potential</code> leave the API; <code>Path.kind</code> and <code>Node.potential</code> are strings. <code>Library</code> gains <code>vocabulary</code> and <code>required_slots</code>, and <code>lint</code> takes <code>required_slots</code> (sections 5, 6, 9, 11, 12).</td></tr>
 <tr><td>2026-10-07</td><td>0.5.0</td><td>The JSON Schema ships in the package and has an <code>$id</code> on the documentation site; <code>RULES</code> and <code>finding_key</code> join the API (D47).</td></tr>
 <tr><td>2026-10-07</td><td>0.5.0</td><td>The newcomer's path: <code>symdef init</code>, <code>build</code> and <code>check</code>, also functions (D48). The module <code>build</code> is now <code>files</code>.</td></tr>
@@ -494,6 +495,7 @@ write_build(library, root) -&gt; tuple[Path, ...]    writes build/ and the bundl
 stale_build(library, root) -&gt; tuple[Path, ...]    files that differ from what write_build would write, stale extras included
 init(root) -&gt; tuple[Path, ...]    build(root) -&gt; tuple[Path, ...]    check(root) -&gt; tuple[Finding, ...]    the three verbs of the <code>symdef</code> command</code></pre>
 <p><code>annotate=True</code> draws the grid, ports with ids and lanes, anchors, slot boxes, and both boxes. <code>texts</code> maps slot ids to sample strings so the gallery can show a filled-in symbol.</p>
+<p><code>to_fragment_mm</code> writes the same placeable <code>&lt;g&gt;</code> fragment as <code>to_fragment</code>, in millimetres, with no scale transform (D52). Each coordinate and radius is multiplied by <code>module_mm</code>. Stroke widths come from <code>weights_mm</code>, one entry per weight, dash lengths from <code>dash_mm</code>, and the font size from <code>font_mm</code>; these are the caller's millimetres. Text capitals are centred on the anchor by <code>cap_ratio</code>, the capital height as a fraction of the font size. The caller passes the font family. <code>to_svg</code> and <code>to_fragment</code> are unchanged.</p>
 <p>A data repo's Python package is a thin wrapper: <code>from my_symbols import LIBRARY</code>, loaded from the bundled JSON shipped as package data.</p>
 <h3>What a drawing library does</h3>
 <pre><code>from symdef import Orientation, keepout_box, orient, repeat
