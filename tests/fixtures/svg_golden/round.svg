@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="13.75mm" height="13.75mm" viewBox="-0.5 -0.5 5.5 5.5">
+<title>round</title>
+<g fill="none" stroke="#000" stroke-linecap="butt" stroke-linejoin="miter">
+<circle cx="2" cy="2" r="1.5" stroke-width="0.1" fill="#000"/>
+<path d="M 4 2 A 2 2 0 0 1 2 4" stroke-width="0.2"/>
+<path d="M 2.5 2 A 0.5 0.5 0 0 1 1.5 2 A 0.5 0.5 0 0 1 2.5 2" stroke-width="0.1" stroke-dasharray="0.5 0.25"/>
+</g>
+</svg>
