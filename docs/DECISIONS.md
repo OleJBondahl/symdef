@@ -933,3 +933,18 @@ runtime dependency, and a rewrite of sections 1, 12 and 13 that names no predece
 Section 14's open items stay. The byte-equality test of the guide's code blocks passes against it.
 Why: the spec was the one file still describing the first design.
 Cost if wrong: revert the file; code and tests do not read its prose except the code blocks.
+
+## D52. The mm output: to_fragment_mm beside to_fragment (SYMDEF-MM)
+
+Decided: `to_fragment_mm` is a new public function in a new module, `svg_mm.py`, beside
+`to_fragment`. It is not a keyword on `to_fragment`: `to_fragment`'s contract is module units with
+the caller scaling, and one function with two units and a mapping argument would blur it.
+Signature: `to_fragment_mm(symbol, *, module_mm, weights_mm, dash_mm, font_family, font_mm,
+cap_ratio) -> str`. Every coordinate and radius is multiplied by `module_mm`. Stroke widths come
+from `weights_mm`, one entry per `Weight`; a missing weight raises `KeyError` naming it. Dash
+lengths come from `dash_mm`. Text is drawn at `font_mm` and ignores `Text.height`; its baseline is
+`y * module_mm + cap_ratio * font_mm / 2`. The caller passes the font family. There is no
+transform and no scale. `to_svg` and `to_fragment` bytes are unchanged; the golden fixtures under
+`tests/fixtures/svg_golden` prove it. Release 0.6.0.
+Why: the owner wants every size set in millimetres and rendered exactly, with nothing scaled.
+Cost if wrong: the function is additive; remove it and its export.
