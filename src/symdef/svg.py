@@ -23,6 +23,7 @@ from symdef.geometry import (
     arc_sweep,
 )
 from symdef.model import Anchor, Port, Slot, Symbol
+from symdef.required import required_ids
 from symdef.units import DEFAULT_MODULE_MM
 
 _HALF_TURN = 180
@@ -347,13 +348,23 @@ def _sample_text(slot: Slot, content: str, size: float) -> str:
     return _label("sample-text", at, size, anchor=anchor, colour=_SAMPLE_COLOUR, content=content)
 
 
-def check_texts(symbol: Symbol, texts: Mapping[str, str] | None) -> None:
-    """Raise KeyError naming every key of `texts` that is not a slot id of the symbol (SS15)."""
+def check_texts(
+    symbol: Symbol, texts: Mapping[str, str] | None, required_slots: Sequence[str] = ()
+) -> None:
+    """Check `texts` against the slots of the symbol (SS15); nothing is checked when it is None.
+
+    Raises KeyError naming every key that is not a slot id, and ValueError naming the symbol and
+    every required slot (`required_ids`) that has no key; an empty string satisfies it.
+    """
     if texts is None:
         return
     unknown = sorted(set(texts) - {slot.id for slot in symbol.slots})
     if unknown:
         raise KeyError(", ".join(unknown))
+    missing = [i for i, _, _ in required_ids(symbol, required_slots) if i not in texts]
+    if missing:
+        message = f"{symbol.name}: no text for the required slot {', '.join(missing)}"
+        raise ValueError(message)
 
 
 def slot_text_tag(  # noqa: PLR0913 - one slot text tag is these six things
@@ -559,6 +570,7 @@ def to_fragment(
     tint: str | None = None,
     muted: str | None = None,
     texts: Mapping[str, str] | None = None,
+    required_slots: Sequence[str] = (),
 ) -> str:
     """Render a symbol as a placeable SVG fragment: a `<g>` of its plain elements only.
 
@@ -579,6 +591,9 @@ def to_fragment(
             (E start, W end, N and S middle, as the sample texts of `to_svg`), sized to fit the
             slot box (at most 1 M), black or in the muted colour, with no class. It is never
             wrapped.
+        required_slots: The slots the symbol must have a string for, shaped as `lint`'s argument
+            (`marking.<port>` means one per port). Checked only when `texts` is given; an empty
+            string satisfies it. The default checks nothing.
 
     Returns:
         The `<g>...</g>` fragment text, ending with a single newline.
@@ -586,11 +601,12 @@ def to_fragment(
     Raises:
         KeyError: A key of `texts` is not a slot id of the symbol; the key names it. Checked
             before anything is drawn, also for an empty string.
-        ValueError: The tint or the muted colour is not a hex colour or a colour name.
+        ValueError: The tint or the muted colour is not a hex colour or a colour name, or
+            `texts` is given and misses a required slot; the message names it and the symbol.
     """
     check_tint(tint)
     check_colour("muted", muted)
-    check_texts(symbol, texts)
+    check_texts(symbol, texts, required_slots)
     lines = [
         group_open(muted),
         *(_element(e, tint, muted) for e in symbol.elements),

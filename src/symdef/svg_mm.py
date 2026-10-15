@@ -1,6 +1,6 @@
 """SVG fragment in millimetres: the exact-size output, with no scale transform."""
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import NamedTuple
 from xml.sax.saxutils import quoteattr
 
@@ -176,6 +176,7 @@ def to_fragment_mm(  # noqa: PLR0913 - one physical size per keyword
     tint: str | None = None,
     muted: str | None = None,
     texts: Mapping[str, str] | None = None,
+    required_slots: Sequence[str] = (),
 ) -> str:
     """Render a symbol as a `<g>` fragment in millimetres, with no `scale(` and no transform.
 
@@ -207,6 +208,7 @@ def to_fragment_mm(  # noqa: PLR0913 - one physical size per keyword
             slot id order, at `font_mm` in `font_family`, aligned by the slot side (E start, W
             end, N and S middle; the baseline is half a capital below the slot point for E and W,
             on it for N and one capital below it for S). It is never measured, shrunk or wrapped.
+        required_slots: The slots the symbol must have a string for, as in `to_fragment`.
 
     Returns:
         The `<g>...</g>` fragment text, ending with a single newline.
@@ -215,12 +217,13 @@ def to_fragment_mm(  # noqa: PLR0913 - one physical size per keyword
         KeyError: A weight an element uses, or `Weight.NORMAL` when muted, is missing from
             `weights_mm`; the key names it. Also a key of `texts` that is not a slot id of the
             symbol, checked before anything is drawn, also for an empty string.
-        ValueError: The tint or the muted colour is not a hex colour or a colour name, or a
-            dash-dot element is drawn and `dash_dot_mm` is None.
+        ValueError: The tint or the muted colour is not a hex colour or a colour name, a
+            dash-dot element is drawn and `dash_dot_mm` is None, or `texts` is given and misses a
+            required slot; the message names it and the symbol.
     """
     check_tint(tint)
     check_colour("muted", muted)
-    check_texts(symbol, texts)
+    check_texts(symbol, texts, required_slots)
     mm = _Mm(module_mm, weights_mm, dash_mm, dash_dot_mm, font_family, font_mm, cap_ratio, muted)
     lines = [
         group_open(muted),

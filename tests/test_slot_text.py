@@ -133,3 +133,52 @@ def test_mm_never_measures_the_string(content):
         assert found[0].attrib["font-size"] == "2"
     else:
         assert not found
+
+
+def ported(*ids, marked=()):
+    from symdef import Direction, Port
+
+    base = sym()
+    return Symbol(
+        name="p",
+        kind=base.kind,
+        status=base.status,
+        reference=base.reference,
+        elements=base.elements,
+        ports=tuple(Port(i, Point(0, k), Direction.W) for k, i in enumerate(ids)),
+        slots=(
+            Slot("tag", Point(0, 5), Direction.E, (2.0, 1.0)),
+            *(Slot(f"marking.{i}", Point(0, 9), Direction.N, (1.0, 1.0)) for i in marked),
+        ),
+    )
+
+
+def mm_of(symbol, **kw):
+    return to_fragment_mm(symbol, **MM, **kw)
+
+
+@pytest.mark.parametrize("draw", [to_fragment, mm_of])
+def test_a_missing_required_slot_raises_naming_it_and_the_symbol(draw):
+    with pytest.raises(ValueError, match=r"p: .*value"):
+        draw(ported(), texts={"tag": "A"}, required_slots=("tag", "value"))
+
+
+@pytest.mark.parametrize("draw", [to_fragment, mm_of])
+def test_an_empty_string_satisfies_a_required_slot(draw):
+    draw(ported(), texts={"tag": ""}, required_slots=("tag",))
+
+
+@pytest.mark.parametrize("draw", [to_fragment, mm_of])
+def test_texts_none_checks_nothing(draw):
+    draw(ported(), required_slots=("tag", "value"))
+    draw(ported(), texts=None, required_slots=("tag", "value"))
+
+
+@pytest.mark.parametrize("draw", [to_fragment, mm_of])
+def test_a_marking_entry_demands_one_slot_per_port(draw):
+    with pytest.raises(ValueError, match=r"marking\.1.*marking\.2"):
+        draw(ported("1", "2"), texts={"tag": "A"}, required_slots=("marking.<port>",))
+    both = ported("1", "2", marked=("1", "2"))
+    draw(both, texts={"marking.1": "a", "marking.2": ""}, required_slots=("marking.<port>",))
+    with pytest.raises(ValueError, match=r"marking\.2$"):
+        draw(both, texts={"marking.1": "a"}, required_slots=("marking.<port>",))
