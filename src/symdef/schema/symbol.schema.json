@@ -50,6 +50,7 @@
     },
     "pole_pitch": { "$ref": "#/$defs/integer" },
     "lint_allow": { "type": "array", "items": { "$ref": "#/$defs/allow" } },
+    "stretch": { "type": "array", "items": { "$ref": "#/$defs/stretch" } },
     "body_box": { "$ref": "#/$defs/box" },
     "keepout_box": { "$ref": "#/$defs/box" }
   },
@@ -81,6 +82,7 @@
     "weight": { "enum": ["normal", "thick"] },
     "style": { "enum": ["solid", "dashed"] },
     "fill": { "enum": ["none", "solid"] },
+    "polyline_fill": { "enum": ["none", "solid", "tint"] },
     "port": {
       "type": "object",
       "required": ["id", "at", "dir"],
@@ -156,6 +158,16 @@
         "repeat": { "$ref": "#/$defs/integer" }
       }
     },
+    "stretch": {
+      "description": "A cut line across the body: the axis the symbol grows along and the cut's coordinate.",
+      "type": "object",
+      "required": ["axis", "at"],
+      "additionalProperties": false,
+      "properties": {
+        "axis": { "enum": ["x", "y"] },
+        "at": { "$ref": "#/$defs/number" }
+      }
+    },
     "allow": {
       "type": "object",
       "required": ["rule", "reason"],
@@ -191,10 +203,12 @@
           "properties": {
             "polyline": { "type": "array", "items": { "$ref": "#/$defs/point" } },
             "closed": { "type": "boolean" },
-            "fill": { "$ref": "#/$defs/fill" },
+            "fill": { "$ref": "#/$defs/polyline_fill" },
             "weight": { "$ref": "#/$defs/weight" },
             "style": { "$ref": "#/$defs/style" }
-          }
+          },
+          "if": { "properties": { "fill": { "const": "tint" } }, "required": ["fill"] },
+          "then": { "required": ["closed"], "properties": { "closed": { "const": true } } }
         },
         {
           "type": "object",

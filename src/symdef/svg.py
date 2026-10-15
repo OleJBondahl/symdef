@@ -94,10 +94,34 @@ def _content(text: str) -> str:
     return escape(_XML_ILLEGAL.sub("\U0000fffd", text), {"\r": "&#13;"})
 
 
-def _stroke(weight: Weight, fill: Fill = Fill.NONE, style: Style = Style.SOLID) -> str:
-    """Return the closing attributes of a stroked shape: dashed when asked, black when solid."""
+_COLOUR = re.compile(r"#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})|[A-Za-z]+")
+
+
+def check_tint(tint: str | None) -> None:
+    """Raise ValueError unless a tint is `#rgb`, `#rrggbb` or a letters-only colour name.
+
+    The check keeps a caller's colour from injecting markup into an attribute (D57).
+    """
+    if tint is not None and _COLOUR.fullmatch(tint) is None:
+        message = f"tint must be #rgb, #rrggbb or a colour name, not {tint!r}"
+        raise ValueError(message)
+
+
+def _stroke(
+    weight: Weight, fill: Fill = Fill.NONE, style: Style = Style.SOLID, tint: str | None = None
+) -> str:
+    """Return the closing attributes of a stroked shape: dashed when asked, black when solid.
+
+    A tinted shape takes the tint colour, or none when no tint is given.
+    """
     dashed = _DASHED if style is Style.DASHED else ""
-    solid = ' fill="#000"' if fill is Fill.SOLID else ""
+    if fill is Fill.SOLID:
+        solid = ' fill="#000"'
+    elif fill is Fill.TINT:
+        colour = "none" if tint is None else tint
+        solid = f' fill="{colour}"'
+    else:
+        solid = ""
     return f'stroke-width="{_num(weight.value)}"{dashed}{solid}/>'
 
 
@@ -135,7 +159,7 @@ def _text(text: Text) -> str:
     )
 
 
-def _element(element: Element) -> str:
+def _element(element: Element, tint: str | None) -> str:
     """Render one element as an SVG tag."""
     match element:
         case Line(start=s, end=e, weight=weight, style=style):
@@ -146,10 +170,11 @@ def _element(element: Element) -> str:
         case Polyline(points=points, closed=closed, fill=fill, weight=weight, style=style):
             tag = "polygon" if closed else "polyline"
             pts = " ".join(f"{_num(p.x)},{_num(p.y)}" for p in points)
-            return f'<{tag} points="{pts}" {_stroke(weight, fill, style)}'
+            return f'<{tag} points="{pts}" {_stroke(weight, fill, style, tint)}'
         case Circle(center=c, radius=r, fill=fill, weight=weight):
             return (
-                f'<circle cx="{_num(c.x)}" cy="{_num(c.y)}" r="{_num(r)}" {_stroke(weight, fill)}'
+                f'<circle cx="{_num(c.x)}" cy="{_num(c.y)}" r="{_num(r)}" '
+                f"{_stroke(weight, fill, tint=tint)}"
             )
         case Arc() as arc:
             return _arc(arc)
@@ -404,6 +429,7 @@ def to_svg(
     module_mm: float = DEFAULT_MODULE_MM,
     annotate: bool = False,
     texts: Mapping[str, str] | None = None,
+    tint: str | None = None,
 ) -> str:
     """Render a symbol as an SVG document.
 
@@ -421,10 +447,16 @@ def to_svg(
         texts: Sample text per slot id. Each is drawn upright in its slot box (class
             `sample-text`) in the largest font of at most 1 M that fits the box; an id that is
             not a slot of the symbol is ignored. Drawn in both modes.
+        tint: Fill colour of the tinted closed polylines: `#rgb`, `#rrggbb` or a colour name.
+            None draws them unfilled. Checked even when no element is tinted.
 
     Returns:
         The SVG text, ending with a single newline.
+
+    Raises:
+        ValueError: The tint is not a hex colour or a colour name.
     """
+    check_tint(tint)
     sampled = _sampled(symbol, texts or {})
     extent = _extent(symbol, sampled, annotate=annotate)
     view = (
@@ -442,7 +474,7 @@ def to_svg(
         root,
         f"<title>{_content(symbol.name)}</title>",
         _GROUP_OPEN,
-        *(_element(e) for e in symbol.elements),
+        *(_element(e, tint) for e in symbol.elements),
         "</g>",
     ]
     if annotate:
@@ -453,7 +485,7 @@ def to_svg(
     return "\n".join(lines) + "\n"
 
 
-def to_fragment(symbol: Symbol) -> str:
+def to_fragment(symbol: Symbol, *, tint: str | None = None) -> str:
     """Render a symbol as a placeable SVG fragment: a `<g>` of its plain elements only.
 
     For embedding one placed symbol inside a larger document the caller assembles. The caller
@@ -464,9 +496,14 @@ def to_fragment(symbol: Symbol) -> str:
     Args:
         symbol: The symbol to render, already oriented and repeated by the caller (via
             `orient`/`repeat`), exactly as `to_svg` expects its own `symbol` argument.
+        tint: Fill colour of the tinted closed polylines, as in `to_svg`.
 
     Returns:
         The `<g>...</g>` fragment text, ending with a single newline.
+
+    Raises:
+        ValueError: The tint is not a hex colour or a colour name.
     """
-    lines = [_GROUP_OPEN, *(_element(e) for e in symbol.elements), "</g>"]
+    check_tint(tint)
+    lines = [_GROUP_OPEN, *(_element(e, tint) for e in symbol.elements), "</g>"]
     return "\n".join(lines) + "\n"

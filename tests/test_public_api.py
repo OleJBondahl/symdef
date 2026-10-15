@@ -92,9 +92,15 @@ SECTION_11_SIGNATURES = {
         ("module_mm", "KEYWORD_ONLY", "2.5"),
         ("annotate", "KEYWORD_ONLY", "False"),
         ("texts", "KEYWORD_ONLY", "None"),
+        ("tint", "KEYWORD_ONLY", "None"),
     ],
     "write_build": positional("library", "root"),
     "stale_build": positional("library", "root"),
+    "wire": positional("library", "style_id", "points"),
+    "table": [
+        *positional("row", "n", "axis"),
+        ("head", "POSITIONAL_OR_KEYWORD", "None"),
+    ],
 }
 
 
@@ -121,10 +127,11 @@ SECTION_11_FIELDS = {
     "Reference": ["standard", "number", "edition", "form"],
     "Symbol": [
         *("name", "kind", "status", "reference", "elements", "ports", "nodes", "paths"),
-        *("anchors", "slots", "pole_pitch", "lint_allow"),
+        *("anchors", "slots", "pole_pitch", "lint_allow", "stretch"),
     ],
     "Library": [
         *("standard", "title", "number_pattern", "symbols", "vocabulary", "required_slots"),
+        "wires",
     ],
     "Finding": ["rule", "severity", "message", "location", "orientation"],
 }

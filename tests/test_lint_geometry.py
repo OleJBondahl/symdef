@@ -16,13 +16,27 @@ from symdef.geometry import (
     Style,
     Text,
 )
+from symdef.lint import lint
 from symdef.lint.geometry import (
     degenerate,
     off_drawing_grid,
     point_on_geometry,
+    stretch_cut,
     text_too_large,
 )
-from symdef.model import Anchor, Port, Severity, Slot
+from symdef.model import (
+    Allow,
+    Anchor,
+    Node,
+    Port,
+    Reference,
+    Severity,
+    Slot,
+    Status,
+    Stretch,
+    Symbol,
+    SymbolKind,
+)
 
 P = Point
 
@@ -370,3 +384,100 @@ class TestPointOnGeometry:
         )
         point_on_geometry(P(value, 0), elements)
         point_on_geometry(P(0, 0), elements, endpoints_only=True)
+
+
+def stretched(*elements, stretch_cuts, **changes):
+    return plain_symbol(elements=elements, stretch=stretch_cuts, **changes)
+
+
+def clean_card():
+    """A stretchable card: a 32 wide body cut at x = 16, with a lead to a port on its S edge."""
+    return Symbol(
+        name="card",
+        kind=SymbolKind.SYMBOL,
+        status=Status.UNVERIFIED,
+        reference=Reference("X", "1"),
+        elements=(
+            Polyline((P(0, 0), P(32, 0), P(32, 8), P(0, 8)), closed=True),
+            Line(P(4, 8), P(4, 10), port="a"),
+            Line(P(28, 8), P(28, 10), port="b"),
+        ),
+        ports=(Port("a", P(4, 10), Direction.S), Port("b", P(28, 10), Direction.S)),
+        nodes=(Node(("a", "b")),),
+        stretch=(Stretch("x", 16),),
+    )
+
+
+class TestStretchCut:
+    def test_a_circle_across_the_cut_is_an_error(self):
+        symbol = stretched(Circle(P(0, 0), 1), stretch_cuts=(Stretch("x", 0),))
+        (found,) = stretch_cut(symbol)
+        assert (found.rule, found.severity, found.location) == (
+            "stretch-cut",
+            Severity.ERROR,
+            "elements[0]",
+        )
+
+    def test_an_arc_across_the_cut_is_an_error(self):
+        symbol = stretched(Arc(P(0, 0), 1, 0, 90), stretch_cuts=(Stretch("x", 0.5),))
+        assert where(stretch_cut(symbol)) == [("stretch-cut", "elements[0]")]
+
+    def test_a_text_across_the_cut_is_an_error(self):
+        symbol = stretched(Text("MM", P(0, 0), 1), stretch_cuts=(Stretch("x", 0.5),))
+        assert where(stretch_cut(symbol)) == [("stretch-cut", "elements[0]")]
+
+    def test_a_line_or_polyline_across_the_cut_is_not_an_error(self):
+        line = Line(P(-1, 0), P(1, 0))
+        chain = Polyline((P(-1, 1), P(1, 1), P(1, 2)))
+        assert stretch_cut(stretched(line, chain, stretch_cuts=(Stretch("x", 0),))) == ()
+
+    def test_a_cut_at_the_body_min_is_clean_and_at_the_body_max_is_an_error(self):
+        line = Line(P(0, 0), P(4, 0))
+        assert stretch_cut(stretched(line, stretch_cuts=(Stretch("x", 0),))) == ()
+        at_max = stretched(line, stretch_cuts=(Stretch("x", 4),))
+        assert where(stretch_cut(at_max)) == [("stretch-cut", "stretch[0]")]
+
+    def test_a_cut_before_the_body_min_is_an_error(self):
+        symbol = stretched(Line(P(0, 0), P(4, 0)), stretch_cuts=(Stretch("x", -1),))
+        assert where(stretch_cut(symbol)) == [("stretch-cut", "stretch[0]")]
+
+    def test_the_y_axis_is_checked_the_same_way(self):
+        line = Line(P(0, 0), P(0, 4))
+        assert stretch_cut(stretched(line, stretch_cuts=(Stretch("y", 0),))) == ()
+        symbol = stretched(line, stretch_cuts=(Stretch("y", 4),))
+        assert where(stretch_cut(symbol)) == [("stretch-cut", "stretch[0]")]
+
+    def test_a_symbol_without_elements_takes_no_cut(self):
+        assert where(stretch_cut(stretched(stretch_cuts=(Stretch("x", 0),)))) == [
+            ("stretch-cut", "stretch[0]")
+        ]
+
+    def test_two_stretches_on_one_axis_report_the_second(self):
+        line = Line(P(0, 0), P(4, 0))
+        symbol = stretched(line, stretch_cuts=(Stretch("x", 1), Stretch("x", 2)))
+        (found,) = stretch_cut(symbol)
+        assert (found.rule, found.location) == ("stretch-cut", "stretch[1]")
+        assert "second stretch on the x axis" in found.message
+
+    def test_one_stretch_on_each_axis_is_clean(self):
+        symbol = stretched(
+            Line(P(0, 0), P(4, 0)),
+            Line(P(0, 0), P(0, 4)),
+            stretch_cuts=(Stretch("x", 1), Stretch("y", 1)),
+        )
+        assert where(stretch_cut(symbol)) == []
+
+    def test_lint_runs_the_rule_by_its_id(self):
+        symbol = stretched(Circle(P(0, 0), 1), stretch_cuts=(Stretch("x", 0),))
+        assert [(f.rule, f.location) for f in lint(symbol)] == [("stretch-cut", "elements[0]")]
+
+    def test_lint_allow_exempts_the_rule(self):
+        symbol = stretched(
+            Circle(P(0, 0), 1),
+            stretch_cuts=(Stretch("x", 0),),
+            lint_allow=(Allow("stretch-cut", "a test"),),
+        )
+        assert lint(symbol) == ()
+
+    def test_a_clean_stretch_symbol_lints_clean(self):
+        assert lint(clean_card()) == ()

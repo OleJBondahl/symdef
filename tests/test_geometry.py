@@ -38,7 +38,7 @@ def test_weight_values():
 
 def test_style_and_fill_members():
     assert [s.value for s in Style] == ["solid", "dashed"]
-    assert [f.value for f in Fill] == ["none", "solid"]
+    assert [f.value for f in Fill] == ["none", "solid", "tint"]
 
 
 def test_orientation_value_is_its_name():

@@ -41,10 +41,14 @@ class Weight(Enum):
 
 
 class Fill(Enum):
-    """Whether a closed shape is filled."""
+    """Whether a closed shape is filled: not at all, solid black, or with a tint the renderer takes.
+
+    A tint is filled with the colour the caller passes to the renderer.
+    """
 
     NONE = "none"
     SOLID = "solid"
+    TINT = "tint"
 
 
 class Style(Enum):

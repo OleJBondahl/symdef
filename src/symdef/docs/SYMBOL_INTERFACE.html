@@ -31,7 +31,7 @@
 
 <h1>Symbol interface design guide</h1>
 <p class="meta">Binding spec for the <code>symdef</code> toolkit and the data repos built on it.
-Agreed with the repo owner on 2026-09-19; amended 2026-10-07 for 0.5.0 and 2026-10-13 for 0.6.0 (see the change list).</p>
+Agreed with the repo owner on 2026-09-19; amended 2026-10-07 for 0.5.0, 2026-10-13 for 0.6.0 and 2026-10-15 for 0.7.0 (see the change list).</p>
 
 <div class="note">
 <strong>This guide is the only design document.</strong> It changes only through a designer-approved spec,
@@ -41,6 +41,7 @@ with a dated entry in the change list below and in <code>docs/DECISIONS.md</code
 <h2 id="changes">Change list</h2>
 <table>
 <tr><th>Date</th><th>Version</th><th>Change</th></tr>
+<tr><td>2026-10-15</td><td>0.7.0</td><td><code>[[stretch]]</code> and <code>stretch()</code> move everything beyond a cut line; <code>table()</code> places rows with their own ports and slots; lint rule <code>stretch-cut</code> makes 35 rules; <code>[[wire]]</code> in <code>library.toml</code> and <code>wire()</code> draw wires in a named style; <code>fill = "tint"</code> and the <code>tint</code> keyword of the output functions take the caller's colour (D53 to D57). <code>bundle.json</code> gains an optional <code>wires</code> key, the serialized <code>[[wire]]</code> styles, written only when the set has any.</td></tr>
 <tr><td>2026-10-13</td><td>0.6.0</td><td><code>to_fragment_mm(symbol, *, module_mm, weights_mm, dash_mm, font_family, font_mm, cap_ratio)</code> writes a fragment in millimetres with no scale transform: coordinates times the module; stroke widths, dash lengths and font size are the caller's mm; text capitals centred on the anchor by the caller's capital ratio; <code>to_svg</code> and <code>to_fragment</code> output unchanged (D52).</td></tr>
 <tr><td>2026-10-07</td><td>0.5.0</td><td>A set declares its own words: <code>library.toml</code> gains <code>[vocabulary]</code> (<code>path_kinds</code>, <code>potentials</code>, <code>links</code>) and <code>[rules] required_slots</code> (D46). <code>PathKind</code> and <code>Potential</code> leave the API; <code>Path.kind</code> and <code>Node.potential</code> are strings. <code>Library</code> gains <code>vocabulary</code> and <code>required_slots</code>, and <code>lint</code> takes <code>required_slots</code> (sections 5, 6, 9, 11, 12).</td></tr>
 <tr><td>2026-10-07</td><td>0.5.0</td><td>The JSON Schema ships in the package and has an <code>$id</code> on the documentation site; <code>RULES</code> and <code>finding_key</code> join the API (D47).</td></tr>
@@ -154,6 +155,7 @@ Generic consumers should chain symbols using the through path's <code>from</code
 <tr><td><code>parts</code></td><td>array of tables</td><td>composite: yes</td><td>See section 7. A file has <code>elements</code>, <code>parts</code>, or both.</td></tr>
 <tr><td><code>slots</code></td><td>table of tables</td><td><code>kind = "symbol"</code>: yes</td><td>See section 6.</td></tr>
 <tr><td><code>pole_pitch</code></td><td>integer</td><td>no</td><td>Multiple of 4. Only for symbols that cannot fit the 4 M pitch.</td></tr>
+<tr><td><code>stretch</code></td><td>array of tables</td><td>no</td><td><code>axis</code> (<code>x</code> or <code>y</code>) and <code>at</code> (number). At most one per axis. The cut line that <code>stretch()</code> moves everything beyond; see section 7.</td></tr>
 <tr><td><code>lint_allow</code></td><td>array of tables</td><td>no</td><td><code>rule</code>, <code>reason</code>. The only way to be exempt from a lint rule.</td></tr>
 </table>
 
@@ -162,7 +164,7 @@ Generic consumers should chain symbols using the through path's <code>from</code
 <table>
 <tr><th>Shape</th><th>Form</th></tr>
 <tr><td>Line</td><td><code>{ line = [[x1, y1], [x2, y2]], port = "in" }</code> (<code>port</code> optional)</td></tr>
-<tr><td>Polyline</td><td><code>{ polyline = [[x, y], ...], closed = true, fill = "solid" }</code> (<code>closed</code> default false, <code>fill</code> <code>none</code> | <code>solid</code>, default none)</td></tr>
+<tr><td>Polyline</td><td><code>{ polyline = [[x, y], ...], closed = true, fill = "solid" }</code> (<code>closed</code> default false, <code>fill</code> <code>none</code> | <code>solid</code> | <code>tint</code>, default none; <code>tint</code> only on a closed polyline, drawn in the colour the caller passes, D57)</td></tr>
 <tr><td>Circle</td><td><code>{ circle = [cx, cy], r = 0.5, fill = "none" }</code></td></tr>
 <tr><td>Arc</td><td><code>{ arc = [cx, cy], r = 0.5, start = 180, end = 0 }</code> (clockwise from <code>start</code> to <code>end</code>)</td></tr>
 <tr><td>Text</td><td><code>{ text = "M", at = [0, 0], height = 1 }</code> (always middle-anchored, always upright)</td></tr>
@@ -405,6 +407,12 @@ tag           = { at = [-3.5, 0], side = "W", box = [6, 1] }
 </ul>
 <p>There are no <code>poles=</code>, <code>pins=</code> or <code>inverted=</code> parameters anywhere. Pole count is <code>repeat</code>, markings belong to the placement, and inversion is the orientation <code>MR180</code>.</p>
 
+<h3><code>table(row, n, axis, head=None)</code>: rows of cells</h3>
+<p>Returns <code>n</code> copies of <code>row</code>, copy k (from 1) stepped by the row's body extent along <code>axis</code>. Ports, nodes, paths and bound leads are prefixed <code>k.</code>. Every slot is kept: <code>marking.&lt;port&gt;</code> becomes <code>marking.k.&lt;port&gt;</code> and any other id becomes <code>k.&lt;id&gt;</code>. No through path is needed. <code>head</code>, if given, keeps its own ids and is placed once before the rows, as authored in the row's frame; with a stretch on <code>axis</code> it is first stretched to span the rows. <code>n</code> is at most 64. The result has no stretch and keeps the row's <code>pole_pitch</code> (D54).</p>
+
+<h3><code>stretch(symbol, axis, length, offsets=None)</code>: a cut line</h3>
+<p>Moves every point beyond the symbol's <code>stretch</code> cut on <code>axis</code> by <code>length</code> minus the natural extent: element points, ports, anchors and slots. A circle, arc or text across the cut raises <code>ValueError</code>, as does a <code>length</code> below the natural extent, a symbol with no stretch on <code>axis</code>, and an offset that names no port, a port not on the edge across the axis, or a place off the wiring grid or outside the stretched body. <code>offsets</code> places each named port, with its bound lead and its <code>marking.&lt;port&gt;</code> slot, at a coordinate along the axis. The result has no stretch on that axis, so a frame is stretched on both axes by two calls (D53).</p>
+
 <h2 id="s8">8. Wiring contract</h2>
 <p>What every flattened symbol guarantees a router, in all 8 orientations:</p>
 <ol>
@@ -427,9 +435,10 @@ Data repo gates require zero findings of either severity, so a warning is simply
 <tr><td rowspan="3">File</td><td><code>schema</code></td><td>the file fails JSON Schema validation</td></tr>
 <tr><td><code>metadata</code></td><td>empty name, <code>reference.standard</code> differs from <code>library.toml</code>, number not matching its <code>number_pattern</code>, or number differs from the file stem</td></tr>
 <tr><td><code>id-format</code></td><td>a port, anchor or part id does not match the id pattern</td></tr>
-<tr><td rowspan="3">Geometry</td><td><code>off-drawing-grid</code></td><td>any coordinate, radius, text height, anchor, slot point or slot box size is not a multiple of 0.125</td></tr>
+<tr><td rowspan="4">Geometry</td><td><code>off-drawing-grid</code></td><td>any coordinate, radius, text height, anchor, slot point or slot box size is not a multiple of 0.125</td></tr>
 <tr><td><code>degenerate</code></td><td>zero-length line, non-positive radius, polyline with fewer than 2 points (3 when closed), arc with equal angles, exact duplicate element, slot box with a non-positive side</td></tr>
 <tr><td><code>text-too-large</code></td><td>a text element is taller than 1 M</td></tr>
+<tr><td><code>stretch-cut</code></td><td>a circle, arc or text crosses a stretch cut, a cut lies outside <code>body_min &lt;= at &lt; body_max</code> on its axis, or a symbol has a second stretch on one axis</td></tr>
 <tr><td rowspan="8">Ports</td><td><code>port-duplicate-id</code></td><td>two ports share an id</td></tr>
 <tr><td><code>port-off-wiring-grid</code></td><td>a port position is not a multiple of 1 M</td></tr>
 <tr><td><code>port-off-geometry</code></td><td>a port is not at a line or polyline endpoint, on a circle or arc, or on a closed outline</td></tr>
@@ -464,8 +473,8 @@ Data repo gates require zero findings of either severity, so a warning is simply
 <h2 id="s10">10. Resolved output</h2>
 <p>The build flattens every file and writes JSON. This is the interface for consumers that are not Python, and for simple consumers of any kind: they never implement composition.</p>
 <ul>
-  <li><code>build/resolved/&lt;number&gt;.json</code>: one flattened symbol. Same schema as the source, with <code>parts</code> gone, composite <code>ports</code> expanded to the array form, slot references expanded to tables, <code>nodes</code> listing every node explicitly, and two computed keys: <code>body_box</code> and <code>keepout_box</code>, each <code>[[min_x, min_y], [max_x, max_y]]</code> in base orientation.</li>
-  <li><code>src/&lt;package&gt;/bundle.json</code>: the bundle, shipped as package data: <code>{ "schema": 1, "standard": "IEC 60617", "symbols": { "S00227": { ... }, ... } }</code>. It is generated and tracked like <code>build/</code>, and <code>stale_build</code> covers it.</li>
+  <li><code>build/resolved/&lt;number&gt;.json</code>: one flattened symbol. Same schema as the source, with <code>parts</code> gone, composite <code>ports</code> expanded to the array form, slot references expanded to tables, <code>nodes</code> listing every node explicitly, and two computed keys: <code>body_box</code> and <code>keepout_box</code>, each <code>[[min_x, min_y], [max_x, max_y]]</code> in base orientation. A <code>stretch</code> key, an array of <code>{ "axis", "at" }</code>, is written only when set.</li>
+  <li><code>src/&lt;package&gt;/bundle.json</code>: the bundle, shipped as package data: <code>{ "schema": 1, "standard": "IEC 60617", "symbols": { "S00227": { ... }, ... } }</code>. It is generated and tracked like <code>build/</code>, and <code>stale_build</code> covers it. An optional <code>wires</code> array of <code>{ "id", "weight", "style" }</code> is written only when the set has wire styles.</li>
   <li>Output is deterministic: UTF-8, LF line endings, 2-space indent, object keys sorted, arrays in source order, a whole number written without a decimal point and any other number in its shortest exact decimal form, one trailing newline. A symbol change shows up as a reviewable diff.</li>
 </ul>
 <p>A consumer in another language needs the bundle, the schema, and the orientation and slot-box rules from sections 3 and 6. That is about thirty lines of code.</p>
@@ -479,23 +488,29 @@ Port(id, position, direction, description)
 Node(ports, potential)          Path(from_port, to_port, kind, through)
 Anchor(id, position, direction) Slot(id, position, side, box)
 Reference(standard, number, edition, form)
-Symbol(name, kind, status, reference, elements, ports, nodes, paths, anchors, slots, pole_pitch)
-Library(standard, title, number_pattern, symbols, vocabulary, required_slots)    get(number), __iter__ (sorted by number), __len__
+Symbol(name, kind, status, reference, elements, ports, nodes, paths, anchors, slots, pole_pitch, stretch)
+Library(standard, title, number_pattern, symbols, vocabulary, required_slots, wires)    get(number), __iter__ (sorted by number), __len__
 Finding(rule, severity, message, location, orientation)
+Stretch(axis, at)               WireStyle(id, weight, style)
 
 load_library(root) -&gt; Library             read library.toml and symbols/*.toml, validate, resolve, flatten
 load_bundle(json_path) -&gt; Library         read a resolved bundle
 orient(symbol, orientation) -&gt; Symbol       ports, nodes, paths, anchors and slots all carried along
 translate(symbol, dx, dy) -&gt; Symbol         used by composition and repeat; consumers place symbols themselves
 repeat(symbol, n) -&gt; Symbol
+stretch(symbol, axis, length, offsets=None) -&gt; Symbol    section 7
+table(row, n, axis, head=None) -&gt; Symbol    section 7
+wire(library, style_id, points) -&gt; Symbol    the wire styles of library.toml
 body_box(symbol) -&gt; Box    keepout_box(symbol) -&gt; Box    slot_box(slot) -&gt; Box
 lint(symbol, required_slots=()) -&gt; tuple[Finding, ...]
-to_svg(symbol, *, module_mm=2.5, annotate=False, texts=None) -&gt; str
+to_svg(symbol, *, module_mm=2.5, annotate=False, texts=None, tint=None) -&gt; str
 write_build(library, root) -&gt; tuple[Path, ...]    writes build/ and the bundle
 stale_build(library, root) -&gt; tuple[Path, ...]    files that differ from what write_build would write, stale extras included
 init(root) -&gt; tuple[Path, ...]    build(root) -&gt; tuple[Path, ...]    check(root) -&gt; tuple[Finding, ...]    the three verbs of the <code>symdef</code> command</code></pre>
 <p><code>annotate=True</code> draws the grid, ports with ids and lanes, anchors, slot boxes, and both boxes. <code>texts</code> maps slot ids to sample strings so the gallery can show a filled-in symbol.</p>
 <p><code>to_fragment_mm</code> writes the same placeable <code>&lt;g&gt;</code> fragment as <code>to_fragment</code>, in millimetres, with no scale transform (D52). Each coordinate and radius is multiplied by <code>module_mm</code>. Stroke widths come from <code>weights_mm</code>, one entry per weight, dash lengths from <code>dash_mm</code>, and the font size from <code>font_mm</code>; these are the caller's millimetres. Text capitals are centred on the anchor by <code>cap_ratio</code>, the capital height as a fraction of the font size. The caller passes the font family. <code>to_svg</code> and <code>to_fragment</code> are unchanged.</p>
+<p><code>to_svg</code>, <code>to_fragment</code> and <code>to_fragment_mm</code> take the keyword <code>tint</code>, the colour of every <code>fill = "tint"</code> shape. It must be <code>#rgb</code>, <code>#rrggbb</code> or a letters-only name, or the call raises <code>ValueError</code>; with <code>None</code> a tinted shape draws <code>fill="none"</code>. Output without a tinted shape does not change (D57).</p>
+<p>A set declares wire styles in <code>library.toml</code> as <code>[[wire]]</code> tables with <code>id</code>, <code>weight</code> (<code>normal</code> | <code>thick</code>) and <code>style</code> (<code>solid</code> | <code>dashed</code>). <code>wire</code> returns an element symbol of one open polyline in that style, with no ports; <code>points</code> are <code>Point</code>s or (x, y) pairs, at least two (D56).</p>
 <p>A data repo's Python package is a thin wrapper: <code>from my_symbols import LIBRARY</code>, loaded from the bundled JSON shipped as package data.</p>
 <h3>What a drawing library does</h3>
 <pre><code>from symdef import Orientation, keepout_box, orient, repeat

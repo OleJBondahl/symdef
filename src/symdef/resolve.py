@@ -31,7 +31,7 @@ _PLACEMENT_KEYS = ("to", "length", "via")
 
 # `repeat` in a part file stops here: the guide sets no bound, and a data file must not be able to
 # ask for a million poles.
-_MAX_REPEAT = 64
+MAX_REPEAT = 64
 
 # A cycle longer than this is shown by its first files only, so a message stays readable.
 _CHAIN_SHOWN = 8
@@ -94,8 +94,8 @@ def _prepare(
     if "repeat" in part:
         where = _at("parts", index, "repeat")
         count = int(part["repeat"])
-        if not 1 <= count <= _MAX_REPEAT:
-            message = f"repeat must be between 1 and {_MAX_REPEAT}"
+        if not 1 <= count <= MAX_REPEAT:
+            message = f"repeat must be between 1 and {MAX_REPEAT}"
             return None, (rule_finding("schema", message, where),)
         if not any(path.through for path in base.paths):
             return None, (rule_finding("schema", "repeat needs a part with a through path", where),)

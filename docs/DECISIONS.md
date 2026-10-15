@@ -948,3 +948,97 @@ transform and no scale. `to_svg` and `to_fragment` bytes are unchanged; the gold
 `tests/fixtures/svg_golden` prove it. Release 0.6.0.
 Why: the owner wants every size set in millimetres and rendered exactly, with nothing scaled.
 Cost if wrong: the function is additive; remove it and its export.
+
+## D53. stretch(): a cut line moves everything beyond it (SYMDEF-SLOTS SS1, SS7)
+
+Decided: `Symbol.stretch` holds at most one `Stretch(axis, at)` per axis, written `[[stretch]]` in a
+file and `stretch` in the resolved JSON (written only when set, so existing bundles keep their
+bytes; the bundle schema version stays 1). `stretch(symbol, axis, length, offsets=None)` in the new
+`stretch.py` moves every point whose coordinate is greater than `at` by `length` minus the body
+extent (`body_box`) along the axis: line and polyline points, ports, anchors and slots; a circle,
+arc or text lying wholly beyond the cut moves whole, one wholly before it stays, one across it
+raises `ValueError`. Offsets place each named port, its bound lead and its `marking.<port>` slot at
+a coordinate inside the stretched body on the 1 M wiring grid; the port must face across the axis
+(N or S for x, E or W for y), and an offset naming no port raises `ValueError` too. A `length`
+equal to the natural extent is allowed. The result drops that axis's stretch, so a frame is
+stretched on both axes by two calls (SS7); no extra API. `orient`, `translate` and `repeat` carry
+the field unchanged and do not raise; the stretch is applied before them. The lint driver does not
+clear it: every rule ignores it except `stretch-cut` (D55), which runs once on the base symbol. A
+composite does not inherit its parts' stretch; its own `[[stretch]]` is its own. `crosses_cut` is
+the one predicate the function and the lint rule share.
+Why: the owner chose the stretch value: layout passes one length and symdef builds the symbol.
+Cost if wrong: the field, the function and the schema key are additive; remove them and the export.
+
+## D54. table(): rows with their own ports and slots (SYMDEF-SLOTS SS2)
+
+Decided: `table(row, n, axis, head=None)` in the new `table.py` returns `n` copies of `row`, copy k
+(from 1) stepping by the row's body extent (`body_box`) along the axis. Ports, bound leads, nodes
+and paths are prefixed `<k>.`, through the helpers `repeat` uses (now public in `repeat.py` as
+`pole_elements` and `pole_parts`). Every slot of every copy is kept: `marking.<port>` becomes
+`marking.<k>.<port>`, any other `<id>` becomes `<k>.<id>`. No through path is needed. The cap is
+`repeat`'s 64, now the constant `MAX_REPEAT` in `repeat.py` (the resolver imports it). The result
+keeps the row's `pole_pitch`, takes copy 1's anchors and has no stretch. A head keeps its own ids
+and comes first in the lists; with a stretch on the table's axis it is first stretched to
+`n * step`, the rows' total extent on that axis (amendment 2: this is how a cable head spans its
+k columns stepping along x). A head with no stretch on the axis is not stretched. The head stays
+where it is authored, relative to row 1, as built, and is never translated. `repeat` is unchanged.
+Why: a table is cells with their own text, not poles of one device.
+Cost if wrong: additive; remove the module and its export. A head that must move is a later keyword.
+
+## D55. Lint rule stretch-cut and the schema key (SYMDEF-SLOTS SS3)
+
+Decided: a second rule beyond the spec's 33, `stretch-cut` (after `lead-off-port`, D40): group
+Geometry, severity error, not orientation dependent, so it runs once on the base symbol and
+`lint_allow` may exempt it. It reports, at `elements[j]`, a circle, arc or text a cut crosses
+(`crosses_cut`, the predicate `stretch` itself uses), and, at `stretch[i]`, a cut that does not satisfy
+`body_min <= at < body_max` on its axis (a cut at the far edge moves nothing; one at the near edge
+is legal) and every stretch after the first on one axis. The rule count is 35. `symbol.schema.json`
+gains `stretch`, an array of `{axis, at}`, both required, `axis` one of x and y; the file's `schema`
+integer does not step, as for `port` on a line (D40). Under `orient` the lint driver leaves the
+field alone; no other rule reads it.
+Why: a symbol whose cut crosses a circle cannot be stretched, and the error should surface at lint, not
+at the consumer's build.
+Cost if wrong: the rule is additive; remove its row, check and the 35 in the counts.
+
+## D56. Wire styles and wire() (SYMDEF-SLOTS SS8)
+
+Decided: a symbol set declares wire styles in `library.toml` as `[[wire]]` with `id`, `weight`
+(`normal` or `thick`) and `style` (`solid` or `dashed`); the table is optional, and a missing key, an
+unknown word or a duplicate id is a finding like those of `[vocabulary]`. `WireStyle(id, weight,
+style)` is a new public dataclass; `LibraryConfig` and `Library` gain a last field `wires`.
+`wire(library, style_id, points)` in the new `wire.py` returns an element-kind symbol of one open
+`Polyline` of that style (name `wire <id>`, reference number `wire.<id>`), with no ports or slots;
+points may be `Point`s or (x, y) pairs. An unknown id raises `KeyError` naming it (as
+`to_fragment_mm` does for weights), fewer than two points `ValueError`. The consumer reads a
+bundle, not the TOML, so `bundle.json` carries an optional top-level `wires` array, written only
+when the library has wires (existing bundles keep their bytes; the bundle schema stays 1), checked
+by `validate_bundle` and read by `library_from_bundle`. A junction dot is an ordinary symbol.
+Why: the owner ruled that wires are symdef functions and layout names only a style and points.
+Cost if wrong: additive; remove the module, the dataclass, the field and the bundle key.
+
+## D57. Tint fill (SYMDEF-SLOTS SS9)
+
+Decided: `Fill` gains `TINT = "tint"`. A file may write `fill = "tint"` on a closed polyline only;
+on a circle or an open polyline it is a `schema` finding, and the JSON schema agrees (a separate
+fill definition for polylines, with `closed = true` required beside `tint`). `to_svg`, `to_fragment`
+and `to_fragment_mm` take a keyword-only `tint: str | None = None`, the colour string the caller
+chooses, drawn as the fill of every tinted shape; with `None` a tinted shape draws `fill="none"`.
+The toolkit chooses no colour. So that no value can inject SVG, a colour must be `#rgb`,
+`#rrggbb` or a letters-only name; anything else raises `ValueError`, whether or not a shape uses
+it (`check_tint` in `svg.py`, shared by the mm output). Output bytes without a tinted shape do not
+change; the golden fixtures prove it.
+Why: the consumer passes the colour, as it passes slot texts.
+Cost if wrong: additive; remove the enum member, the keyword and the check.
+
+## D58. The interface spec is amended in place for 0.7.0 (SYMDEF-SLOTS SS4)
+
+Decided (owner C1; model D51): `SYMBOL_INTERFACE.html` gets a dated change-list row, 2026-10-15,
+0.7.0, and the sections that define the new pieces change in place: section 4 (`[[stretch]]`,
+`fill = "tint"`), section 7 (`stretch` and `table` beside `repeat`), section 9 (the rule table and
+count, 35), section 10 (the optional `stretch` key and the bundle's `wires`) and section 11 (the
+API list, `[[wire]]` of `library.toml`, `tint`). `docs/GUIDE.md` gains "Stretching and tables";
+its Python blocks run in `tests/test_readme.py`. The `[[wire]]` and `wires` bundle key are the
+toolkit's own additions beyond the spec's data model, recorded in D56. The version bump, tag and
+release are not part of this change.
+Why: the spec is the one design document and must describe what the code does.
+Cost if wrong: revert the file; code and tests read only its code blocks and the rule table.
