@@ -1,6 +1,7 @@
 """Without `texts`, both fragment functions draw the exact bytes of symdef 0.8.0."""
 
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -11,7 +12,7 @@ ROOT = Path(__file__).resolve().parent.parent
 GOLDEN = Path(__file__).parent / "fixtures" / "slot_text_0_8"
 LIBRARY = symdef.load_library(ROOT / "docs" / "tutorial-set")
 NUMBERS = sorted(LIBRARY.symbols)
-MM = {
+MM: dict[str, Any] = {
     "module_mm": 2.5,
     "weights_mm": {Weight.NORMAL: 0.25, Weight.THICK: 0.5},
     "dash_mm": (1.2, 0.6),
@@ -42,7 +43,6 @@ def test_to_fragment_mm_keeps_the_0_8_bytes(number):
     assert got == (GOLDEN / f"{number}.mm.svg").read_bytes()
 
 
-@pytest.mark.xfail(strict=True, reason="keyword arrives in P1")
 @pytest.mark.parametrize("number", NUMBERS)
 def test_texts_none_equals_no_keyword(number):
     symbol = LIBRARY.get(number)

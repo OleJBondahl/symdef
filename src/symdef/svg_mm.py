@@ -19,7 +19,19 @@ from symdef.geometry import (
     arc_sweep,
 )
 from symdef.model import Symbol
-from symdef.svg import _FULL_TURN, _HALF_TURN, _content, _num, check_colour, check_tint, group_open
+from symdef.svg import (
+    _FULL_TURN,
+    _HALF_TURN,
+    SIDE_ALIGN,
+    _content,
+    _num,
+    _slots_by_id,
+    check_colour,
+    check_texts,
+    check_tint,
+    group_open,
+    slot_text_tag,
+)
 
 
 class _Mm(NamedTuple):
@@ -76,6 +88,10 @@ class _Mm(NamedTuple):
             return f' stroke-dasharray="{_num(self.dash[0])} {_num(self.dash[1])}"'
         return ""
 
+    def y_below(self, y: float, fraction: float) -> str:
+        """Return a y in module units as mm, moved down by a fraction of the cap height."""
+        return _num(y * self.module + self.cap_ratio * self.font * fraction)
+
     def pair(self, p: Point) -> str:
         """Return a point as `x y`."""
         return " ".join(self.xy(p))
@@ -97,12 +113,33 @@ def _arc(mm: _Mm, arc: Arc) -> str:
 
 def _text(mm: _Mm, text: Text) -> str:
     x = _num(text.position.x * mm.module)
-    y = _num(text.position.y * mm.module + mm.cap_ratio * mm.font / 2)
+    y = mm.y_below(text.position.y, 0.5)
     return (
         f'<text x="{x}" y="{y}" font-size="{_num(mm.font)}" text-anchor="middle" '
         f'fill="{mm.muted or "#000"}" '
         f'stroke="none" font-family={quoteattr(mm.family)}>{_content(text.content)}</text>'
     )
+
+
+def _slot_texts(mm: _Mm, symbol: Symbol, texts: Mapping[str, str] | None) -> list[str]:
+    """Draw the caller's strings, one tag per slot in id order; the size is the caller's font."""
+    if texts is None:
+        return []
+    tags = []
+    for slot in _slots_by_id(symbol):
+        if texts.get(slot.id):
+            anchor, fraction = SIDE_ALIGN[slot.side]
+            tag = slot_text_tag(
+                mm.xy(slot.position)[0],
+                mm.y_below(slot.position.y, fraction),
+                _num(mm.font),
+                anchor=anchor,
+                fill=mm.muted or "#000",
+                family=quoteattr(mm.family),
+                content=texts[slot.id],
+            )
+            tags.append(tag)
+    return tags
 
 
 def _element(mm: _Mm, element: Element, tint: str | None) -> str:
@@ -138,6 +175,7 @@ def to_fragment_mm(  # noqa: PLR0913 - one physical size per keyword
     cap_ratio: float,
     tint: str | None = None,
     muted: str | None = None,
+    texts: Mapping[str, str] | None = None,
 ) -> str:
     """Render a symbol as a `<g>` fragment in millimetres, with no `scale(` and no transform.
 
@@ -164,18 +202,30 @@ def to_fragment_mm(  # noqa: PLR0913 - one physical size per keyword
         muted: The colour a muted symbol is drawn in, or None. As in `to_fragment`, with the dash
             and gap of the normal stroke width taken from `weights_mm`; `dash_mm` and
             `dash_dot_mm` are then not used.
+        texts: The string to draw in each slot, by slot id, or None to draw none. A slot without
+            a string, or with an empty one, draws nothing. Each string follows the elements, in
+            slot id order, at `font_mm` in `font_family`, aligned by the slot side (E start, W
+            end, N and S middle; the baseline is half a capital below the slot point for E and W,
+            on it for N and one capital below it for S). It is never measured, shrunk or wrapped.
 
     Returns:
         The `<g>...</g>` fragment text, ending with a single newline.
 
     Raises:
         KeyError: A weight an element uses, or `Weight.NORMAL` when muted, is missing from
-            `weights_mm`; the key names it.
+            `weights_mm`; the key names it. Also a key of `texts` that is not a slot id of the
+            symbol, checked before anything is drawn, also for an empty string.
         ValueError: The tint or the muted colour is not a hex colour or a colour name, or a
             dash-dot element is drawn and `dash_dot_mm` is None.
     """
     check_tint(tint)
     check_colour("muted", muted)
+    check_texts(symbol, texts)
     mm = _Mm(module_mm, weights_mm, dash_mm, dash_dot_mm, font_family, font_mm, cap_ratio, muted)
-    lines = [group_open(muted), *(_element(mm, e, tint) for e in symbol.elements), "</g>"]
+    lines = [
+        group_open(muted),
+        *(_element(mm, e, tint) for e in symbol.elements),
+        *_slot_texts(mm, symbol, texts),
+        "</g>",
+    ]
     return "\n".join(lines) + "\n"
