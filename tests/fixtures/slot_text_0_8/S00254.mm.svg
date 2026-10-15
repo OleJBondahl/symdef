@@ -1,0 +1,8 @@
+<g fill="none" stroke="#000" stroke-linecap="butt" stroke-linejoin="miter">
+<line x1="0" y1="-5" x2="0" y2="-2.5" stroke-width="0.25"/>
+<line x1="0" y1="5" x2="0" y2="2.5" stroke-width="0.25"/>
+<line x1="0" y1="2.5" x2="-2.5" y2="-2.5" stroke-width="0.25"/>
+<line x1="-1.25" y1="0" x2="-6.25" y2="0" stroke-width="0.25" stroke-dasharray="1.2 0.6"/>
+<line x1="-6.25" y1="-1.25" x2="-6.25" y2="1.25" stroke-width="0.25"/>
+<line x1="-6.25" y1="0" x2="-8.125" y2="0" stroke-width="0.25"/>
+</g>
