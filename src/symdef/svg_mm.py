@@ -178,7 +178,7 @@ def to_fragment_mm(  # noqa: PLR0913 - one physical size per keyword
     texts: Mapping[str, str] | None = None,
     required_slots: Sequence[str] = (),
 ) -> str:
-    """Render a symbol as a `<g>` fragment in millimetres, with no `scale(` and no transform.
+    """Render a symbol as a `<g>` fragment in millimetres, with no `scale(`.
 
     The one transform is the `rotate(-90)` on the text element of a turned slot's string.
     A different output from `to_fragment`, whose contract is module units with the caller
