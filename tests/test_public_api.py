@@ -92,6 +92,7 @@ SECTION_11_SIGNATURES = {
         ("module_mm", "KEYWORD_ONLY", "2.5"),
         ("annotate", "KEYWORD_ONLY", "False"),
         ("texts", "KEYWORD_ONLY", "None"),
+        ("tint", "KEYWORD_ONLY", "None"),
     ],
     "write_build": positional("library", "root"),
     "stale_build": positional("library", "root"),

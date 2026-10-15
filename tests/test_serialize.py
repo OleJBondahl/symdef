@@ -34,6 +34,7 @@ from symdef.model import (
     Reference,
     Slot,
     Status,
+    Stretch,
     Symbol,
     SymbolKind,
 )
@@ -373,7 +374,7 @@ _ids = st.text("abc12", min_size=1, max_size=3)
 _names = st.text(max_size=6)
 _weights = st.sampled_from(Weight)
 _styles = st.sampled_from(Style)
-_fills = st.sampled_from(Fill)
+_fills = st.sampled_from([Fill.NONE, Fill.SOLID])
 _directions = st.sampled_from(Direction)
 _elements = st.one_of(
     st.builds(Line, _points, _points, _weights, _styles, st.none() | _ids),
@@ -381,10 +382,10 @@ _elements = st.one_of(
         Polyline,
         st.lists(_points, max_size=4).map(tuple),
         st.booleans(),
-        _fills,
+        st.sampled_from(Fill),
         _weights,
         _styles,
-    ),
+    ).filter(lambda p: p.fill is not Fill.TINT or p.closed),
     st.builds(Circle, _points, _radii, _fills, _weights),
     st.builds(Arc, _points, _radii, _angles, _angles, _weights, _styles),
     st.builds(Text, _names, _points, _radii, _weights),
@@ -425,6 +426,9 @@ _symbols = st.builds(
     ).map(tuple),
     pole_pitch=st.none() | st.sampled_from([4, 8, 12]),
     lint_allow=st.lists(st.builds(Allow, _ids, _names), max_size=2).map(tuple),
+    stretch=st.lists(st.builds(Stretch, st.sampled_from(["x", "y"]), _radii), max_size=2).map(
+        tuple
+    ),
 )
 
 
