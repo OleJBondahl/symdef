@@ -62,12 +62,15 @@ _TEXT_WIDTH = 0.6
 _SAMPLE_MAX_SIZE = 1.0
 _CAP_HEIGHT = 0.72
 _CAP_CENTRE = _CAP_HEIGHT / 2
-_SAMPLE_ALIGN = {
-    Direction.E: ("start", _CAP_CENTRE),
-    Direction.W: ("end", _CAP_CENTRE),
+# Per slot side: the text anchor and the baseline below the slot point as a fraction of the cap
+# height. `to_fragment` and `to_fragment_mm` read this one table (SS15).
+SIDE_ALIGN = {
+    Direction.E: ("start", 0.5),
+    Direction.W: ("end", 0.5),
     Direction.N: ("middle", 0.0),
-    Direction.S: ("middle", _CAP_HEIGHT),
+    Direction.S: ("middle", 1.0),
 }
+_SAMPLE_ALIGN = {side: (anchor, f * _CAP_HEIGHT) for side, (anchor, f) in SIDE_ALIGN.items()}
 # What XML 1.0 cannot carry: most C0 controls, lone surrogates, U+FFFE and U+FFFF.
 _XML_ILLEGAL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\ud800-\udfff\U0000fffe\U0000ffff]")
 _GROUP_OPEN = '<g fill="none" stroke="#000" stroke-linecap="butt" stroke-linejoin="miter">'
@@ -344,6 +347,48 @@ def _sample_text(slot: Slot, content: str, size: float) -> str:
     return _label("sample-text", at, size, anchor=anchor, colour=_SAMPLE_COLOUR, content=content)
 
 
+def check_texts(symbol: Symbol, texts: Mapping[str, str] | None) -> None:
+    """Raise KeyError naming every key of `texts` that is not a slot id of the symbol (SS15)."""
+    if texts is None:
+        return
+    unknown = sorted(set(texts) - {slot.id for slot in symbol.slots})
+    if unknown:
+        raise KeyError(", ".join(unknown))
+
+
+def slot_text_tag(  # noqa: PLR0913 - one slot text tag is these six things
+    x: str, y: str, size: str, *, anchor: str, fill: str, family: str, content: str
+) -> str:
+    """Render one slot text; `family` is the finished `font-family` attribute value, quotes in."""
+    return (
+        f'<text x="{x}" y="{y}" font-size="{size}" text-anchor="{anchor}" '
+        f'fill="{fill}" stroke="none" font-family={family}>{_content(content)}</text>'
+    )
+
+
+def _slot_texts(symbol: Symbol, texts: Mapping[str, str] | None, muted: str | None) -> list[str]:
+    """Render the strings of `texts` in module units, one tag per slot in id order (SS15)."""
+    if texts is None:
+        return []
+    fill = "#000" if muted is None else muted
+    tags = []
+    for slot, content, size in _sampled(symbol, texts):
+        anchor, fraction = SIDE_ALIGN[slot.side]
+        y = slot.position.y + fraction * _CAP_HEIGHT * size
+        tags.append(
+            slot_text_tag(
+                _num(slot.position.x),
+                _num(y),
+                _num(size),
+                anchor=anchor,
+                fill=fill,
+                family='"sans-serif"',
+                content=content,
+            )
+        )
+    return tags
+
+
 def _slot(slot: Slot) -> list[str]:
     """Render a slot box, translucent, with its id just above it."""
     box = slot_box(slot)
@@ -508,13 +553,19 @@ def to_svg(
     return "\n".join(lines) + "\n"
 
 
-def to_fragment(symbol: Symbol, *, tint: str | None = None, muted: str | None = None) -> str:
+def to_fragment(
+    symbol: Symbol,
+    *,
+    tint: str | None = None,
+    muted: str | None = None,
+    texts: Mapping[str, str] | None = None,
+) -> str:
     """Render a symbol as a placeable SVG fragment: a `<g>` of its plain elements only.
 
     For embedding one placed symbol inside a larger document the caller assembles. The caller
     wraps the result in its own `<g transform="...">` to position, orient and scale it; this
-    function applies none of its own. No title, no annotations, no sample texts. Elements are
-    drawn exactly as in `to_svg`'s plain mode, in module units.
+    function applies none of its own. No title and no annotations. Elements are drawn exactly as
+    in `to_svg`'s plain mode, in module units. The strings in `texts` follow them (SS15).
 
     Args:
         symbol: The symbol to render, already oriented and repeated by the caller (via
@@ -523,14 +574,27 @@ def to_fragment(symbol: Symbol, *, tint: str | None = None, muted: str | None = 
         muted: The colour a muted symbol is drawn in, or None. Muted draws every stroke, every
             text and every solid or tint fill in that colour, and every line style as a dash and
             a gap each as long as the normal stroke width. An unfilled shape stays unfilled.
+        texts: The string to draw in each slot, by slot id, or None to draw none. A slot without
+            a string, or with an empty one, draws nothing. A string is aligned by the slot side
+            (E start, W end, N and S middle, as the sample texts of `to_svg`), sized to fit the
+            slot box (at most 1 M), black or in the muted colour, with no class. It is never
+            wrapped.
 
     Returns:
         The `<g>...</g>` fragment text, ending with a single newline.
 
     Raises:
+        KeyError: A key of `texts` is not a slot id of the symbol; the key names it. Checked
+            before anything is drawn, also for an empty string.
         ValueError: The tint or the muted colour is not a hex colour or a colour name.
     """
     check_tint(tint)
     check_colour("muted", muted)
-    lines = [group_open(muted), *(_element(e, tint, muted) for e in symbol.elements), "</g>"]
+    check_texts(symbol, texts)
+    lines = [
+        group_open(muted),
+        *(_element(e, tint, muted) for e in symbol.elements),
+        *_slot_texts(symbol, texts, muted),
+        "</g>",
+    ]
     return "\n".join(lines) + "\n"
