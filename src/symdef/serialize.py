@@ -38,6 +38,18 @@ def _slot_id(slot: Slot) -> str:
     return slot.id
 
 
+def _slot(slot: Slot) -> dict[str, Any]:
+    """Write a slot; `turn` appears only when true, so a set without one keeps its bytes."""
+    data: dict[str, Any] = {
+        "at": _point(slot.position),
+        "side": slot.side.name,
+        "box": [slot.box[0], slot.box[1]],
+    }
+    if slot.turn:
+        data["turn"] = True
+    return data
+
+
 def _element(element: Element) -> dict[str, Any]:
     """Write an element in the source vocabulary with every default key present."""
     match element:
@@ -137,14 +149,7 @@ def symbol_to_data(symbol: Symbol) -> dict[str, Any]:
             {"id": a.id, "at": _point(a.position), "dir": a.direction.name} for a in symbol.anchors
         ],
         "elements": [_element(e) for e in symbol.elements],
-        "slots": {
-            slot.id: {
-                "at": _point(slot.position),
-                "side": slot.side.name,
-                "box": [slot.box[0], slot.box[1]],
-            }
-            for slot in sorted(symbol.slots, key=_slot_id)
-        },
+        "slots": {slot.id: _slot(slot) for slot in sorted(symbol.slots, key=_slot_id)},
         "body_box": _box(body_box(symbol)),
         "keepout_box": _box(keepout_box(symbol)),
     }

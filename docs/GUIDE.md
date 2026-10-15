@@ -344,6 +344,24 @@ dim = to_fragment(card, muted="#888")
 assert "#000" not in dim and 'stroke="#888"' in dim
 ```
 
+## Drawing slot text
+
+`to_fragment(symbol, texts={...})` and `to_fragment_mm(..., texts={...})` draw the string you pass
+for each slot, by slot id, after the symbol's elements. The slot's `side` sets the alignment
+and a slot with `turn = true` reads bottom-up. symdef never measures, shrinks or wraps a string:
+`to_fragment_mm` draws at your `font_mm`, and `to_fragment` sizes to the box. An empty string draws
+nothing; an id that is no slot raises `KeyError`. `required_slots` (the entries `lint` takes)
+makes a missing string a `ValueError`, and the check runs only when `texts` is given (D63 to D65).
+
+```python
+tagged = to_fragment(card, texts={"tag": "-A1", "marking.1": "1"})
+assert tagged.count("<text") == 2
+try:
+    to_fragment(card, texts={"tag": "-A1"}, required_slots=("tag", "marking.<port>"))
+except ValueError as error:
+    assert "marking.1" in str(error)
+```
+
 ## Consuming
 
 Install with `uv add symdef`, or pin the toolkit to an exact version from PyPI, never a range:

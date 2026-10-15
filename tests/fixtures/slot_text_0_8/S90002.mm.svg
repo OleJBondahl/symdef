@@ -1,0 +1,6 @@
+<g fill="none" stroke="#000" stroke-linecap="butt" stroke-linejoin="miter">
+<line x1="0" y1="-5" x2="0" y2="-2.5" stroke-width="0.25"/>
+<line x1="0" y1="5" x2="0" y2="2.5" stroke-width="0.25"/>
+<circle cx="0" cy="0" r="2.5" stroke-width="0.25"/>
+<polygon points="-1.25,-0.9375 1.25,-0.9375 0,1.25" stroke-width="0.25"/>
+</g>

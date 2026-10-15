@@ -137,7 +137,8 @@
           "items": { "$ref": "#/$defs/number" },
           "minItems": 2,
           "maxItems": 2
-        }
+        },
+        "turn": { "type": "boolean" }
       }
     },
     "part": {
