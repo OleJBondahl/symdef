@@ -1085,3 +1085,50 @@ Decided: `SYMBOL_INTERFACE.html` gets a change-list row (2026-10-15, 0.8.0); sec
 leads and muted symbols". The version bump, tag and release are not part of this change.
 Why: the spec is the one design document and must describe what the code does.
 Cost if wrong: revert the file; tests read only its code blocks and the rule table.
+
+## D63. `texts` in `to_fragment` and `to_fragment_mm` (SYMDEF-SLOTS SS15)
+
+Decided: both gain the keyword-only `texts: Mapping[str, str] | None = None`. `None` gives the 0.8.0
+bytes (pinned by `tests/test_slot_text_identity.py`). Otherwise one `<text>` per slot with a
+non-empty string, in slot id order (`_slots_by_id`, the preview's rule), after the elements.
+Alignment is the preview's: E start and W end, capitals centred on the point; N middle, baseline on
+it; S middle, baseline one capital below it. One table (`SIDE_ALIGN`) feeds both functions and the
+preview. `to_fragment_mm` draws at `font_mm` with `cap_ratio * font_mm` as the capital height and
+never measures; `to_fragment` auto-sizes as the preview does (at most 1 M, size 0 draws nothing).
+Attributes: `fill` black or the `muted` colour, `stroke="none"`, `font-family="sans-serif"` in
+module units and the caller's family in mm, no `class` (designer, G6). A key that is no slot id raises
+`KeyError` before anything is drawn, also for an empty string.
+Why: render must not build slot text itself (SS10); the preview already fixes the baseline rule.
+Cost if wrong: additive; remove the keyword, the table and the helpers.
+
+## D64. Required slots checked when texts are drawn
+
+Decided: both functions gain `required_slots: Sequence[str] = ()`, shaped as `lint`'s argument and
+expanded by the same function (`required.required_ids`, which `slot_missing` now calls; its findings
+are unchanged). A missing slot raises `ValueError` naming the symbol and the slot ids, only when
+`texts` is not None; an empty string satisfies it. The `kind = "symbol"` limit of the lint rule comes
+with the shared function, so another kind demands nothing here either.
+Why: designer ruling G1; one rule in one place.
+Cost if wrong: additive; remove the keyword and the check.
+
+## D65. `turn = true` (SS15)
+
+Decided: `Slot.turn: bool = False` (last field), the slot key `turn` (loader, schema), written by
+`serialize` only when true so a set without turned slots keeps its bytes. `box` is the footprint as
+drawn; a turned string runs along its height and `to_fragment` fits it there. No new lint rule. A
+turned string reads bottom-up: N starts at the point, S ends there, E and W centre on it; the
+baseline sits half a capital east of the point for N and S, a capital for E and none for W, so the
+glyphs lie beside the box. The text carries `transform="rotate(-90 x y)"` about its baseline
+point, the one transform symdef writes (`to_fragment_mm`'s docstring says so). `orient` never
+changes `turn`; `repeat`, `table`, `stretch` and a composite's slot reference keep it (they copy
+slots with `replace`).
+Why: designer rulings G2 to G5.
+Cost if wrong: additive; remove the field, the key and the branch.
+
+## D66. The interface spec is amended in place for 0.9.0 (SS15)
+
+Decided: `SYMBOL_INTERFACE.html` gets a change-list row (2026-10-16, 0.9.0), section 6 the `turn` key
+and two paragraphs on drawing, section 11 the two keywords. `docs/GUIDE.md` gains "Drawing slot
+text". The rule count stays 35. The version bump, tag and release are not part of this change.
+Why: the spec is the one design document and must describe what the code does.
+Cost if wrong: revert the file; tests read only its code blocks and the rule table.
