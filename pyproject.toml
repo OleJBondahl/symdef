@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling==1.32.3"]
+requires = ["hatchling==1.32.4"]
 build-backend = "hatchling.build"
 
 [project]
@@ -21,14 +21,14 @@ Repository = "https://github.com/OleJBondahl/symdef"
 
 [dependency-groups]
 dev = [
-    "hypothesis==6.168.0",
+    "hypothesis==6.169.4",
     "jsonschema==4.26.0",
     "pytest==9.1.1",
     "pytest-cov==7.1.0",
-    "ruff==0.16.8",
-    "ty==0.0.82",
+    "ruff==0.17.1",
+    "ty==0.0.88",
     "vulture==2.16",
-    "zensical==0.0.68",
+    "zensical==0.0.70",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -36,6 +36,10 @@ packages = ["src/symdef"]
 
 [tool.ty.environment]
 python-version = "3.15"
+
+[tool.ty.rules]
+# `if x` on str | None means None or empty on purpose (ruling 2026-10-15).
+truthiness-test-of-none-union = "ignore"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
