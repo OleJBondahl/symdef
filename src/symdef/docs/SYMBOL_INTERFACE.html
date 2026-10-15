@@ -427,9 +427,10 @@ Data repo gates require zero findings of either severity, so a warning is simply
 <tr><td rowspan="3">File</td><td><code>schema</code></td><td>the file fails JSON Schema validation</td></tr>
 <tr><td><code>metadata</code></td><td>empty name, <code>reference.standard</code> differs from <code>library.toml</code>, number not matching its <code>number_pattern</code>, or number differs from the file stem</td></tr>
 <tr><td><code>id-format</code></td><td>a port, anchor or part id does not match the id pattern</td></tr>
-<tr><td rowspan="3">Geometry</td><td><code>off-drawing-grid</code></td><td>any coordinate, radius, text height, anchor, slot point or slot box size is not a multiple of 0.125</td></tr>
+<tr><td rowspan="4">Geometry</td><td><code>off-drawing-grid</code></td><td>any coordinate, radius, text height, anchor, slot point or slot box size is not a multiple of 0.125</td></tr>
 <tr><td><code>degenerate</code></td><td>zero-length line, non-positive radius, polyline with fewer than 2 points (3 when closed), arc with equal angles, exact duplicate element, slot box with a non-positive side</td></tr>
 <tr><td><code>text-too-large</code></td><td>a text element is taller than 1 M</td></tr>
+<tr><td><code>stretch-cut</code></td><td>a circle, arc or text crosses a stretch cut, a cut lies outside <code>body_min &lt;= at &lt; body_max</code> on its axis, or a symbol has a second stretch on one axis</td></tr>
 <tr><td rowspan="8">Ports</td><td><code>port-duplicate-id</code></td><td>two ports share an id</td></tr>
 <tr><td><code>port-off-wiring-grid</code></td><td>a port position is not a multiple of 1 M</td></tr>
 <tr><td><code>port-off-geometry</code></td><td>a port is not at a line or polyline endpoint, on a circle or arc, or on a closed outline</td></tr>

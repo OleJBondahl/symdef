@@ -3,6 +3,7 @@
 import math
 from itertools import pairwise
 
+from symdef.boxes import body_box
 from symdef.geometry import (
     Arc,
     Circle,
@@ -17,6 +18,7 @@ from symdef.geometry import (
 )
 from symdef.lint.registry import rule_finding
 from symdef.model import Finding, Symbol
+from symdef.stretch import crosses_cut
 from symdef.units import GRID_DIVISION
 
 # The distance under which a point counts as on a curve; the guide's tolerance for derived values.
@@ -157,6 +159,49 @@ def text_too_large(symbol: Symbol) -> tuple[Finding, ...]:
         for i, element in enumerate(symbol.elements)
         if isinstance(element, Text) and element.height > _MAX_TEXT_HEIGHT
     )
+
+
+def _cut_crossings(symbol: Symbol) -> tuple[Finding, ...]:
+    """Report each circle, arc or text that a stretch cut crosses."""
+    return tuple(
+        rule_finding(
+            "stretch-cut",
+            f"a {type(element).__name__.lower()} crosses the cut at {cut.at!r} on {cut.axis}",
+            f"elements[{j}]",
+        )
+        for j, element in enumerate(symbol.elements)
+        for cut in symbol.stretch
+        if crosses_cut(element, cut.axis, cut.at)
+    )
+
+
+def _cut_placement(symbol: Symbol) -> tuple[Finding, ...]:
+    """Report each cut outside the body, and each stretch after the first on an axis."""
+    body = body_box(symbol)
+    found: list[Finding] = []
+    axes: set[str] = set()
+    for i, cut in enumerate(symbol.stretch):
+        low, high = (body.min.x, body.max.x) if cut.axis == "x" else (body.min.y, body.max.y)
+        if not low <= cut.at < high:
+            message = (
+                f"the cut at {cut.at!r} lies outside the body [{low!r}, {high!r}) on {cut.axis}"
+            )
+            found.append(rule_finding("stretch-cut", message, f"stretch[{i}]"))
+        if cut.axis in axes:
+            message = f"a second stretch on the {cut.axis} axis; at most one per axis"
+            found.append(rule_finding("stretch-cut", message, f"stretch[{i}]"))
+        axes.add(cut.axis)
+    return tuple(found)
+
+
+def stretch_cut(symbol: Symbol) -> tuple[Finding, ...]:
+    """Report the stretch cuts that cannot work: crossed shapes, cuts outside the body, repeats.
+
+    A circle, arc or text that a cut crosses is reported at its element. A cut must satisfy
+    `body_min <= at < body_max` on its axis, so a symbol with no elements takes none at 0 either.
+    At most one stretch per axis: each later one is reported at its stretch.
+    """
+    return (*_cut_crossings(symbol), *_cut_placement(symbol))
 
 
 def segments(points: tuple[Point, ...], *, closed: bool) -> tuple[tuple[Point, Point], ...]:
