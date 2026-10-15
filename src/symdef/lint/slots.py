@@ -4,9 +4,9 @@ from symdef.boxes import body_box, slot_box
 from symdef.lint.overlap import boxes_overlap, overlaps_rect
 from symdef.lint.registry import quote, rule_finding
 from symdef.model import Finding, Symbol, SymbolKind
+from symdef.required import PORT, required_ids
 
 _MARKING = "marking."
-_PORT = "<port>"
 _NAMED_OFFENDERS = 3
 _DEFAULT_PITCH = 4
 _LEFT_OUT_OF_THE_EXTENT = ("tag", "value")
@@ -14,9 +14,9 @@ _LEFT_OUT_OF_THE_EXTENT = ("tag", "value")
 
 def _missing(entry: str, port_id: str) -> str:
     """Return the message for a required slot that is missing; `port_id` is for `<port>` entries."""
-    if _PORT not in entry:
+    if PORT not in entry:
         return f"the file has no {entry} slot"
-    return f"the file has no {entry.split(_PORT)[0].rstrip('.')} slot for the port {quote(port_id)}"
+    return f"the file has no {entry.split(PORT)[0].rstrip('.')} slot for the port {quote(port_id)}"
 
 
 def slot_missing(symbol: Symbol, required_slots: tuple[str, ...] = ()) -> tuple[Finding, ...]:
@@ -26,18 +26,10 @@ def slot_missing(symbol: Symbol, required_slots: tuple[str, ...] = ()) -> tuple[
     (`marking.<port>`), which asks for one slot per port id. One finding per missing slot, at that
     slot (`slots.tag`, `slots.marking.<port id>`); ports that share an id need one slot.
     """
-    if symbol.kind is not SymbolKind.SYMBOL:
-        return ()
     have = {slot.id for slot in symbol.slots}
-    port_ids = dict.fromkeys(port.id for port in symbol.ports)
-    wanted = [
-        (entry.replace(_PORT, port_id), _missing(entry, port_id))
-        for entry in required_slots
-        for port_id in (port_ids if _PORT in entry else ("",))
-    ]
     return tuple(
-        rule_finding("slot-missing", message, f"slots.{slot_id}")
-        for slot_id, message in wanted
+        rule_finding("slot-missing", _missing(entry, port_id), f"slots.{slot_id}")
+        for slot_id, entry, port_id in required_ids(symbol, required_slots)
         if slot_id not in have
     )
 

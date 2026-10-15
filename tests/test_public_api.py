@@ -124,7 +124,7 @@ SECTION_11_FIELDS = {
     "Node": ["ports", "potential"],
     "Path": ["from_port", "to_port", "kind", "through"],
     "Anchor": ["id", "position", "direction"],
-    "Slot": ["id", "position", "side", "box"],
+    "Slot": ["id", "position", "side", "box", "turn"],
     "Reference": ["standard", "number", "edition", "form"],
     "Symbol": [
         *("name", "kind", "status", "reference", "elements", "ports", "nodes", "paths"),
