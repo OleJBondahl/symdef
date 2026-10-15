@@ -88,6 +88,27 @@ def test_a_head_without_a_stretch_is_untouched():
     h = head(Line(Point(0, 0), Point(2, 0), Weight.NORMAL, Style.SOLID))
     t = table(row(), 4, "x", h)
     assert t.elements[: len(h.elements)] == h.elements
+    assert body_box(replace(t, elements=t.elements[:1])).width == body_box(h).width
+
+
+def test_a_head_stretch_on_the_other_axis_is_not_applied():
+    h = head(
+        Line(Point(0, 0), Point(2, 0), Weight.NORMAL, Style.SOLID),
+        stretch=(Stretch("y", 1),),
+    )
+    t = table(row(), 4, "x", h)
+    assert t.elements[: len(h.elements)] == h.elements
+
+
+def test_a_stretched_head_keeps_its_authored_place_relative_to_row_one():
+    h = head(
+        Line(Point(0, -3), Point(2, -3), Weight.NORMAL, Style.SOLID),
+        stretch=(Stretch("x", 1),),
+    )
+    t = table(row(), 3, "x", h)
+    box = body_box(replace(t, elements=t.elements[:1]))
+    assert box.min == body_box(h).min
+    assert box.max.y == body_box(h).max.y
 
 
 def test_the_head_stretch_must_fit_the_rows():
