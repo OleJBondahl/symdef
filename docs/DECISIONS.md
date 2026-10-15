@@ -1030,3 +1030,16 @@ it (`check_tint` in `svg.py`, shared by the mm output). Output bytes without a t
 change; the golden fixtures prove it.
 Why: the consumer passes the colour, as it passes slot texts.
 Cost if wrong: additive; remove the enum member, the keyword and the check.
+
+## D58. The interface spec is amended in place for 0.7.0 (SYMDEF-SLOTS SS4)
+
+Decided (owner C1; model D51): `SYMBOL_INTERFACE.html` gets a dated change-list row, 2026-10-15,
+0.7.0, and the sections that define the new pieces change in place: section 4 (`[[stretch]]`,
+`fill = "tint"`), section 7 (`stretch` and `table` beside `repeat`), section 9 (the rule table and
+count, 35), section 10 (the optional `stretch` key and the bundle's `wires`) and section 11 (the
+API list, `[[wire]]` of `library.toml`, `tint`). `docs/GUIDE.md` gains "Stretching and tables";
+its Python blocks run in `tests/test_readme.py`. The `[[wire]]` and `wires` bundle key are the
+toolkit's own additions beyond the spec's data model, recorded in D56. The version bump, tag and
+release are not part of this change.
+Why: the spec is the one design document and must describe what the code does.
+Cost if wrong: revert the file; code and tests read only its code blocks and the rule table.
