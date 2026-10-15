@@ -98,25 +98,46 @@ def _content(text: str) -> str:
 _COLOUR = re.compile(r"#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})|[A-Za-z]+")
 
 
-def check_tint(tint: str | None) -> None:
-    """Raise ValueError unless a tint is `#rgb`, `#rrggbb` or a letters-only colour name.
+def check_colour(name: str, colour: str | None) -> None:
+    """Raise ValueError unless a colour is `#rgb`, `#rrggbb` or a letters-only colour name.
 
-    The check keeps a caller's colour from injecting markup into an attribute (D57).
+    The check keeps a caller's colour from injecting markup into an attribute (D57); `name` is
+    the keyword it came in.
     """
-    if tint is not None and _COLOUR.fullmatch(tint) is None:
-        message = f"tint must be #rgb, #rrggbb or a colour name, not {tint!r}"
+    if colour is not None and _COLOUR.fullmatch(colour) is None:
+        message = f"{name} must be #rgb, #rrggbb or a colour name, not {colour!r}"
         raise ValueError(message)
 
 
+def check_tint(tint: str | None) -> None:
+    """Raise ValueError unless a tint is `#rgb`, `#rrggbb` or a letters-only colour name."""
+    check_colour("tint", tint)
+
+
+def group_open(muted: str | None = None) -> str:
+    """Return the opening `<g>` of a symbol: black strokes, or the muted colour's."""
+    return _GROUP_OPEN if muted is None else _GROUP_OPEN.replace('"#000"', f'"{muted}"')
+
+
 def _stroke(
-    weight: Weight, fill: Fill = Fill.NONE, style: Style = Style.SOLID, tint: str | None = None
+    weight: Weight,
+    fill: Fill = Fill.NONE,
+    style: Style = Style.SOLID,
+    tint: str | None = None,
+    muted: str | None = None,
 ) -> str:
     """Return the closing attributes of a stroked shape: dashed when asked, black when solid.
 
-    A tinted shape takes the tint colour, or none when no tint is given.
+    A tinted shape takes the tint colour, or none when no tint is given. A muted shape is dotted
+    at the normal stroke width and filled, when it is filled at all, in the muted colour.
     """
     dashed = {Style.DASHED: _DASHED, Style.DASH_DOT: _DASH_DOT}.get(style, "")
-    if fill is Fill.SOLID:
+    if muted is not None:
+        pattern = _num(Weight.NORMAL.value)
+        dashed = f' stroke-dasharray="{pattern} {pattern}"'
+    if muted is not None and fill is not Fill.NONE:
+        solid = f' fill="{muted}"'
+    elif fill is Fill.SOLID:
         solid = ' fill="#000"'
     elif fill is Fill.TINT:
         colour = "none" if tint is None else tint
@@ -126,7 +147,7 @@ def _stroke(
     return f'stroke-width="{_num(weight.value)}"{dashed}{solid}/>'
 
 
-def _arc(arc: Arc) -> str:
+def _arc(arc: Arc, muted: str | None) -> str:
     """Render an arc as a path, clockwise on screen from its start to its end angle.
 
     A full circle has coincident endpoints, which SVG draws as nothing, so it becomes two half
@@ -143,11 +164,11 @@ def _arc(arc: Arc) -> str:
         end = arc_point(arc, arc.end_deg)
         large = 1 if sweep > _HALF_TURN else 0
         d = f"{move}{large} 1 {_num(end.x)} {_num(end.y)}"
-    return f'<path d="{d}" {_stroke(arc.weight, style=arc.style)}'
+    return f'<path d="{d}" {_stroke(arc.weight, style=arc.style, muted=muted)}'
 
 
-def _text(text: Text) -> str:
-    """Render a text label, middle-anchored, in black without a stroke.
+def _text(text: Text, muted: str | None) -> str:
+    """Render a text label, middle-anchored, in black (or the muted colour) without a stroke.
 
     The guide makes a text element a box centred on its position, so the baseline is a cap-centre
     below it (D33) and the capitals are centred on the position.
@@ -155,32 +176,33 @@ def _text(text: Text) -> str:
     baseline = text.position.y + _CAP_CENTRE * text.height
     return (
         f'<text x="{_num(text.position.x)}" y="{_num(baseline)}" '
-        f'font-size="{_num(text.height)}" text-anchor="middle" fill="#000" '
-        f'stroke="none" font-family="sans-serif">{_content(text.content)}</text>'
+        f'font-size="{_num(text.height)}" text-anchor="middle" '
+        f'fill="{"#000" if muted is None else muted}" stroke="none" '
+        f'font-family="sans-serif">{_content(text.content)}</text>'
     )
 
 
-def _element(element: Element, tint: str | None) -> str:
+def _element(element: Element, tint: str | None, muted: str | None = None) -> str:
     """Render one element as an SVG tag."""
     match element:
         case Line(start=s, end=e, weight=weight, style=style):
             return (
                 f'<line x1="{_num(s.x)}" y1="{_num(s.y)}" x2="{_num(e.x)}" y2="{_num(e.y)}" '
-                f"{_stroke(weight, style=style)}"
+                f"{_stroke(weight, style=style, muted=muted)}"
             )
         case Polyline(points=points, closed=closed, fill=fill, weight=weight, style=style):
             tag = "polygon" if closed else "polyline"
             pts = " ".join(f"{_num(p.x)},{_num(p.y)}" for p in points)
-            return f'<{tag} points="{pts}" {_stroke(weight, fill, style, tint)}'
+            return f'<{tag} points="{pts}" {_stroke(weight, fill, style, tint, muted)}'
         case Circle(center=c, radius=r, fill=fill, weight=weight):
             return (
                 f'<circle cx="{_num(c.x)}" cy="{_num(c.y)}" r="{_num(r)}" '
-                f"{_stroke(weight, fill, tint=tint)}"
+                f"{_stroke(weight, fill, tint=tint, muted=muted)}"
             )
         case Arc() as arc:
-            return _arc(arc)
+            return _arc(arc, muted)
         case Text() as text:
-            return _text(text)
+            return _text(text, muted)
 
 
 def _centred(at: Point, half_w: float, half_h: float) -> Box:
@@ -486,7 +508,7 @@ def to_svg(
     return "\n".join(lines) + "\n"
 
 
-def to_fragment(symbol: Symbol, *, tint: str | None = None) -> str:
+def to_fragment(symbol: Symbol, *, tint: str | None = None, muted: str | None = None) -> str:
     """Render a symbol as a placeable SVG fragment: a `<g>` of its plain elements only.
 
     For embedding one placed symbol inside a larger document the caller assembles. The caller
@@ -498,13 +520,17 @@ def to_fragment(symbol: Symbol, *, tint: str | None = None) -> str:
         symbol: The symbol to render, already oriented and repeated by the caller (via
             `orient`/`repeat`), exactly as `to_svg` expects its own `symbol` argument.
         tint: Fill colour of the tinted closed polylines, as in `to_svg`.
+        muted: The colour a muted symbol is drawn in, or None. Muted draws every stroke, every
+            text and every solid or tint fill in that colour, and every line style as a dash and
+            a gap each as long as the normal stroke width. An unfilled shape stays unfilled.
 
     Returns:
         The `<g>...</g>` fragment text, ending with a single newline.
 
     Raises:
-        ValueError: The tint is not a hex colour or a colour name.
+        ValueError: The tint or the muted colour is not a hex colour or a colour name.
     """
     check_tint(tint)
-    lines = [_GROUP_OPEN, *(_element(e, tint) for e in symbol.elements), "</g>"]
+    check_colour("muted", muted)
+    lines = [group_open(muted), *(_element(e, tint, muted) for e in symbol.elements), "</g>"]
     return "\n".join(lines) + "\n"
