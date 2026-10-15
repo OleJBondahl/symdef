@@ -1124,6 +1124,7 @@ changes `turn`; `repeat`, `table`, `stretch` and a composite's slot reference ke
 slots with `replace`).
 Why: designer rulings G2 to G5.
 Cost if wrong: additive; remove the field, the key and the branch.
+Known: the `to_svg` preview ignores `turn` in 0.9.0, so a turned slot drawn flat misleads a symbol author; the fix comes in the next release through the shared SIDE_ALIGN table (designer 2026-10-16).
 
 ## D66. The interface spec is amended in place for 0.9.0 (SS15)
 
