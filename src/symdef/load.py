@@ -221,7 +221,8 @@ _PATH = _table(
 )
 _ANCHOR = _table({"id": _string, "at": _POINT, "dir": _DIRECTION}, required=("id", "at", "dir"))
 _SLOT = _table(
-    {"at": _POINT, "side": _DIRECTION, "box": _array(_number, 2)}, required=("at", "side", "box")
+    {"at": _POINT, "side": _DIRECTION, "box": _array(_number, 2), "turn": _boolean},
+    required=("at", "side", "box"),
 )
 _PART = _table(
     {
@@ -464,7 +465,13 @@ def symbol_from_data(data: Mapping[str, Any]) -> Symbol:
             Anchor(a["id"], _point(a["at"]), Direction[a["dir"]]) for a in data.get("anchors", ())
         ),
         slots=tuple(
-            Slot(key, _point(s["at"]), Direction[s["side"]], (s["box"][0], s["box"][1]))
+            Slot(
+                key,
+                _point(s["at"]),
+                Direction[s["side"]],
+                (s["box"][0], s["box"][1]),
+                s.get("turn", False),
+            )
             for key, s in data.get("slots", {}).items()
             if isinstance(s, dict)
         ),
