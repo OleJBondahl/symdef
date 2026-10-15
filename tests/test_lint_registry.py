@@ -1,4 +1,4 @@
-"""The registry agrees with the guide's section 9 table, the authoritative list of the 34 rules."""
+"""The registry agrees with the guide's section 9 table, the authoritative list of the 35 rules."""
 
 import re
 from pathlib import Path
@@ -45,8 +45,8 @@ def problems(html: str) -> list[str]:
     return found
 
 
-def test_the_guide_table_has_34_rules():
-    assert len(guide_rules(GUIDE.read_text(encoding="utf-8"))) == 34
+def test_the_guide_table_has_35_rules():
+    assert len(guide_rules(GUIDE.read_text(encoding="utf-8"))) == 35
 
 
 def test_the_registry_agrees_with_the_guide():
@@ -70,8 +70,8 @@ def test_the_comparison_can_fail():
 
 def test_rule_ids_and_the_index_derive_from_the_table_order():
     assert frozenset(GUIDE_ORDER) == RULE_IDS
-    assert len(GUIDE_ORDER) == len(RULE_IDS) == 34
-    assert [GUIDE_INDEX[rule] for rule in GUIDE_ORDER] == list(range(34))
+    assert len(GUIDE_ORDER) == len(RULE_IDS) == 35
+    assert [GUIDE_INDEX[rule] for rule in GUIDE_ORDER] == list(range(35))
 
 
 def test_every_registered_rule_is_a_rule_of_the_guide():

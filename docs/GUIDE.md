@@ -150,13 +150,13 @@ Composite inheritance is D20; structural problems only the resolver sees are D17
 from symdef import lint
 from symdef.lint import RULES
 
-assert len(RULES) == 34
+assert len(RULES) == 35
 for finding in lint(contact, library.required_slots):
     print(finding.rule, finding.severity, finding.location, finding.orientation, finding.message)
 ```
 
-There are 34 rules: the spec's 33 (section 9) and `lead-off-port`, the toolkit's one addition
-(D40). `lint` takes a symbol in base orientation and your set's `required_slots`. That list is empty by default,
+There are 35 rules: the spec's 33 (section 9) and two of the toolkit's own, `lead-off-port`
+(D40) and `stretch-cut`. `lint` takes a symbol in base orientation and your set's `required_slots`. That list is empty by default,
 so no slot is required. It runs the orientation-dependent rules in all 8 itself (D6, D23, D46). It returns a tuple of `Finding`, each with `rule`, `severity` (`Severity`),
 `message`, `location` (a string or `None`) and `orientation` (or `None`). They are ordered by the spec
 table, then orientation, then location (D23, D34).

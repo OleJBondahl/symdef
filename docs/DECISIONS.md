@@ -985,3 +985,18 @@ axis (a heading that spans the columns of an x table lies across them, not befor
 author puts the head where it belongs in the shared frame. `repeat` is unchanged.
 Why: a table is cells with their own text, not poles of one device.
 Cost if wrong: additive; remove the module and its export. A head that must move is a later keyword.
+
+## D55. Lint rule stretch-cut and the schema key (SYMDEF-SLOTS SS3)
+
+Decided: a second rule beyond the spec's 33, `stretch-cut` (after `lead-off-port`, D40): group
+Geometry, severity error, not orientation dependent, so it runs once on the base symbol and
+`lint_allow` may exempt it. It reports, at `elements[j]`, a circle, arc or text a cut crosses
+(`crosses_cut`, the predicate `stretch` itself uses), and, at `stretch[i]`, a cut that does not satisfy
+`body_min <= at < body_max` on its axis (a cut at the far edge moves nothing; one at the near edge
+is legal) and every stretch after the first on one axis. The rule count is 35. `symbol.schema.json`
+gains `stretch`, an array of `{axis, at}`, both required, `axis` one of x and y; the file's `schema`
+integer does not step, as for `port` on a line (D40). Under `orient` the lint driver leaves the
+field alone; no other rule reads it.
+Why: a symbol whose cut crosses a circle cannot be stretched, and the error should surface at lint, not
+at the consumer's build.
+Cost if wrong: the rule is additive; remove its row, check and the 35 in the counts.

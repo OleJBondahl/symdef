@@ -71,7 +71,7 @@ class TestRegistration:
         assert symdef.__all__.count("lint") == 1
 
     def test_the_guide_names_34_rules(self):
-        assert len(RULE_IDS) == 34
+        assert len(RULE_IDS) == 35
 
     def test_every_check_belongs_to_a_registered_rule(self):
         assert set(CHECKS) <= set(RULES)
