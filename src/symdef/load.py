@@ -191,7 +191,7 @@ _POINT = _array(_number, 2)
 _BOX = _array(_POINT, 2)
 _DIRECTION = _enum("N", "E", "S", "W")
 _WEIGHT = _enum("normal", "thick")
-_STYLE = _enum("solid", "dashed")
+_STYLE = _enum("solid", "dashed", "dash_dot")
 _FILL = _enum("none", "solid")
 _POLYLINE_FILL = _enum("none", "solid", "tint")
 
