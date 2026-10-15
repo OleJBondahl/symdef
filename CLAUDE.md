@@ -16,9 +16,8 @@ Fransys bumps its pin. No code, test or script here imports or names a Fransys p
 `docs/DECISIONS.md` call it the guide) is the only design document. It ships as package data,
 readable at runtime through `importlib.resources`; `electrical-symbols`' verbatim gate reads it
 from the installed distribution (D38). It is binding. Read all of it before doing anything. It changes only through a designer-approved spec, with a dated entry in its change list and in `docs/DECISIONS.md`. Definitions in it
-(extents, overlap, orientations, the wire lane, placement, `repeat`, the 33 lint rules, the JSON
-output format) are exact: implement them as written. The toolkit has one rule beyond the spec's
-33, `lead-off-port` (D40).
+(extents, overlap, orientations, the wire lane, placement, `repeat`, `stretch`, `table`, `wire`,
+the 35 lint rules, the JSON output format) are exact: implement them as written.
 
 Where the spec is silent, decide yourself and record the decision in `docs/DECISIONS.md`, one entry
 each: what you decided, why, what it costs if wrong. If you believe the spec is wrong or
