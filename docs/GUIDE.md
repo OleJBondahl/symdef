@@ -270,7 +270,8 @@ A frame is a symbol with a stretch on both axes and a label slot at a corner;
 `table(row, n, axis, head=None)` makes `n` copies of a row, each stepped by the row's body extent
 along the axis (D54). Copy `k` prefixes its ports `<k>.`, renames `marking.<port>` to
 `marking.<k>.<port>` and any other slot `<id>` to `<k>.<id>`. A `head` keeps its own ids and, if it
-has a stretch on the axis, is first stretched to the rows' total extent. The cap is 64 rows.
+has a stretch on the axis, is first stretched to the rows' total extent on that axis; without one it
+keeps its width. The head stays where it is authored, relative to row 1. The cap is 64 rows.
 
 ```python
 from symdef import body_box, table

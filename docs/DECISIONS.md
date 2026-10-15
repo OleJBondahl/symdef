@@ -979,10 +979,9 @@ and paths are prefixed `<k>.`, through the helpers `repeat` uses (now public in 
 `repeat`'s 64, now the constant `MAX_REPEAT` in `repeat.py` (the resolver imports it). The result
 keeps the row's `pole_pitch`, takes copy 1's anchors and has no stretch. A head keeps its own ids
 and comes first in the lists; with a stretch on the table's axis it is first stretched to
-`n * step`. The head is placed as authored, in the row's frame, and never translated: the spec says
-both "before row 1" and "stretched to span the rows", which no single translation satisfies on one
-axis (a heading that spans the columns of an x table lies across them, not before them). The
-author puts the head where it belongs in the shared frame. `repeat` is unchanged.
+`n * step`, the rows' total extent on that axis (amendment 2: this is how a cable head spans its
+k columns stepping along x). A head with no stretch on the axis is not stretched. The head stays
+where it is authored, relative to row 1, as built, and is never translated. `repeat` is unchanged.
 Why: a table is cells with their own text, not poles of one device.
 Cost if wrong: additive; remove the module and its export. A head that must move is a later keyword.
 
