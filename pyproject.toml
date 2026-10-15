@@ -38,7 +38,7 @@ packages = ["src/symdef"]
 python-version = "3.15"
 
 [tool.ty.rules]
-# `if x` on str | None means None or empty on purpose (designer ruling 2026-10-15, decision 0089 in Fransys).
+# `if x` on str | None means None or empty on purpose (ruling 2026-10-15).
 truthiness-test-of-none-union = "ignore"
 
 [tool.pytest.ini_options]
