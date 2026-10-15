@@ -100,13 +100,16 @@ class Slot:
     Attributes:
         position: The point the box grows from, in module units.
         side: The direction the box grows towards from `position`; see `slot_box`.
-        box: Width and height in module units, never rotated.
+        box: Width and height in module units, never rotated: the footprint as drawn.
+        turn: True when a string in the slot is drawn turned, reading bottom-up, along the height
+            of `box`. It is fixed to the page: `orient` never changes it.
     """
 
     id: str
     position: Point
     side: Direction
     box: tuple[float, float]
+    turn: bool = False
 
 
 @dataclass(frozen=True, slots=True)

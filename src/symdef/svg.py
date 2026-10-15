@@ -3,6 +3,7 @@
 import math
 import re
 from collections.abc import Mapping, Sequence
+from dataclasses import replace
 from xml.sax.saxutils import escape
 
 from symdef.boxes import body_box, keepout_box, slot_box
@@ -70,6 +71,14 @@ SIDE_ALIGN = {
     Direction.W: ("end", 0.5),
     Direction.N: ("middle", 0.0),
     Direction.S: ("middle", 1.0),
+}
+# A turned slot reads bottom-up: N starts at the anchor, S ends there, E and W centre the text on
+# it. The second number is how far east of the slot point the baseline sits, in cap heights.
+TURNED_ALIGN = {
+    Direction.N: ("start", 0.5),
+    Direction.S: ("end", 0.5),
+    Direction.E: ("middle", 1.0),
+    Direction.W: ("middle", 0.0),
 }
 _SAMPLE_ALIGN = {side: (anchor, f * _CAP_HEIGHT) for side, (anchor, f) in SIDE_ALIGN.items()}
 # What XML 1.0 cannot carry: most C0 controls, lone surrogates, U+FFFE and U+FFFF.
@@ -367,13 +376,37 @@ def check_texts(
         raise ValueError(message)
 
 
-def slot_text_tag(  # noqa: PLR0913 - one slot text tag is these six things
-    x: str, y: str, size: str, *, anchor: str, fill: str, family: str, content: str
+def slot_align(slot: Slot) -> tuple[str, float, float]:
+    """Return the text anchor and the baseline shift, in cap heights, east and south of the point.
+
+    A slot text reads left to right; a turned one reads bottom-up (SS15).
+    """
+    if slot.turn:
+        anchor, east = TURNED_ALIGN[slot.side]
+        return anchor, east, 0.0
+    anchor, south = SIDE_ALIGN[slot.side]
+    return anchor, 0.0, south
+
+
+def slot_text_tag(  # noqa: PLR0913 - one slot text tag is these things
+    at: tuple[str, str],
+    size: str,
+    *,
+    anchor: str,
+    fill: str,
+    family: str,
+    content: str,
+    turn: bool = False,
 ) -> str:
-    """Render one slot text; `family` is the finished `font-family` attribute value, quotes in."""
+    """Render one slot text at its baseline point; a turned one is rotated -90 about that point.
+
+    `family` is the finished `font-family` attribute value, quotes included.
+    """
+    x, y = at
+    rotate = f' transform="rotate(-90 {x} {y})"' if turn else ""
     return (
         f'<text x="{x}" y="{y}" font-size="{size}" text-anchor="{anchor}" '
-        f'fill="{fill}" stroke="none" font-family={family}>{_content(content)}</text>'
+        f'fill="{fill}" stroke="none" font-family={family}{rotate}>{_content(content)}</text>'
     )
 
 
@@ -383,20 +416,27 @@ def _slot_texts(symbol: Symbol, texts: Mapping[str, str] | None, muted: str | No
         return []
     fill = "#000" if muted is None else muted
     tags = []
-    for slot, content, size in _sampled(symbol, texts):
-        anchor, fraction = SIDE_ALIGN[slot.side]
-        y = slot.position.y + fraction * _CAP_HEIGHT * size
-        tags.append(
-            slot_text_tag(
-                _num(slot.position.x),
-                _num(y),
-                _num(size),
-                anchor=anchor,
-                fill=fill,
-                family='"sans-serif"',
-                content=content,
+    for slot in _slots_by_id(symbol):
+        content = texts.get(slot.id, "")
+        along_height = replace(slot, box=(slot.box[1], slot.box[0])) if slot.turn else slot
+        size = _sample_size(along_height, content)
+        if size > 0:
+            anchor, east, south = slot_align(slot)
+            at = (
+                _num(slot.position.x + east * _CAP_HEIGHT * size),
+                _num(slot.position.y + south * _CAP_HEIGHT * size),
             )
-        )
+            tags.append(
+                slot_text_tag(
+                    at,
+                    _num(size),
+                    anchor=anchor,
+                    fill=fill,
+                    family='"sans-serif"',
+                    content=content,
+                    turn=slot.turn,
+                )
+            )
     return tags
 
 

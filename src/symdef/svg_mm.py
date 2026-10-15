@@ -22,7 +22,6 @@ from symdef.model import Symbol
 from symdef.svg import (
     _FULL_TURN,
     _HALF_TURN,
-    SIDE_ALIGN,
     _content,
     _num,
     _slots_by_id,
@@ -30,6 +29,7 @@ from symdef.svg import (
     check_texts,
     check_tint,
     group_open,
+    slot_align,
     slot_text_tag,
 )
 
@@ -88,9 +88,9 @@ class _Mm(NamedTuple):
             return f' stroke-dasharray="{_num(self.dash[0])} {_num(self.dash[1])}"'
         return ""
 
-    def y_below(self, y: float, fraction: float) -> str:
-        """Return a y in module units as mm, moved down by a fraction of the cap height."""
-        return _num(y * self.module + self.cap_ratio * self.font * fraction)
+    def moved(self, v: float, fraction: float) -> str:
+        """Return a coordinate in module units as mm, moved on by a fraction of the cap height."""
+        return _num(v * self.module + self.cap_ratio * self.font * fraction)
 
     def pair(self, p: Point) -> str:
         """Return a point as `x y`."""
@@ -113,7 +113,7 @@ def _arc(mm: _Mm, arc: Arc) -> str:
 
 def _text(mm: _Mm, text: Text) -> str:
     x = _num(text.position.x * mm.module)
-    y = mm.y_below(text.position.y, 0.5)
+    y = mm.moved(text.position.y, 0.5)
     return (
         f'<text x="{x}" y="{y}" font-size="{_num(mm.font)}" text-anchor="middle" '
         f'fill="{mm.muted or "#000"}" '
@@ -128,15 +128,15 @@ def _slot_texts(mm: _Mm, symbol: Symbol, texts: Mapping[str, str] | None) -> lis
     tags = []
     for slot in _slots_by_id(symbol):
         if texts.get(slot.id):
-            anchor, fraction = SIDE_ALIGN[slot.side]
+            anchor, east, south = slot_align(slot)
             tag = slot_text_tag(
-                mm.xy(slot.position)[0],
-                mm.y_below(slot.position.y, fraction),
+                (mm.moved(slot.position.x, east), mm.moved(slot.position.y, south)),
                 _num(mm.font),
                 anchor=anchor,
                 fill=mm.muted or "#000",
                 family=quoteattr(mm.family),
                 content=texts[slot.id],
+                turn=slot.turn,
             )
             tags.append(tag)
     return tags
@@ -180,6 +180,7 @@ def to_fragment_mm(  # noqa: PLR0913 - one physical size per keyword
 ) -> str:
     """Render a symbol as a `<g>` fragment in millimetres, with no `scale(` and no transform.
 
+    The one transform is the `rotate(-90)` on the text element of a turned slot's string.
     A different output from `to_fragment`, whose contract is module units with the caller
     scaling. Here every coordinate and radius is multiplied by `module_mm`, and the stroke widths,
     the dash pattern and the font size are the caller's absolute millimetres, so they do not
@@ -207,7 +208,10 @@ def to_fragment_mm(  # noqa: PLR0913 - one physical size per keyword
             a string, or with an empty one, draws nothing. Each string follows the elements, in
             slot id order, at `font_mm` in `font_family`, aligned by the slot side (E start, W
             end, N and S middle; the baseline is half a capital below the slot point for E and W,
-            on it for N and one capital below it for S). It is never measured, shrunk or wrapped.
+            on it for N and one capital below it for S). A turned slot (`turn`) reads bottom-up:
+            N starts at the slot point, S ends there, E and W centre the text on it, and the text
+            element carries `rotate(-90)` about its baseline point. It is never measured, shrunk
+            or wrapped.
         required_slots: The slots the symbol must have a string for, as in `to_fragment`.
 
     Returns:
