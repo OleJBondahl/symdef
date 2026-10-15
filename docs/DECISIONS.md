@@ -1042,3 +1042,46 @@ toolkit's own additions beyond the spec's data model, recorded in D56. The versi
 release are not part of this change.
 Why: the spec is the one design document and must describe what the code does.
 Cost if wrong: revert the file; code and tests read only its code blocks and the rule table.
+
+## D59. `leads(symbol, ports)` (SYMDEF-SLOTS SS12)
+
+Decided: a public free function in `leads.py`. It removes every `Line` whose `port` is not None
+and not in `ports`; every other element stays in order, and so does every other field. A listed
+id that names no port of the symbol raises `KeyError` naming it; a listed port with no bound lead
+is fine. Ids are those the symbol holds, so `1.a` after `table`. The caller passes the wired ports:
+symdef knows no net.
+Why: a router draws a stub only for a wired port, and a symbol's file cannot know which.
+Cost if wrong: additive; remove the module, the export and the test.
+
+## D60. `Style.DASH_DOT` and `dash_dot_mm` (SYMDEF-SLOTS SS13)
+
+Decided: `Style` gains `DASH_DOT = "dash_dot"`, accepted wherever `dashed` is: element `style`, a
+`[[wire]]` style, the loader, the JSON schema and the serialized form. `to_fragment` draws module
+units `1 0.25 0.0625 0.25` (the spec fixes none; chosen as a long dash, then a dot of a quarter of
+a gap's length). `to_fragment_mm` gains `dash_dot_mm: tuple[float, float, float, float] | None =
+None` after `dash_mm`; drawing a dash-dot element while it is None raises `ValueError` naming the
+keyword, and a symbol with none never asks for it. Output without the style is byte-identical.
+Why: the style words are the file's, the lengths are the caller's, as for `dash_mm`.
+Cost if wrong: additive; remove the member, the keyword and the schema entries.
+
+## D61. `muted` (SYMDEF-SLOTS SS14)
+
+Decided: `to_fragment` and `to_fragment_mm` gain a keyword-only `muted: str | None = None`, the
+colour of a symbol drawn as not installed (designer ruling, amendment 3: the caller's colour, as
+`tint` is, not a fixed grey). It is checked like `tint` (`check_colour`, shared); a bad value raises
+`ValueError` whether or not it is used. Muted draws the group stroke, every text and every solid or
+tint fill in that colour; every line style becomes a dash and a gap each of the normal stroke width
+(`Weight.NORMAL.value`, or `weights_mm[Weight.NORMAL]` in mm, a `KeyError` if absent); a text has no
+stroke and no dash; an unfilled shape stays unfilled. `dash_mm` and `dash_dot_mm` are then not
+read. With `None` the bytes are those of 0.7.0.
+Why: one look for a thing that is not installed, with the colour a drawing convention of the caller.
+Cost if wrong: additive; remove the keyword and the helper.
+
+## D62. The interface spec is amended in place for 0.8.0 (SYMDEF-SLOTS SS4)
+
+Decided: `SYMBOL_INTERFACE.html` gets a change-list row (2026-10-15, 0.8.0); section 4 names
+`dash_dot` and its pattern, section 7 gains `leads`, section 11 lists `leads`, `muted` and
+`dash_dot_mm` and the `[[wire]]` styles. The rule count stays 35. `docs/GUIDE.md` gains "Bound
+leads and muted symbols". The version bump, tag and release are not part of this change.
+Why: the spec is the one design document and must describe what the code does.
+Cost if wrong: revert the file; tests read only its code blocks and the rule table.

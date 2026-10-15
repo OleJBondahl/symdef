@@ -316,6 +316,34 @@ tinted = replace(card, elements=(shape,))
 assert 'fill="#cfe8ff"' in to_fragment(tinted, tint="#cfe8ff")
 ```
 
+## Bound leads and muted symbols
+
+A symbol's leads are the lines bound to a port with `port = "..."`. `leads(symbol, ports)` keeps
+the leads of the ports you name and drops the rest, so an unwired port draws no stub. An id the
+symbol does not hold raises `KeyError`; after `table` or `repeat` the ids carry their prefix
+(`1.a`). The toolkit knows no net: you decide which ports are wired (D59).
+
+```python
+from symdef import leads
+
+wired = leads(card, ("1",))
+assert [e.port for e in wired.elements if isinstance(e, Line) and e.port] == ["1"]
+```
+
+A line, polyline or arc may say `style = "dash_dot"`. `to_fragment` draws it with a dash of 1 M,
+a gap of 0.25 M, a dot of 0.0625 M and a gap of 0.25 M; `to_fragment_mm` takes the four lengths
+in millimetres as `dash_dot_mm` and raises `ValueError` when a dash-dot element is drawn
+without it (D60).
+
+`to_fragment(symbol, muted="#888")` and `to_fragment_mm(..., muted="#888")` draw a symbol as not
+installed: strokes, texts and fills in that colour, every line style as an even dash and gap of
+the normal stroke width. Without `muted` the output is unchanged (D61).
+
+```python
+dim = to_fragment(card, muted="#888")
+assert "#000" not in dim and 'stroke="#888"' in dim
+```
+
 ## Consuming
 
 Install with `uv add symdef`, or pin the toolkit to an exact version from PyPI, never a range:
