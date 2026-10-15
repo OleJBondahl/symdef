@@ -85,6 +85,7 @@ SECTION_11_SIGNATURES = {
     "repeat": positional("symbol", "n"),
     "body_box": positional("symbol"),
     "keepout_box": positional("symbol"),
+    "leads": positional("symbol", "ports"),
     "slot_box": positional("slot"),
     "lint": [*positional("symbol"), ("required_slots", "POSITIONAL_OR_KEYWORD", "()")],
     "to_svg": [
