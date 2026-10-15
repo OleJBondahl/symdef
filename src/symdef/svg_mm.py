@@ -19,7 +19,7 @@ from symdef.geometry import (
     arc_sweep,
 )
 from symdef.model import Symbol
-from symdef.svg import _FULL_TURN, _GROUP_OPEN, _HALF_TURN, _content, _num, check_tint
+from symdef.svg import _FULL_TURN, _HALF_TURN, _content, _num, check_colour, check_tint, group_open
 
 
 class _Mm(NamedTuple):
@@ -32,6 +32,7 @@ class _Mm(NamedTuple):
     family: str
     font: float
     cap_ratio: float
+    muted: str | None
 
     def xy(self, p: Point) -> tuple[str, str]:
         """Return a point as two millimetre numbers."""
@@ -46,7 +47,9 @@ class _Mm(NamedTuple):
     ) -> str:
         """Return the closing attributes of a stroked shape, widths and dashes in mm."""
         dashed = self.dashes(style)
-        if fill is Fill.SOLID:
+        if self.muted is not None and fill is not Fill.NONE:
+            solid = f' fill="{self.muted}"'
+        elif fill is Fill.SOLID:
             solid = ' fill="#000"'
         elif fill is Fill.TINT:
             colour = "none" if tint is None else tint
@@ -57,7 +60,13 @@ class _Mm(NamedTuple):
         return f'stroke-width="{width}"{dashed}{solid}/>'
 
     def dashes(self, style: Style) -> str:
-        """Return the dash attribute of a line style, or nothing for a solid line."""
+        """Return the dash attribute of a line style, or nothing for a solid line.
+
+        A muted symbol has one pattern for every style: a dash and a gap of the normal width.
+        """
+        if self.muted is not None:
+            normal = _num(self.weights[Weight.NORMAL])
+            return f' stroke-dasharray="{normal} {normal}"'
         if style is Style.DASH_DOT:
             if self.dash_dot is None:
                 message = "dash_dot_mm is required to draw a dash_dot element"
@@ -90,7 +99,8 @@ def _text(mm: _Mm, text: Text) -> str:
     x = _num(text.position.x * mm.module)
     y = _num(text.position.y * mm.module + mm.cap_ratio * mm.font / 2)
     return (
-        f'<text x="{x}" y="{y}" font-size="{_num(mm.font)}" text-anchor="middle" fill="#000" '
+        f'<text x="{x}" y="{y}" font-size="{_num(mm.font)}" text-anchor="middle" '
+        f'fill="{mm.muted or "#000"}" '
         f'stroke="none" font-family={quoteattr(mm.family)}>{_content(text.content)}</text>'
     )
 
@@ -127,6 +137,7 @@ def to_fragment_mm(  # noqa: PLR0913 - one physical size per keyword
     font_mm: float,
     cap_ratio: float,
     tint: str | None = None,
+    muted: str | None = None,
 ) -> str:
     """Render a symbol as a `<g>` fragment in millimetres, with no `scale(` and no transform.
 
@@ -150,16 +161,21 @@ def to_fragment_mm(  # noqa: PLR0913 - one physical size per keyword
             below the text position.
         tint: Fill colour of the tinted closed polylines: `#rgb`, `#rrggbb` or a colour name.
             None draws them unfilled. Checked even when no element is tinted.
+        muted: The colour a muted symbol is drawn in, or None. As in `to_fragment`, with the dash
+            and gap of the normal stroke width taken from `weights_mm`; `dash_mm` and
+            `dash_dot_mm` are then not used.
 
     Returns:
         The `<g>...</g>` fragment text, ending with a single newline.
 
     Raises:
-        KeyError: A weight an element uses is missing from `weights_mm`; the key names it.
-        ValueError: The tint is not a hex colour or a colour name, or a dash-dot element is drawn
-            and `dash_dot_mm` is None.
+        KeyError: A weight an element uses, or `Weight.NORMAL` when muted, is missing from
+            `weights_mm`; the key names it.
+        ValueError: The tint or the muted colour is not a hex colour or a colour name, or a
+            dash-dot element is drawn and `dash_dot_mm` is None.
     """
     check_tint(tint)
-    mm = _Mm(module_mm, weights_mm, dash_mm, dash_dot_mm, font_family, font_mm, cap_ratio)
-    lines = [_GROUP_OPEN, *(_element(mm, e, tint) for e in symbol.elements), "</g>"]
+    check_colour("muted", muted)
+    mm = _Mm(module_mm, weights_mm, dash_mm, dash_dot_mm, font_family, font_mm, cap_ratio, muted)
+    lines = [group_open(muted), *(_element(mm, e, tint) for e in symbol.elements), "</g>"]
     return "\n".join(lines) + "\n"
