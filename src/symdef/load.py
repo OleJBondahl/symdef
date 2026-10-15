@@ -40,6 +40,7 @@ from symdef.model import (
     Severity,
     Slot,
     Status,
+    Stretch,
     Symbol,
     SymbolKind,
     Vocabulary,
@@ -235,6 +236,7 @@ _PART = _table(
     required=("as", "use"),
 )
 _ALLOW = _table({"rule": _string, "reason": _string}, required=("rule", "reason"))
+_STRETCH = _table({"axis": _enum("x", "y"), "at": _number}, required=("axis", "at"))
 
 # One table per shape, keyed by the shape key; an element has exactly one of these keys.
 _ELEMENTS = {
@@ -319,6 +321,7 @@ _FILE = _table(
         "slots": _map_of(_slot),
         "pole_pitch": _integer,
         "lint_allow": _array(_ALLOW),
+        "stretch": _array(_STRETCH),
         "body_box": _BOX,
         "keepout_box": _BOX,
     },
@@ -454,6 +457,7 @@ def symbol_from_data(data: Mapping[str, Any]) -> Symbol:
         ),
         pole_pitch=int(data["pole_pitch"]) if "pole_pitch" in data else None,
         lint_allow=tuple(Allow(a["rule"], a["reason"]) for a in data.get("lint_allow", ())),
+        stretch=tuple(Stretch(s["axis"], s["at"]) for s in data.get("stretch", ())),
     )
 
 
