@@ -31,7 +31,7 @@
 
 <h1>Symbol interface design guide</h1>
 <p class="meta">Binding spec for the <code>symdef</code> toolkit and the data repos built on it.
-Agreed with the repo owner on 2026-09-19; amended 2026-10-07 for 0.5.0, 2026-10-13 for 0.6.0 and 2026-10-15 for 0.7.0 (see the change list).</p>
+Agreed with the repo owner on 2026-09-19; amended 2026-10-07 for 0.5.0, 2026-10-13 for 0.6.0, 2026-10-15 for 0.7.0 and 2026-10-15 for 0.8.0 (see the change list).</p>
 
 <div class="note">
 <strong>This guide is the only design document.</strong> It changes only through a designer-approved spec,
@@ -41,6 +41,7 @@ with a dated entry in the change list below and in <code>docs/DECISIONS.md</code
 <h2 id="changes">Change list</h2>
 <table>
 <tr><th>Date</th><th>Version</th><th>Change</th></tr>
+<tr><td>2026-10-15</td><td>0.8.0</td><td><code>leads(symbol, ports)</code> drops the bound leads of the ports the caller leaves unwired; <code>style = "dash_dot"</code> draws a dash-dot line, and <code>to_fragment_mm</code> takes its four lengths in <code>dash_dot_mm</code>; <code>to_fragment</code> and <code>to_fragment_mm</code> take <code>muted</code>, the colour of a symbol drawn as not installed (D59 to D62). The rule count stays 35.</td></tr>
 <tr><td>2026-10-15</td><td>0.7.0</td><td><code>[[stretch]]</code> and <code>stretch()</code> move everything beyond a cut line; <code>table()</code> places rows with their own ports and slots; lint rule <code>stretch-cut</code> makes 35 rules; <code>[[wire]]</code> in <code>library.toml</code> and <code>wire()</code> draw wires in a named style; <code>fill = "tint"</code> and the <code>tint</code> keyword of the output functions take the caller's colour (D53 to D57). <code>bundle.json</code> gains an optional <code>wires</code> key, the serialized <code>[[wire]]</code> styles, written only when the set has any.</td></tr>
 <tr><td>2026-10-13</td><td>0.6.0</td><td><code>to_fragment_mm(symbol, *, module_mm, weights_mm, dash_mm, font_family, font_mm, cap_ratio)</code> writes a fragment in millimetres with no scale transform: coordinates times the module; stroke widths, dash lengths and font size are the caller's mm; text capitals centred on the anchor by the caller's capital ratio; <code>to_svg</code> and <code>to_fragment</code> output unchanged (D52).</td></tr>
 <tr><td>2026-10-07</td><td>0.5.0</td><td>A set declares its own words: <code>library.toml</code> gains <code>[vocabulary]</code> (<code>path_kinds</code>, <code>potentials</code>, <code>links</code>) and <code>[rules] required_slots</code> (D46). <code>PathKind</code> and <code>Potential</code> leave the API; <code>Path.kind</code> and <code>Node.potential</code> are strings. <code>Library</code> gains <code>vocabulary</code> and <code>required_slots</code>, and <code>lint</code> takes <code>required_slots</code> (sections 5, 6, 9, 11, 12).</td></tr>
@@ -109,7 +110,7 @@ with a dated entry in the change list below and in <code>docs/DECISIONS.md</code
 <tr><td>Same-side port spacing</td><td>Two ports with the same <code>dir</code> are a multiple of <code>2 M</code> apart, measured along the side (x for N and S ports, y for E and W ports).</td></tr>
 <tr><td>Base orientation</td><td>The through path (section 5) is vertical: its two ports are at <code>(0, -a)</code> pointing N and <code>(0, a)</code> pointing S, with <code>a</code> a whole number of M. Horizontal use is an orientation, never a second file.</td></tr>
 <tr><td>Line weight</td><td><code>normal</code> = 0.1 M (ISO 81714-1, width : module = 1 : 10), <code>thick</code> = 0.2 M (provisional).</td></tr>
-<tr><td>Line style</td><td><code>solid</code> or <code>dashed</code>. Dashed means dash 0.5 M, gap 0.25 M; renderers implement the pattern, files never spell out dash segments.</td></tr>
+<tr><td>Line style</td><td><code>solid</code>, <code>dashed</code> or <code>dash_dot</code>. Dashed means dash 0.5 M, gap 0.25 M; dash-dot means dash 1 M, gap 0.25 M, dot 0.0625 M, gap 0.25 M; renderers implement the pattern, files never spell out dash segments.</td></tr>
 <tr><td>Text elements</td><td>Text that is part of the symbol itself (the <code>M</code> in a motor). Height at most 1 M. Stays upright in every orientation; only its position transforms.</td></tr>
 <tr><td>Extents</td><td>All boxes ignore stroke width. A line or polyline extends over its points, a circle over its full diameter, an arc over its true swept extent. A text element counts as a box centred on <code>at</code>, <code>height</code> tall and <code>0.6 &times; height &times; character count</code> wide.</td></tr>
 <tr><td>Overlap</td><td>Two shapes overlap when their open interiors intersect. Touching along an edge or at a corner is not overlap. For overlap tests a stroke is a zero-width curve, a filled shape is its area, and an unfilled closed outline is only its outline (so a slot may sit inside an empty body rectangle).</td></tr>
@@ -160,7 +161,7 @@ Generic consumers should chain symbols using the through path's <code>from</code
 </table>
 
 <h3>Elements</h3>
-<p>Each element is a table with exactly one shape key. Optional on all: <code>weight</code> (<code>normal</code> | <code>thick</code>). Optional on line, polyline, arc: <code>style</code> (<code>solid</code> | <code>dashed</code>). Optional on line: <code>port</code>, the id of the port the line leads to; see the wiring contract, section 8, and the <code>lead-off-port</code> rule, section 9.</p>
+<p>Each element is a table with exactly one shape key. Optional on all: <code>weight</code> (<code>normal</code> | <code>thick</code>). Optional on line, polyline, arc: <code>style</code> (<code>solid</code> | <code>dashed</code> | <code>dash_dot</code>). Optional on line: <code>port</code>, the id of the port the line leads to; see the wiring contract, section 8, and the <code>lead-off-port</code> rule, section 9.</p>
 <table>
 <tr><th>Shape</th><th>Form</th></tr>
 <tr><td>Line</td><td><code>{ line = [[x1, y1], [x2, y2]], port = "in" }</code> (<code>port</code> optional)</td></tr>
@@ -413,6 +414,9 @@ tag           = { at = [-3.5, 0], side = "W", box = [6, 1] }
 <h3><code>stretch(symbol, axis, length, offsets=None)</code>: a cut line</h3>
 <p>Moves every point beyond the symbol's <code>stretch</code> cut on <code>axis</code> by <code>length</code> minus the natural extent: element points, ports, anchors and slots. A circle, arc or text across the cut raises <code>ValueError</code>, as does a <code>length</code> below the natural extent, a symbol with no stretch on <code>axis</code>, and an offset that names no port, a port not on the edge across the axis, or a place off the wiring grid or outside the stretched body. <code>offsets</code> places each named port, with its bound lead and its <code>marking.&lt;port&gt;</code> slot, at a coordinate along the axis. The result has no stretch on that axis, so a frame is stretched on both axes by two calls (D53).</p>
 
+<h3><code>leads(symbol, ports)</code>: the wired ports' leads</h3>
+<p>Returns the symbol without every <code>Line</code> whose <code>port</code> is set and is not in <code>ports</code>, an iterable of port ids. A line with no port, a line bound to a listed port and every other element stay, in order; ports, anchors, slots and every other field are unchanged. A listed id that names no port of the symbol raises <code>KeyError</code> naming it; a listed port with no bound lead is not an error. After <code>table</code> or <code>repeat</code> the ids are the prefixed ones (<code>1.a</code>). The caller decides which ports are wired; the toolkit knows no net (D59).</p>
+
 <h2 id="s8">8. Wiring contract</h2>
 <p>What every flattened symbol guarantees a router, in all 8 orientations:</p>
 <ol>
@@ -500,6 +504,7 @@ translate(symbol, dx, dy) -&gt; Symbol         used by composition and repeat; c
 repeat(symbol, n) -&gt; Symbol
 stretch(symbol, axis, length, offsets=None) -&gt; Symbol    section 7
 table(row, n, axis, head=None) -&gt; Symbol    section 7
+leads(symbol, ports) -&gt; Symbol    section 7
 wire(library, style_id, points) -&gt; Symbol    the wire styles of library.toml
 body_box(symbol) -&gt; Box    keepout_box(symbol) -&gt; Box    slot_box(slot) -&gt; Box
 lint(symbol, required_slots=()) -&gt; tuple[Finding, ...]
@@ -508,9 +513,10 @@ write_build(library, root) -&gt; tuple[Path, ...]    writes build/ and the bundl
 stale_build(library, root) -&gt; tuple[Path, ...]    files that differ from what write_build would write, stale extras included
 init(root) -&gt; tuple[Path, ...]    build(root) -&gt; tuple[Path, ...]    check(root) -&gt; tuple[Finding, ...]    the three verbs of the <code>symdef</code> command</code></pre>
 <p><code>annotate=True</code> draws the grid, ports with ids and lanes, anchors, slot boxes, and both boxes. <code>texts</code> maps slot ids to sample strings so the gallery can show a filled-in symbol.</p>
-<p><code>to_fragment_mm</code> writes the same placeable <code>&lt;g&gt;</code> fragment as <code>to_fragment</code>, in millimetres, with no scale transform (D52). Each coordinate and radius is multiplied by <code>module_mm</code>. Stroke widths come from <code>weights_mm</code>, one entry per weight, dash lengths from <code>dash_mm</code>, and the font size from <code>font_mm</code>; these are the caller's millimetres. Text capitals are centred on the anchor by <code>cap_ratio</code>, the capital height as a fraction of the font size. The caller passes the font family. <code>to_svg</code> and <code>to_fragment</code> are unchanged.</p>
+<p><code>to_fragment_mm</code> writes the same placeable <code>&lt;g&gt;</code> fragment as <code>to_fragment</code>, in millimetres, with no scale transform (D52). Each coordinate and radius is multiplied by <code>module_mm</code>. Stroke widths come from <code>weights_mm</code>, one entry per weight, dash lengths from <code>dash_mm</code>, and the font size from <code>font_mm</code>; these are the caller's millimetres. Text capitals are centred on the anchor by <code>cap_ratio</code>, the capital height as a fraction of the font size. The caller passes the font family. A <code>dash_dot</code> element needs the keyword <code>dash_dot_mm</code>, the four lengths in mm of dash, gap, dot and gap; <code>to_fragment_mm</code> raises <code>ValueError</code> when one is drawn without it (D60). <code>to_svg</code> and <code>to_fragment</code> are unchanged.</p>
 <p><code>to_svg</code>, <code>to_fragment</code> and <code>to_fragment_mm</code> take the keyword <code>tint</code>, the colour of every <code>fill = "tint"</code> shape. It must be <code>#rgb</code>, <code>#rrggbb</code> or a letters-only name, or the call raises <code>ValueError</code>; with <code>None</code> a tinted shape draws <code>fill="none"</code>. Output without a tinted shape does not change (D57).</p>
-<p>A set declares wire styles in <code>library.toml</code> as <code>[[wire]]</code> tables with <code>id</code>, <code>weight</code> (<code>normal</code> | <code>thick</code>) and <code>style</code> (<code>solid</code> | <code>dashed</code>). <code>wire</code> returns an element symbol of one open polyline in that style, with no ports; <code>points</code> are <code>Point</code>s or (x, y) pairs, at least two (D56).</p>
+<p><code>to_fragment</code> and <code>to_fragment_mm</code> also take the keyword <code>muted</code>, a colour string checked like <code>tint</code>, or <code>None</code> (the default, which draws as before). A muted symbol is drawn as not installed: every stroke, every text and every solid or tint fill in that colour, every line style replaced by a dash and a gap each as long as the normal stroke width, and no stroke on a text; an unfilled shape stays unfilled. <code>dash_mm</code> and <code>dash_dot_mm</code> are then not used (D61).</p>
+<p>A set declares wire styles in <code>library.toml</code> as <code>[[wire]]</code> tables with <code>id</code>, <code>weight</code> (<code>normal</code> | <code>thick</code>) and <code>style</code> (<code>solid</code> | <code>dashed</code> | <code>dash_dot</code>). <code>wire</code> returns an element symbol of one open polyline in that style, with no ports; <code>points</code> are <code>Point</code>s or (x, y) pairs, at least two (D56).</p>
 <p>A data repo's Python package is a thin wrapper: <code>from my_symbols import LIBRARY</code>, loaded from the bundled JSON shipped as package data.</p>
 <h3>What a drawing library does</h3>
 <pre><code>from symdef import Orientation, keepout_box, orient, repeat
