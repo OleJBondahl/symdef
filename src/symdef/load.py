@@ -44,6 +44,7 @@ from symdef.model import (
     Symbol,
     SymbolKind,
     Vocabulary,
+    WireStyle,
 )
 
 # Every number in a file is finite with an absolute value of at most this (1e6 M is 2.5 km).
@@ -495,7 +496,12 @@ def _bundle_symbol(value: object, location: str) -> list[Finding]:
 
 
 _BUNDLE = _table(
-    {"schema": _schema_version, "standard": _string, "symbols": _map_of(_bundle_symbol)},
+    {
+        "schema": _schema_version,
+        "standard": _string,
+        "symbols": _map_of(_bundle_symbol),
+        "wires": _wires,
+    },
     required=("schema", "standard", "symbols"),
 )
 
@@ -505,6 +511,33 @@ def validate_bundle(data: object) -> tuple[Finding, ...]:
 
     Args:
         data: A decoded JSON document.
+
+_WIRE = _table(
+    {
+        "id": _string,
+        "weight": _enum(*(w.name.lower() for w in Weight)),
+        "style": _enum(*(s.value for s in Style)),
+    },
+    required=("id", "weight", "style"),
+)
+
+
+def _wires(value: object, location: str) -> list[Finding]:
+    """Check a list of wire styles: each one a `_WIRE` table, and no id given twice."""
+    found = _array(_WIRE)(value, location)
+    if isinstance(value, list):
+        ids = [e.get("id") for e in value if isinstance(e, dict)]
+        for wire_id in sorted({i for i in ids if isinstance(i, str) and ids.count(i) > 1}):
+            found.append(_finding(location, f"duplicate wire id {_short(wire_id)!r}"))
+    return found
+
+
+def _wires_from_data(entries: list[dict[str, str]]) -> tuple[WireStyle, ...]:
+    """Build the wire styles of a checked `[[wire]]` list or a bundle's `wires` array."""
+    return tuple(
+        WireStyle(w["id"], Weight[w["weight"].upper()], Style(w["style"])) for w in entries
+    )
+
 
     Returns:
         One `schema` error per violation, located inside the bundle (`/symbols/S00227/ports/0`).
@@ -547,7 +580,13 @@ def library_from_bundle(data: Mapping[str, Any]) -> Library:
         The library, its symbols keyed by the bundle's keys.
     """
     symbols = {number: symbol_from_data(s) for number, s in data["symbols"].items()}
-    return Library(data["standard"], data["standard"], "", symbols)
+    return Library(
+        data["standard"],
+        data["standard"],
+        "",
+        symbols,
+        wires=_wires_from_data(data.get("wires", [])),
+    )
 
 
 _VOCABULARY_LISTS = ("path_kinds", "potentials", "links")
@@ -556,9 +595,9 @@ _RULES = _table({"required_slots": _array(_string)})
 
 
 def _tables_problems(data: Mapping[str, Any]) -> list[Finding]:
-    """Check the optional `[vocabulary]` and `[rules]` tables of `library.toml`."""
+    """Check the optional `[vocabulary]`, `[rules]` and `[[wire]]` parts of `library.toml`."""
     found: list[Finding] = []
-    for key, check in (("vocabulary", _VOCABULARY), ("rules", _RULES)):
+    for key, check in (("vocabulary", _VOCABULARY), ("rules", _RULES), ("wire", _wires)):
         if key in data:
             found += check(data[key], _child("", key))
     return found
@@ -569,7 +608,8 @@ def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
 
     An optional `package` names the data package's folder under `src/` (D45). The optional
     tables `[vocabulary]` (`path_kinds`, `potentials`, `links`) and `[rules]` (`required_slots`)
-    hold lists of strings; an absent list is empty.
+    hold lists of strings; an absent list is empty. The `[[wire]]` tables (`id`, `weight`,
+    `style`) give the wire styles `wire` draws; an absent list is empty.
 
     Args:
         text: The file's TOML text.
@@ -613,3 +653,4 @@ def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
         words,
         required,
     ), ()
+        _wires_from_data(data.get("wire", [])),

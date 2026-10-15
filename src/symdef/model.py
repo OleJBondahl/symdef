@@ -6,7 +6,7 @@ from enum import Enum
 from typing import Literal
 
 from symdef.errors import UnknownSymbolError
-from symdef.geometry import Direction, Element, Orientation, Point
+from symdef.geometry import Direction, Element, Orientation, Point, Style, Weight
 
 
 class Status(Enum):
@@ -198,11 +198,26 @@ class Vocabulary:
 
 
 @dataclass(frozen=True, slots=True)
+class WireStyle:
+    """A named line style for `wire`: one `[[wire]]` table of `library.toml`, or a bundle entry.
+
+    Attributes:
+        id: The name a caller passes to `wire`.
+        weight: The line weight of the wire.
+        style: Whether the wire is solid or dashed.
+    """
+
+    id: str
+    weight: Weight
+    style: Style
+
+
+@dataclass(frozen=True, slots=True)
 class LibraryConfig:
     """The standard-specific settings from `library.toml`.
 
     `required_slots` is `[rules] required_slots`: slot ids every `kind = "symbol"` file carries,
-    where `marking.<port>` stands for one slot per port.
+    where `marking.<port>` stands for one slot per port. `wires` is the `[[wire]]` tables.
     """
 
     standard: str
@@ -211,6 +226,7 @@ class LibraryConfig:
     package: str = ""
     vocabulary: Vocabulary = Vocabulary()
     required_slots: tuple[str, ...] = ()
+    wires: tuple[WireStyle, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -226,6 +242,7 @@ class Library:
     symbols: Mapping[str, Symbol]
     vocabulary: Vocabulary = Vocabulary()
     required_slots: tuple[str, ...] = ()
+    wires: tuple[WireStyle, ...] = ()
 
     def get(self, number: str) -> Symbol:
         """Return the symbol with this reference number.
