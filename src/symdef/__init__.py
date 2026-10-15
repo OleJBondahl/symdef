@@ -33,6 +33,7 @@ from symdef.model import (
     Severity,
     Slot,
     Status,
+    Stretch,
     Symbol,
     SymbolKind,
     Vocabulary,
@@ -40,6 +41,7 @@ from symdef.model import (
 from symdef.orient import orient, translate
 from symdef.project import build, check, init
 from symdef.repeat import repeat
+from symdef.stretch import stretch
 from symdef.svg import to_fragment, to_svg
 from symdef.svg_mm import to_fragment_mm
 from symdef.units import DEFAULT_MODULE_MM, GRID_DIVISION, on_grid, snap
@@ -73,6 +75,7 @@ __all__ = [
     "Severity",
     "Slot",
     "Status",
+    "Stretch",
     "Style",
     "Symbol",
     "SymbolKind",
@@ -95,6 +98,7 @@ __all__ = [
     "slot_box",
     "snap",
     "stale_build",
+    "stretch",
     "to_fragment",
     "to_fragment_mm",
     "to_svg",

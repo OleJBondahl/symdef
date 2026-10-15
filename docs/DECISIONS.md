@@ -948,3 +948,23 @@ transform and no scale. `to_svg` and `to_fragment` bytes are unchanged; the gold
 `tests/fixtures/svg_golden` prove it. Release 0.6.0.
 Why: the owner wants every size set in millimetres and rendered exactly, with nothing scaled.
 Cost if wrong: the function is additive; remove it and its export.
+
+## D53. stretch(): a cut line moves everything beyond it (SYMDEF-SLOTS SS1, SS7)
+
+Decided: `Symbol.stretch` holds at most one `Stretch(axis, at)` per axis, written `[[stretch]]` in a
+file and `stretch` in the resolved JSON (written only when set, so existing bundles keep their
+bytes; the bundle schema version stays 1). `stretch(symbol, axis, length, offsets=None)` in the new
+`stretch.py` moves every point whose coordinate is greater than `at` by `length` minus the body
+extent (`body_box`) along the axis: line and polyline points, ports, anchors and slots; a circle,
+arc or text lying wholly beyond the cut moves whole, one wholly before it stays, one across it
+raises `ValueError`. Offsets place each named port, its bound lead and its `marking.<port>` slot at
+a coordinate inside the stretched body on the 1 M wiring grid; the port must face across the axis
+(N or S for x, E or W for y), and an offset naming no port raises `ValueError` too. A `length`
+equal to the natural extent is allowed. The result drops that axis's stretch, so a frame is
+stretched on both axes by two calls (SS7); no extra API. `orient`, `translate` and `repeat` carry
+the field unchanged and do not raise; the stretch is applied before them. The lint driver does not
+clear it: every rule ignores it except `stretch-cut` (D55), which runs once on the base symbol. A
+composite does not inherit its parts' stretch; its own `[[stretch]]` is its own. `crosses_cut` is
+the one predicate the function and the lint rule share.
+Why: the owner chose the stretch value: layout passes one length and symdef builds the symbol.
+Cost if wrong: the field, the function and the schema key are additive; remove them and the export.

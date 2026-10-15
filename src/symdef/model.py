@@ -3,6 +3,7 @@
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
 from enum import Enum
+from typing import Literal
 
 from symdef.errors import UnknownSymbolError
 from symdef.geometry import Direction, Element, Orientation, Point
@@ -109,6 +110,19 @@ class Slot:
 
 
 @dataclass(frozen=True, slots=True)
+class Stretch:
+    """A cut line across the body: `stretch` moves every point beyond it.
+
+    Attributes:
+        axis: The axis the symbol grows along.
+        at: The cut's coordinate on that axis, in module units.
+    """
+
+    axis: Literal["x", "y"]
+    at: float
+
+
+@dataclass(frozen=True, slots=True)
 class Reference:
     """Where a symbol is defined in its standard."""
 
@@ -135,6 +149,7 @@ class Symbol:
         reference: Where the standard defines it.
         elements: The drawing, in module units.
         pole_pitch: Spacing between poles for `repeat`, in module units; None means 4.
+        stretch: Cut lines for `stretch`, at most one per axis.
         lint_allow: Lint exemptions the symbol claims.
     """
 
@@ -150,6 +165,7 @@ class Symbol:
     slots: tuple[Slot, ...] = ()
     pole_pitch: int | None = None
     lint_allow: tuple[Allow, ...] = ()
+    stretch: tuple[Stretch, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

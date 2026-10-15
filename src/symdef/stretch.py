@@ -1,0 +1,167 @@
+"""Stretch a symbol along one axis: every point beyond its cut line moves."""
+
+from collections.abc import Callable, Mapping
+from dataclasses import replace
+from typing import Literal
+
+from symdef.boxes import body_box, element_box
+from symdef.geometry import Arc, Circle, Direction, Element, Line, Point, Polyline, Text
+from symdef.model import Slot, Symbol
+
+type Axis = Literal["x", "y"]
+
+_MARKING = "marking."
+# A named port stands on an edge parallel to the axis: its outward normal is across the axis.
+_EDGE_NORMALS: dict[str, tuple[Direction, Direction]] = {
+    "x": (Direction.N, Direction.S),
+    "y": (Direction.E, Direction.W),
+}
+
+
+def _coord(point: Point, axis: Axis) -> float:
+    """Return the point's coordinate along the axis."""
+    return point.x if axis == "x" else point.y
+
+
+def _add(point: Point, axis: Axis, delta: float) -> Point:
+    """Return the point moved by `delta` along the axis."""
+    return Point(point.x + delta, point.y) if axis == "x" else Point(point.x, point.y + delta)
+
+
+def _span(element: Element, axis: Axis) -> tuple[float, float]:
+    """Return the element's extent along the axis as (low, high)."""
+    box = element_box(element)
+    return (box.min.x, box.max.x) if axis == "x" else (box.min.y, box.max.y)
+
+
+def crosses_cut(element: Element, axis: Axis, at: float) -> bool:
+    """Return whether a circle, arc or text lies on both sides of a cut line.
+
+    A line or polyline may cross a cut (it gets longer), so it never does. Touching the cut from
+    one side is not crossing.
+    """
+    if not isinstance(element, Circle | Arc | Text):
+        return False
+    low, high = _span(element, axis)
+    return low < at < high
+
+
+def _nudge(element: Circle | Arc | Text, axis: Axis, delta: float) -> Element:
+    """Return a circle, arc or text moved whole by `delta` along the axis."""
+    if isinstance(element, Text):
+        return replace(element, position=_add(element.position, axis, delta))
+    return replace(element, center=_add(element.center, axis, delta))
+
+
+def _stretch_element(
+    element: Element, axis: Axis, at: float, delta: float, move: Callable[[Point], Point]
+) -> Element:
+    """Return the element with its points beyond the cut moved; a whole shape moves or stays."""
+    match element:
+        case Line(start=start, end=end):
+            return replace(element, start=move(start), end=move(end))
+        case Polyline(points=points):
+            return replace(element, points=tuple(move(p) for p in points))
+    if crosses_cut(element, axis, at):
+        msg = f"a {type(element).__name__.lower()} crosses the cut at {at} on the {axis} axis"
+        raise ValueError(msg)
+    return _nudge(element, axis, delta) if _span(element, axis)[1] > at else element
+
+
+def _move_offsets(symbol: Symbol, axis: Axis, offsets: Mapping[str, float]) -> Symbol:
+    """Place each named port at its offset, with its bound lead and `marking.<port>` slot."""
+    shift = {
+        p.id: offsets[p.id] - _coord(p.position, axis) for p in symbol.ports if p.id in offsets
+    }
+
+    def lead(element: Element) -> Element:
+        if isinstance(element, Line) and element.port in shift:
+            d = shift[element.port]
+            return replace(
+                element, start=_add(element.start, axis, d), end=_add(element.end, axis, d)
+            )
+        return element
+
+    def slot(s: Slot) -> Slot:
+        d = shift.get(s.id.removeprefix(_MARKING), 0) if s.id.startswith(_MARKING) else 0
+        return replace(s, position=_add(s.position, axis, d))
+
+    return replace(
+        symbol,
+        elements=tuple(lead(e) for e in symbol.elements),
+        ports=tuple(
+            replace(p, position=_add(p.position, axis, shift.get(p.id, 0))) for p in symbol.ports
+        ),
+        slots=tuple(slot(s) for s in symbol.slots),
+    )
+
+
+def _check_offsets(
+    symbol: Symbol, axis: Axis, low: float, length: float, offsets: Mapping[str, float]
+) -> None:
+    """Raise `ValueError` for an offset naming no port, a port on another edge, or a bad place."""
+    ports = {p.id: p for p in symbol.ports}
+    for port_id, value in offsets.items():
+        if port_id not in ports:
+            msg = f"offsets name the port {port_id!r}, which the symbol does not have"
+            raise ValueError(msg)
+        if ports[port_id].direction not in _EDGE_NORMALS[axis]:
+            msg = f"the port {port_id!r} is not on an edge parallel to the {axis} axis"
+            raise ValueError(msg)
+        if not low <= value <= low + length:
+            msg = f"the offset {value!r} of port {port_id!r} lies outside the stretched body"
+            raise ValueError(msg)
+        if not float(value).is_integer():
+            msg = f"the offset {value!r} of port {port_id!r} is off the 1 M wiring grid"
+            raise ValueError(msg)
+
+
+def stretch(
+    symbol: Symbol, axis: Axis, length: float, offsets: Mapping[str, float] | None = None
+) -> Symbol:
+    """Return the symbol grown along an axis to a body extent of `length`.
+
+    Every point beyond the symbol's cut line on that axis moves by `length` minus the natural
+    extent: element points, ports, anchors and slots. A line or polyline segment across the cut
+    gets longer. `offsets` then places each named port at its coordinate along the axis, with its
+    bound lead and its `marking.<port>` slot; the port must stand on an edge parallel to the axis,
+    on the 1 M wiring grid, inside the stretched body. The result has no stretch on that axis.
+
+    Args:
+        symbol: A symbol in base orientation with a stretch on `axis`.
+        axis: "x" or "y".
+        length: The new body extent along the axis, in module units; the natural extent at least.
+        offsets: Port id to coordinate along the axis, or None.
+
+    Returns:
+        An ordinary symbol; orient it afterwards.
+
+    Raises:
+        ValueError: If the symbol has no stretch on the axis, `length` is below the natural
+            extent, a circle, arc or text crosses the cut, an offset names no port or a port on
+            another edge, or an offset lies outside the stretched body or off the grid.
+    """
+    cut = next((s for s in symbol.stretch if s.axis == axis), None)
+    if cut is None:
+        msg = f"the symbol has no stretch on the {axis} axis"
+        raise ValueError(msg)
+    box = body_box(symbol)
+    low, natural = (box.min.x, box.width) if axis == "x" else (box.min.y, box.height)
+    if length < natural:
+        msg = f"the length {length} is below the natural extent {natural}"
+        raise ValueError(msg)
+    _check_offsets(symbol, axis, low, length, offsets or {})
+    delta = length - natural
+
+    def move(point: Point) -> Point:
+        return _add(point, axis, delta) if _coord(point, axis) > cut.at else point
+
+    stretched = replace(
+        symbol,
+        elements=tuple(_stretch_element(e, axis, cut.at, delta, move) for e in symbol.elements),
+        ports=tuple(replace(p, position=move(p.position)) for p in symbol.ports),
+        anchors=tuple(replace(a, position=move(a.position)) for a in symbol.anchors),
+        slots=tuple(replace(s, position=move(s.position)) for s in symbol.slots),
+        stretch=tuple(s for s in symbol.stretch if s.axis != axis),
+    )
+    return _move_offsets(stretched, axis, offsets or {})

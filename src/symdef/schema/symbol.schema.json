@@ -50,6 +50,7 @@
     },
     "pole_pitch": { "$ref": "#/$defs/integer" },
     "lint_allow": { "type": "array", "items": { "$ref": "#/$defs/allow" } },
+    "stretch": { "type": "array", "items": { "$ref": "#/$defs/stretch" } },
     "body_box": { "$ref": "#/$defs/box" },
     "keepout_box": { "$ref": "#/$defs/box" }
   },
@@ -154,6 +155,16 @@
         "via": { "type": "string" },
         "at": { "$ref": "#/$defs/point" },
         "repeat": { "$ref": "#/$defs/integer" }
+      }
+    },
+    "stretch": {
+      "description": "A cut line across the body: the axis the symbol grows along and the cut's coordinate.",
+      "type": "object",
+      "required": ["axis", "at"],
+      "additionalProperties": false,
+      "properties": {
+        "axis": { "enum": ["x", "y"] },
+        "at": { "$ref": "#/$defs/number" }
       }
     },
     "allow": {
