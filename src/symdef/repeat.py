@@ -10,8 +10,12 @@ _DEFAULT_PITCH = 4
 _LINK = "link"
 _MARKING = "marking."
 
+# A repeat in a part file stops here: the guide sets no bound, and a data file must not be able to
+# ask for a million poles. `table` uses the same bound.
+MAX_REPEAT = 64
 
-def _pole_elements(elements: tuple[Element, ...], k: int) -> tuple[Element, ...]:
+
+def pole_elements(elements: tuple[Element, ...], k: int) -> tuple[Element, ...]:
     """Return pole `k`'s elements, a bound lead's `port` prefixed `<k>.` to match its port."""
     return tuple(
         replace(e, port=f"{k}.{e.port}") if isinstance(e, Line) and e.port is not None else e
@@ -30,9 +34,7 @@ def _pole_slots(slots: tuple[Slot, ...], k: int) -> tuple[Slot, ...]:
     )
 
 
-def _pole_parts(
-    pole: Symbol, k: int
-) -> tuple[tuple[Port, ...], tuple[Node, ...], tuple[Path, ...]]:
+def pole_parts(pole: Symbol, k: int) -> tuple[tuple[Port, ...], tuple[Node, ...], tuple[Path, ...]]:
     """Return the ports, nodes and paths of pole `k` with every port id prefixed by `<k>.`."""
     return (
         tuple(replace(p, id=f"{k}.{p.id}") for p in pole.ports),
@@ -79,7 +81,7 @@ def repeat(symbol: Symbol, n: int) -> Symbol:
         raise ValueError(msg)
     pitch = symbol.pole_pitch or _DEFAULT_PITCH
     poles = tuple(translate(symbol, (k - 1) * pitch, 0) for k in range(1, n + 1))
-    parts = tuple(_pole_parts(pole, k) for k, pole in enumerate(poles, start=1))
+    parts = tuple(pole_parts(pole, k) for k, pole in enumerate(poles, start=1))
     link = next((a for a in symbol.anchors if a.id == _LINK), None)
     dashes = ()
     if link is not None and n > 1:
@@ -88,7 +90,7 @@ def repeat(symbol: Symbol, n: int) -> Symbol:
     return replace(
         symbol,
         elements=tuple(
-            e for k, pole in enumerate(poles, start=1) for e in _pole_elements(pole.elements, k)
+            e for k, pole in enumerate(poles, start=1) for e in pole_elements(pole.elements, k)
         )
         + dashes,
         ports=tuple(p for ports, _, _ in parts for p in ports),

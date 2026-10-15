@@ -45,6 +45,7 @@ from symdef.stretch import stretch
 from symdef.svg import to_fragment, to_svg
 from symdef.svg_mm import to_fragment_mm
 from symdef.units import DEFAULT_MODULE_MM, GRID_DIVISION, on_grid, snap
+from symdef.table import table
 
 __all__ = [
     "DEFAULT_MODULE_MM",
@@ -102,6 +103,7 @@ __all__ = [
     "to_fragment",
     "to_fragment_mm",
     "to_svg",
+    "table",
     "translate",
     "write_build",
 ]

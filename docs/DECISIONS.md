@@ -968,3 +968,20 @@ composite does not inherit its parts' stretch; its own `[[stretch]]` is its own.
 the one predicate the function and the lint rule share.
 Why: the owner chose the stretch value: layout passes one length and symdef builds the symbol.
 Cost if wrong: the field, the function and the schema key are additive; remove them and the export.
+
+## D54. table(): rows with their own ports and slots (SYMDEF-SLOTS SS2)
+
+Decided: `table(row, n, axis, head=None)` in the new `table.py` returns `n` copies of `row`, copy k
+(from 1) stepping by the row's body extent (`body_box`) along the axis. Ports, bound leads, nodes
+and paths are prefixed `<k>.`, through the helpers `repeat` uses (now public in `repeat.py` as
+`pole_elements` and `pole_parts`). Every slot of every copy is kept: `marking.<port>` becomes
+`marking.<k>.<port>`, any other `<id>` becomes `<k>.<id>`. No through path is needed. The cap is
+`repeat`'s 64, now the constant `MAX_REPEAT` in `repeat.py` (the resolver imports it). The result
+keeps the row's `pole_pitch`, takes copy 1's anchors and has no stretch. A head keeps its own ids
+and comes first in the lists; with a stretch on the table's axis it is first stretched to
+`n * step`. The head is placed as authored, in the row's frame, and never translated: the spec says
+both "before row 1" and "stretched to span the rows", which no single translation satisfies on one
+axis (a heading that spans the columns of an x table lies across them, not before them). The
+author puts the head where it belongs in the shared frame. `repeat` is unchanged.
+Why: a table is cells with their own text, not poles of one device.
+Cost if wrong: additive; remove the module and its export. A head that must move is a later keyword.
