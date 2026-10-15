@@ -37,7 +37,7 @@ def test_weight_values():
 
 
 def test_style_and_fill_members():
-    assert [s.value for s in Style] == ["solid", "dashed"]
+    assert [s.value for s in Style] == ["solid", "dashed", "dash_dot"]
     assert [f.value for f in Fill] == ["none", "solid", "tint"]
 
 

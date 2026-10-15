@@ -19,6 +19,7 @@ from symdef.geometry import (
     Text,
     Weight,
 )
+from symdef.leads import leads
 from symdef.lint import RULES, finding_key, lint
 from symdef.model import (
     Allow,
@@ -93,6 +94,7 @@ __all__ = [
     "finding_key",
     "init",
     "keepout_box",
+    "leads",
     "lint",
     "load_bundle",
     "load_library",
