@@ -1000,3 +1000,19 @@ field alone; no other rule reads it.
 Why: a symbol whose cut crosses a circle cannot be stretched, and the error should surface at lint, not
 at the consumer's build.
 Cost if wrong: the rule is additive; remove its row, check and the 35 in the counts.
+
+## D56. Wire styles and wire() (SYMDEF-SLOTS SS8)
+
+Decided: a symbol set declares wire styles in `library.toml` as `[[wire]]` with `id`, `weight`
+(`normal` or `thick`) and `style` (`solid` or `dashed`); the table is optional, and a missing key, an
+unknown word or a duplicate id is a finding like those of `[vocabulary]`. `WireStyle(id, weight,
+style)` is a new public dataclass; `LibraryConfig` and `Library` gain a last field `wires`.
+`wire(library, style_id, points)` in the new `wire.py` returns an element-kind symbol of one open
+`Polyline` of that style (name `wire <id>`, reference number `wire.<id>`), with no ports or slots;
+points may be `Point`s or (x, y) pairs. An unknown id raises `KeyError` naming it (as
+`to_fragment_mm` does for weights), fewer than two points `ValueError`. The consumer reads a
+bundle, not the TOML, so `bundle.json` carries an optional top-level `wires` array, written only
+when the library has wires (existing bundles keep their bytes; the bundle schema stays 1), checked
+by `validate_bundle` and read by `library_from_bundle`. A junction dot is an ordinary symbol.
+Why: the owner ruled that wires are symdef functions and layout names only a style and points.
+Cost if wrong: additive; remove the module, the dataclass, the field and the bundle key.

@@ -158,14 +158,23 @@ def symbol_to_data(symbol: Symbol) -> dict[str, Any]:
 
 
 def bundle_to_data(library: Library) -> dict[str, Any]:
-    """Return the bundle: the schema version, the standard and every symbol, by number (D7)."""
-    return {
+    """Return the bundle: the schema version, the standard and every symbol, by number (D7).
+
+    A library with wire styles adds the `wires` array; one without has none.
+    """
+    data: dict[str, Any] = {
         "schema": _SCHEMA_VERSION,
         "standard": library.standard,
         "symbols": {
             number: symbol_to_data(library.symbols[number]) for number in sorted(library.symbols)
         },
     }
+    if library.wires:
+        data["wires"] = [
+            {"id": w.id, "weight": w.weight.name.lower(), "style": w.style.value}
+            for w in library.wires
+        ]
+    return data
 
 
 def _whole_as_int(value: JsonValue) -> JsonValue:

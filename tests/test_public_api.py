@@ -95,12 +95,12 @@ SECTION_11_SIGNATURES = {
     ],
     "write_build": positional("library", "root"),
     "stale_build": positional("library", "root"),
-}
     "wire": positional("library", "style_id", "points"),
     "table": [
         *positional("row", "n", "axis"),
         ("head", "POSITIONAL_OR_KEYWORD", "None"),
     ],
+}
 
 
 @pytest.mark.parametrize("name", SECTION_11_SIGNATURES)
@@ -130,6 +130,7 @@ SECTION_11_FIELDS = {
     ],
     "Library": [
         *("standard", "title", "number_pattern", "symbols", "vocabulary", "required_slots"),
+        "wires",
     ],
     "Finding": ["rule", "severity", "message", "location", "orientation"],
 }

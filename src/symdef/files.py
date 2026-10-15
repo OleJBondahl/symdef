@@ -96,6 +96,7 @@ def load_library(root: Path) -> Library:
         resolution.symbols,
         config.vocabulary,
         config.required_slots,
+        config.wires,
     )
 
 
