@@ -33,16 +33,21 @@ from symdef.model import (
     Severity,
     Slot,
     Status,
+    Stretch,
     Symbol,
     SymbolKind,
     Vocabulary,
+    WireStyle,
 )
 from symdef.orient import orient, translate
 from symdef.project import build, check, init
 from symdef.repeat import repeat
+from symdef.stretch import stretch
 from symdef.svg import to_fragment, to_svg
 from symdef.svg_mm import to_fragment_mm
+from symdef.table import table
 from symdef.units import DEFAULT_MODULE_MM, GRID_DIVISION, on_grid, snap
+from symdef.wire import wire
 
 __all__ = [
     "DEFAULT_MODULE_MM",
@@ -73,6 +78,7 @@ __all__ = [
     "Severity",
     "Slot",
     "Status",
+    "Stretch",
     "Style",
     "Symbol",
     "SymbolKind",
@@ -80,6 +86,7 @@ __all__ = [
     "UnknownSymbolError",
     "Vocabulary",
     "Weight",
+    "WireStyle",
     "body_box",
     "build",
     "check",
@@ -95,9 +102,12 @@ __all__ = [
     "slot_box",
     "snap",
     "stale_build",
+    "stretch",
+    "table",
     "to_fragment",
     "to_fragment_mm",
     "to_svg",
     "translate",
+    "wire",
     "write_build",
 ]

@@ -3,9 +3,10 @@
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
 from enum import Enum
+from typing import Literal
 
 from symdef.errors import UnknownSymbolError
-from symdef.geometry import Direction, Element, Orientation, Point
+from symdef.geometry import Direction, Element, Orientation, Point, Style, Weight
 
 
 class Status(Enum):
@@ -109,6 +110,19 @@ class Slot:
 
 
 @dataclass(frozen=True, slots=True)
+class Stretch:
+    """A cut line across the body: `stretch` moves every point beyond it.
+
+    Attributes:
+        axis: The axis the symbol grows along.
+        at: The cut's coordinate on that axis, in module units.
+    """
+
+    axis: Literal["x", "y"]
+    at: float
+
+
+@dataclass(frozen=True, slots=True)
 class Reference:
     """Where a symbol is defined in its standard."""
 
@@ -135,6 +149,7 @@ class Symbol:
         reference: Where the standard defines it.
         elements: The drawing, in module units.
         pole_pitch: Spacing between poles for `repeat`, in module units; None means 4.
+        stretch: Cut lines for `stretch`, at most one per axis.
         lint_allow: Lint exemptions the symbol claims.
     """
 
@@ -150,6 +165,7 @@ class Symbol:
     slots: tuple[Slot, ...] = ()
     pole_pitch: int | None = None
     lint_allow: tuple[Allow, ...] = ()
+    stretch: tuple[Stretch, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -182,11 +198,26 @@ class Vocabulary:
 
 
 @dataclass(frozen=True, slots=True)
+class WireStyle:
+    """A named line style for `wire`: one `[[wire]]` table of `library.toml`, or a bundle entry.
+
+    Attributes:
+        id: The name a caller passes to `wire`.
+        weight: The line weight of the wire.
+        style: Whether the wire is solid or dashed.
+    """
+
+    id: str
+    weight: Weight
+    style: Style
+
+
+@dataclass(frozen=True, slots=True)
 class LibraryConfig:
     """The standard-specific settings from `library.toml`.
 
     `required_slots` is `[rules] required_slots`: slot ids every `kind = "symbol"` file carries,
-    where `marking.<port>` stands for one slot per port.
+    where `marking.<port>` stands for one slot per port. `wires` is the `[[wire]]` tables.
     """
 
     standard: str
@@ -195,6 +226,7 @@ class LibraryConfig:
     package: str = ""
     vocabulary: Vocabulary = Vocabulary()
     required_slots: tuple[str, ...] = ()
+    wires: tuple[WireStyle, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -210,6 +242,7 @@ class Library:
     symbols: Mapping[str, Symbol]
     vocabulary: Vocabulary = Vocabulary()
     required_slots: tuple[str, ...] = ()
+    wires: tuple[WireStyle, ...] = ()
 
     def get(self, number: str) -> Symbol:
         """Return the symbol with this reference number.

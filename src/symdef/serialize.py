@@ -89,7 +89,8 @@ def symbol_to_data(symbol: Symbol) -> dict[str, Any]:
     Ports, nodes, paths, anchors, elements and slots are always written, empty when the symbol has
     none; `nodes` lists every node, the single-port ones included (`nodes_of`); slots are a table
     keyed by slot id, in id order. `edition`, `form`, `pole_pitch` and a non-empty `lint_allow`
-    appear only when set. `body_box` and `keepout_box` are computed in base orientation.
+    or `stretch` appear only when set. `body_box` and `keepout_box` are computed in base
+    orientation.
 
     Args:
         symbol: A flattened symbol in base orientation.
@@ -151,18 +152,29 @@ def symbol_to_data(symbol: Symbol) -> dict[str, Any]:
         data["pole_pitch"] = symbol.pole_pitch
     if symbol.lint_allow:
         data["lint_allow"] = [{"rule": a.rule, "reason": a.reason} for a in symbol.lint_allow]
+    if symbol.stretch:
+        data["stretch"] = [{"axis": s.axis, "at": s.at} for s in symbol.stretch]
     return data
 
 
 def bundle_to_data(library: Library) -> dict[str, Any]:
-    """Return the bundle: the schema version, the standard and every symbol, by number (D7)."""
-    return {
+    """Return the bundle: the schema version, the standard and every symbol, by number (D7).
+
+    A library with wire styles adds the `wires` array; one without has none.
+    """
+    data: dict[str, Any] = {
         "schema": _SCHEMA_VERSION,
         "standard": library.standard,
         "symbols": {
             number: symbol_to_data(library.symbols[number]) for number in sorted(library.symbols)
         },
     }
+    if library.wires:
+        data["wires"] = [
+            {"id": w.id, "weight": w.weight.name.lower(), "style": w.style.value}
+            for w in library.wires
+        ]
+    return data
 
 
 def _whole_as_int(value: JsonValue) -> JsonValue:

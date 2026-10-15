@@ -40,9 +40,11 @@ from symdef.model import (
     Severity,
     Slot,
     Status,
+    Stretch,
     Symbol,
     SymbolKind,
     Vocabulary,
+    WireStyle,
 )
 
 # Every number in a file is finite with an absolute value of at most this (1e6 M is 2.5 km).
@@ -191,6 +193,7 @@ _DIRECTION = _enum("N", "E", "S", "W")
 _WEIGHT = _enum("normal", "thick")
 _STYLE = _enum("solid", "dashed")
 _FILL = _enum("none", "solid")
+_POLYLINE_FILL = _enum("none", "solid", "tint")
 
 _REFERENCE = _table(
     {"standard": _string, "number": _string, "edition": _string, "form": _string},
@@ -235,6 +238,27 @@ _PART = _table(
     required=("as", "use"),
 )
 _ALLOW = _table({"rule": _string, "reason": _string}, required=("rule", "reason"))
+_STRETCH = _table({"axis": _enum("x", "y"), "at": _number}, required=("axis", "at"))
+
+_POLYLINE = _table(
+    {
+        "polyline": _array(_POINT),
+        "closed": _boolean,
+        "fill": _POLYLINE_FILL,
+        "weight": _WEIGHT,
+        "style": _STYLE,
+    },
+    required=("polyline",),
+)
+
+
+def _polyline(value: dict[str, Any], location: str) -> list[Finding]:
+    """Check a polyline; a tint fill is only for a closed one."""
+    found = _POLYLINE(value, location)
+    if value.get("fill") == "tint" and value.get("closed") is not True:
+        found.append(_finding(_child(location, "fill"), "tint fill needs a closed polyline"))
+    return found
+
 
 # One table per shape, keyed by the shape key; an element has exactly one of these keys.
 _ELEMENTS = {
@@ -242,16 +266,7 @@ _ELEMENTS = {
         {"line": _array(_POINT, 2), "weight": _WEIGHT, "style": _STYLE, "port": _string},
         required=("line",),
     ),
-    "polyline": _table(
-        {
-            "polyline": _array(_POINT),
-            "closed": _boolean,
-            "fill": _FILL,
-            "weight": _WEIGHT,
-            "style": _STYLE,
-        },
-        required=("polyline",),
-    ),
+    "polyline": _polyline,
     "circle": _table(
         {"circle": _POINT, "r": _number, "fill": _FILL, "weight": _WEIGHT},
         required=("circle", "r"),
@@ -319,6 +334,7 @@ _FILE = _table(
         "slots": _map_of(_slot),
         "pole_pitch": _integer,
         "lint_allow": _array(_ALLOW),
+        "stretch": _array(_STRETCH),
         "body_box": _BOX,
         "keepout_box": _BOX,
     },
@@ -454,6 +470,7 @@ def symbol_from_data(data: Mapping[str, Any]) -> Symbol:
         ),
         pole_pitch=int(data["pole_pitch"]) if "pole_pitch" in data else None,
         lint_allow=tuple(Allow(a["rule"], a["reason"]) for a in data.get("lint_allow", ())),
+        stretch=tuple(Stretch(s["axis"], s["at"]) for s in data.get("stretch", ())),
     )
 
 
@@ -490,8 +507,40 @@ def _bundle_symbol(value: object, location: str) -> list[Finding]:
     return found
 
 
+_WIRE = _table(
+    {
+        "id": _string,
+        "weight": _enum(*(w.name.lower() for w in Weight)),
+        "style": _enum(*(s.value for s in Style)),
+    },
+    required=("id", "weight", "style"),
+)
+
+
+def _wires(value: object, location: str) -> list[Finding]:
+    """Check a list of wire styles: each one a `_WIRE` table, and no id given twice."""
+    found = _array(_WIRE)(value, location)
+    if isinstance(value, list):
+        ids = [e.get("id") for e in value if isinstance(e, dict)]
+        for wire_id in sorted({i for i in ids if isinstance(i, str) and ids.count(i) > 1}):
+            found.append(_finding(location, f"duplicate wire id {_short(wire_id)!r}"))
+    return found
+
+
+def _wires_from_data(entries: list[dict[str, str]]) -> tuple[WireStyle, ...]:
+    """Build the wire styles of a checked `[[wire]]` list or a bundle's `wires` array."""
+    return tuple(
+        WireStyle(w["id"], Weight[w["weight"].upper()], Style(w["style"])) for w in entries
+    )
+
+
 _BUNDLE = _table(
-    {"schema": _schema_version, "standard": _string, "symbols": _map_of(_bundle_symbol)},
+    {
+        "schema": _schema_version,
+        "standard": _string,
+        "symbols": _map_of(_bundle_symbol),
+        "wires": _wires,
+    },
     required=("schema", "standard", "symbols"),
 )
 
@@ -543,7 +592,13 @@ def library_from_bundle(data: Mapping[str, Any]) -> Library:
         The library, its symbols keyed by the bundle's keys.
     """
     symbols = {number: symbol_from_data(s) for number, s in data["symbols"].items()}
-    return Library(data["standard"], data["standard"], "", symbols)
+    return Library(
+        data["standard"],
+        data["standard"],
+        "",
+        symbols,
+        wires=_wires_from_data(data.get("wires", [])),
+    )
 
 
 _VOCABULARY_LISTS = ("path_kinds", "potentials", "links")
@@ -552,9 +607,9 @@ _RULES = _table({"required_slots": _array(_string)})
 
 
 def _tables_problems(data: Mapping[str, Any]) -> list[Finding]:
-    """Check the optional `[vocabulary]` and `[rules]` tables of `library.toml`."""
+    """Check the optional `[vocabulary]`, `[rules]` and `[[wire]]` parts of `library.toml`."""
     found: list[Finding] = []
-    for key, check in (("vocabulary", _VOCABULARY), ("rules", _RULES)):
+    for key, check in (("vocabulary", _VOCABULARY), ("rules", _RULES), ("wire", _wires)):
         if key in data:
             found += check(data[key], _child("", key))
     return found
@@ -565,7 +620,8 @@ def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
 
     An optional `package` names the data package's folder under `src/` (D45). The optional
     tables `[vocabulary]` (`path_kinds`, `potentials`, `links`) and `[rules]` (`required_slots`)
-    hold lists of strings; an absent list is empty.
+    hold lists of strings; an absent list is empty. The `[[wire]]` tables (`id`, `weight`,
+    `style`) give the wire styles `wire` draws; an absent list is empty.
 
     Args:
         text: The file's TOML text.
@@ -608,4 +664,5 @@ def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
         data.get("package", ""),
         words,
         required,
+        _wires_from_data(data.get("wire", [])),
     ), ()

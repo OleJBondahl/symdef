@@ -139,7 +139,7 @@ contact = library.get("S00227")  # UnknownSymbolError if absent
 
 `load_library` reads `library.toml` and every `symbols/*.toml`, validates each file, resolves
 composition and returns a `Library`. A `Library` has `standard`, `title`, `number_pattern`,
-`symbols`, `vocabulary` and `required_slots`; `len` and iteration work, and iteration is sorted by number. If any file has a
+`symbols`, `vocabulary`, `required_slots` and `wires`; `len` and iteration work, and iteration is sorted by number. If any file has a
 problem it raises `LibraryError` listing all of them, by file (D21). The pure core never raises:
 problems are `Finding`s with the rule `schema` until `load_library` collects them (D3, D15).
 Composite inheritance is D20; structural problems only the resolver sees are D17.
@@ -150,13 +150,13 @@ Composite inheritance is D20; structural problems only the resolver sees are D17
 from symdef import lint
 from symdef.lint import RULES
 
-assert len(RULES) == 34
+assert len(RULES) == 35
 for finding in lint(contact, library.required_slots):
     print(finding.rule, finding.severity, finding.location, finding.orientation, finding.message)
 ```
 
-There are 34 rules: the spec's 33 (section 9) and `lead-off-port`, the toolkit's one addition
-(D40). `lint` takes a symbol in base orientation and your set's `required_slots`. That list is empty by default,
+There are 35 rules: the spec's 33 (section 9) and two of the toolkit's own, `lead-off-port`
+(D40) and `stretch-cut`. `lint` takes a symbol in base orientation and your set's `required_slots`. That list is empty by default,
 so no slot is required. It runs the orientation-dependent rules in all 8 itself (D6, D23, D46). It returns a tuple of `Finding`, each with `rule`, `severity` (`Severity`),
 `message`, `location` (a string or `None`) and `orientation` (or `None`). They are ordered by the spec
 table, then orientation, then location (D23, D34).
@@ -196,7 +196,7 @@ them (D31). `symdef check` reports the same files as `stale-build`, so a committ
 ## Serialized form
 
 Resolved JSON has the symbol's fields with composition flattened and the `lint_allow` list kept
-(D1, D11). The bundle is `{"schema": 1, "standard": ..., "symbols": {...}}` (D7).
+(D1, D11). The bundle is `{"schema": 1, "standard": ..., "symbols": {...}}` (D7). A library with wire styles adds `"wires": [...]` (D56).
 `load_bundle(path)` reads a `bundle.json` back into a `Library` without the TOML sources; it
 validates every symbol and requires the resolved form (D31). A package that ships a set
 loads its bundle this way at import.
@@ -222,6 +222,99 @@ transform. Coordinates and radii are multiplied by `module_mm`. Stroke widths co
 `weights_mm`, dash lengths from `dash_mm`, and the font size from `font_mm`, all in the caller's
 millimetres. Use it when a drawing must show each size exactly as given. `to_svg` and
 `to_fragment` keep their output.
+
+## Stretching and tables
+
+A symbol whose size is decided at placement time carries a cut line, `[[stretch]]` with `axis`
+(`x` or `y`) and `at`, at most one per axis (D53). `stretch(symbol, axis, length, offsets=None)`
+moves every point beyond the cut by `length` minus the body's natural extent: element points,
+ports, anchors and slots. A line or polyline across the cut gets longer; a circle, arc or text
+across it raises `ValueError`, and the lint rule `stretch-cut` reports it first (D55). `offsets`
+puts named ports, with their leads and `marking.<port>` slots, at coordinates along the axis. The
+result is an ordinary symbol without that axis's stretch, so `orient` and `to_fragment` come
+after it.
+
+```python
+from dataclasses import replace
+
+from symdef import (
+    Direction, Line, Orientation, Point, Polyline, Port, Reference, Slot, Status, Stretch,
+    Symbol, SymbolKind, orient, stretch, to_fragment,
+)
+
+xs = {"1": 4, "2": 12, "3": 20, "4": 28}
+card = Symbol(
+    name="Card",
+    kind=SymbolKind.SYMBOL,
+    status=Status.UNVERIFIED,
+    reference=Reference("IEC 60617", "C00001"),
+    elements=(
+        Polyline((Point(0, 0), Point(32, 0), Point(32, 8), Point(0, 8)), closed=True),
+        *(Line(Point(x, 8), Point(x, 10), port=k) for k, x in xs.items()),
+    ),
+    ports=tuple(Port(k, Point(x, 10), Direction.S) for k, x in xs.items()),
+    slots=(
+        Slot("tag", Point(2, 2), Direction.E, (4, 1)),
+        *(Slot(f"marking.{k}", Point(x, 12), Direction.S, (3, 1)) for k, x in xs.items()),
+    ),
+    stretch=(Stretch("x", 16),),
+)
+wide = stretch(card, "x", 112, {"1": 8, "2": 40, "3": 64, "4": 104})
+drawn = orient(wide, Orientation.R0)
+svg = to_fragment(drawn)  # pass texts= in the SVG calls to fill the slots
+```
+
+A frame is a symbol with a stretch on both axes and a label slot at a corner;
+`stretch(stretch(frame, "x", 120), "y", 80)` makes it 120 by 80 (D53).
+
+`table(row, n, axis, head=None)` makes `n` copies of a row, each stepped by the row's body extent
+along the axis (D54). Copy `k` prefixes its ports `<k>.`, renames `marking.<port>` to
+`marking.<k>.<port>` and any other slot `<id>` to `<k>.<id>`. A `head` keeps its own ids and, if it
+has a stretch on the axis, is first stretched to the rows' total extent on that axis; without one it
+keeps its width. The head stays where it is authored, relative to row 1. The cap is 64 rows.
+
+```python
+from symdef import body_box, table
+
+row = replace(card, stretch=())
+head = replace(
+    card,
+    ports=(),
+    elements=(Polyline((Point(0, -4), Point(32, -4), Point(32, 0), Point(0, 0)), closed=True),),
+    slots=(Slot("heading", Point(2, -2), Direction.E, (6, 1)),),
+    stretch=(Stretch("x", 16),),
+)
+cores = table(row, 4, "x", head=head)
+assert {"1.1", "4.4"} <= {p.id for p in cores.ports}
+assert {"heading", "marking.2.1", "3.tag"} <= {s.id for s in cores.slots}
+assert body_box(cores).width == 128  # the head spans the four rows
+```
+
+A symbol set declares wire styles in `library.toml` as `[[wire]]` with `id`, `weight` (`normal` or
+`thick`) and `style` (`solid` or `dashed`). `wire(library, style_id, points)` returns an
+element-kind symbol of one open polyline in that style; an unknown id raises `KeyError`. The
+resolved bundle carries the styles, so a library read with `load_bundle` can draw wires (D56).
+
+```python
+from symdef import Style, Weight, WireStyle, wire
+
+styled = replace(library, wires=(WireStyle("link", Weight.NORMAL, Style.DASHED),))
+link = wire(styled, "link", [(0, 0), (4, 0), (4, 6)])
+assert link.elements[0].style is Style.DASHED
+```
+
+A closed polyline may say `fill = "tint"`. The caller passes the colour: `to_svg(symbol,
+tint="#cfe8ff")`, `to_fragment(symbol, tint=...)` and `to_fragment_mm(..., tint=...)` take a
+`#rgb`, `#rrggbb` or letters-only colour name, and without a tint a tinted polyline is unfilled
+(D57).
+
+```python
+from symdef import Fill
+
+shape = Polyline((Point(0, 0), Point(4, 0), Point(4, 4)), closed=True, fill=Fill.TINT)
+tinted = replace(card, elements=(shape,))
+assert 'fill="#cfe8ff"' in to_fragment(tinted, tint="#cfe8ff")
+```
 
 ## Consuming
 
