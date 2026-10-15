@@ -82,6 +82,7 @@
     "weight": { "enum": ["normal", "thick"] },
     "style": { "enum": ["solid", "dashed"] },
     "fill": { "enum": ["none", "solid"] },
+    "polyline_fill": { "enum": ["none", "solid", "tint"] },
     "port": {
       "type": "object",
       "required": ["id", "at", "dir"],
@@ -202,10 +203,12 @@
           "properties": {
             "polyline": { "type": "array", "items": { "$ref": "#/$defs/point" } },
             "closed": { "type": "boolean" },
-            "fill": { "$ref": "#/$defs/fill" },
+            "fill": { "$ref": "#/$defs/polyline_fill" },
             "weight": { "$ref": "#/$defs/weight" },
             "style": { "$ref": "#/$defs/style" }
-          }
+          },
+          "if": { "properties": { "fill": { "const": "tint" } }, "required": ["fill"] },
+          "then": { "required": ["closed"], "properties": { "closed": { "const": true } } }
         },
         {
           "type": "object",

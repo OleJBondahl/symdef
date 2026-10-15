@@ -1016,3 +1016,17 @@ when the library has wires (existing bundles keep their bytes; the bundle schema
 by `validate_bundle` and read by `library_from_bundle`. A junction dot is an ordinary symbol.
 Why: the owner ruled that wires are symdef functions and layout names only a style and points.
 Cost if wrong: additive; remove the module, the dataclass, the field and the bundle key.
+
+## D57. Tint fill (SYMDEF-SLOTS SS9)
+
+Decided: `Fill` gains `TINT = "tint"`. A file may write `fill = "tint"` on a closed polyline only;
+on a circle or an open polyline it is a `schema` finding, and the JSON schema agrees (a separate
+fill definition for polylines, with `closed = true` required beside `tint`). `to_svg`, `to_fragment`
+and `to_fragment_mm` take a keyword-only `tint: str | None = None`, the colour string the caller
+chooses, drawn as the fill of every tinted shape; with `None` a tinted shape draws `fill="none"`.
+The toolkit chooses no colour. So that no value can inject SVG, a colour must be `#rgb`,
+`#rrggbb` or a letters-only name; anything else raises `ValueError`, whether or not a shape uses
+it (`check_tint` in `svg.py`, shared by the mm output). Output bytes without a tinted shape do not
+change; the golden fixtures prove it.
+Why: the consumer passes the colour, as it passes slot texts.
+Cost if wrong: additive; remove the enum member, the keyword and the check.

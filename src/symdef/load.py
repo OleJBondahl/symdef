@@ -193,6 +193,7 @@ _DIRECTION = _enum("N", "E", "S", "W")
 _WEIGHT = _enum("normal", "thick")
 _STYLE = _enum("solid", "dashed")
 _FILL = _enum("none", "solid")
+_POLYLINE_FILL = _enum("none", "solid", "tint")
 
 _REFERENCE = _table(
     {"standard": _string, "number": _string, "edition": _string, "form": _string},
@@ -239,22 +240,33 @@ _PART = _table(
 _ALLOW = _table({"rule": _string, "reason": _string}, required=("rule", "reason"))
 _STRETCH = _table({"axis": _enum("x", "y"), "at": _number}, required=("axis", "at"))
 
+_POLYLINE = _table(
+    {
+        "polyline": _array(_POINT),
+        "closed": _boolean,
+        "fill": _POLYLINE_FILL,
+        "weight": _WEIGHT,
+        "style": _STYLE,
+    },
+    required=("polyline",),
+)
+
+
+def _polyline(value: dict[str, Any], location: str) -> list[Finding]:
+    """Check a polyline; a tint fill is only for a closed one."""
+    found = _POLYLINE(value, location)
+    if value.get("fill") == "tint" and value.get("closed") is not True:
+        found.append(_finding(_child(location, "fill"), "tint fill needs a closed polyline"))
+    return found
+
+
 # One table per shape, keyed by the shape key; an element has exactly one of these keys.
 _ELEMENTS = {
     "line": _table(
         {"line": _array(_POINT, 2), "weight": _WEIGHT, "style": _STYLE, "port": _string},
         required=("line",),
     ),
-    "polyline": _table(
-        {
-            "polyline": _array(_POINT),
-            "closed": _boolean,
-            "fill": _FILL,
-            "weight": _WEIGHT,
-            "style": _STYLE,
-        },
-        required=("polyline",),
-    ),
+    "polyline": _polyline,
     "circle": _table(
         {"circle": _POINT, "r": _number, "fill": _FILL, "weight": _WEIGHT},
         required=("circle", "r"),
@@ -495,23 +507,6 @@ def _bundle_symbol(value: object, location: str) -> list[Finding]:
     return found
 
 
-_BUNDLE = _table(
-    {
-        "schema": _schema_version,
-        "standard": _string,
-        "symbols": _map_of(_bundle_symbol),
-        "wires": _wires,
-    },
-    required=("schema", "standard", "symbols"),
-)
-
-
-def validate_bundle(data: object) -> tuple[Finding, ...]:
-    """Check a decoded `bundle.json`: its three keys, and every symbol as a resolved symbol.
-
-    Args:
-        data: A decoded JSON document.
-
 _WIRE = _table(
     {
         "id": _string,
@@ -538,6 +533,23 @@ def _wires_from_data(entries: list[dict[str, str]]) -> tuple[WireStyle, ...]:
         WireStyle(w["id"], Weight[w["weight"].upper()], Style(w["style"])) for w in entries
     )
 
+
+_BUNDLE = _table(
+    {
+        "schema": _schema_version,
+        "standard": _string,
+        "symbols": _map_of(_bundle_symbol),
+        "wires": _wires,
+    },
+    required=("schema", "standard", "symbols"),
+)
+
+
+def validate_bundle(data: object) -> tuple[Finding, ...]:
+    """Check a decoded `bundle.json`: its three keys, and every symbol as a resolved symbol.
+
+    Args:
+        data: A decoded JSON document.
 
     Returns:
         One `schema` error per violation, located inside the bundle (`/symbols/S00227/ports/0`).
@@ -652,5 +664,5 @@ def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
         data.get("package", ""),
         words,
         required,
-    ), ()
         _wires_from_data(data.get("wire", [])),
+    ), ()
