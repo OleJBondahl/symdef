@@ -28,6 +28,7 @@ class _Mm(NamedTuple):
     module: float
     weights: Mapping[Weight, float]
     dash: tuple[float, float]
+    dash_dot: tuple[float, float, float, float] | None
     family: str
     font: float
     cap_ratio: float
@@ -44,7 +45,7 @@ class _Mm(NamedTuple):
         tint: str | None = None,
     ) -> str:
         """Return the closing attributes of a stroked shape, widths and dashes in mm."""
-        dashed = f' stroke-dasharray="{_num(self.dash[0])} {_num(self.dash[1])}"'
+        dashed = self.dashes(style)
         if fill is Fill.SOLID:
             solid = ' fill="#000"'
         elif fill is Fill.TINT:
@@ -53,7 +54,18 @@ class _Mm(NamedTuple):
         else:
             solid = ""
         width = _num(self.weights[weight])
-        return f'stroke-width="{width}"{dashed if style is Style.DASHED else ""}{solid}/>'
+        return f'stroke-width="{width}"{dashed}{solid}/>'
+
+    def dashes(self, style: Style) -> str:
+        """Return the dash attribute of a line style, or nothing for a solid line."""
+        if style is Style.DASH_DOT:
+            if self.dash_dot is None:
+                message = "dash_dot_mm is required to draw a dash_dot element"
+                raise ValueError(message)
+            return f' stroke-dasharray="{" ".join(_num(n) for n in self.dash_dot)}"'
+        if style is Style.DASHED:
+            return f' stroke-dasharray="{_num(self.dash[0])} {_num(self.dash[1])}"'
+        return ""
 
     def pair(self, p: Point) -> str:
         """Return a point as `x y`."""
@@ -110,6 +122,7 @@ def to_fragment_mm(  # noqa: PLR0913 - one physical size per keyword
     module_mm: float,
     weights_mm: Mapping[Weight, float],
     dash_mm: tuple[float, float],
+    dash_dot_mm: tuple[float, float, float, float] | None = None,
     font_family: str,
     font_mm: float,
     cap_ratio: float,
@@ -129,6 +142,8 @@ def to_fragment_mm(  # noqa: PLR0913 - one physical size per keyword
         module_mm: Millimetres per module unit.
         weights_mm: Stroke width in mm for each `Weight` the symbol uses.
         dash_mm: Dash and gap lengths in mm of a dashed element.
+        dash_dot_mm: Dash, gap, dot and gap lengths in mm of a dash-dot element; None when the
+            symbol has none.
         font_family: CSS font family of the text, escaped here for the attribute.
         font_mm: Font size in mm of every text element.
         cap_ratio: Capital height as a fraction of the font size; the baseline sits half of it
@@ -141,9 +156,10 @@ def to_fragment_mm(  # noqa: PLR0913 - one physical size per keyword
 
     Raises:
         KeyError: A weight an element uses is missing from `weights_mm`; the key names it.
-        ValueError: The tint is not a hex colour or a colour name.
+        ValueError: The tint is not a hex colour or a colour name, or a dash-dot element is drawn
+            and `dash_dot_mm` is None.
     """
     check_tint(tint)
-    mm = _Mm(module_mm, weights_mm, dash_mm, font_family, font_mm, cap_ratio)
+    mm = _Mm(module_mm, weights_mm, dash_mm, dash_dot_mm, font_family, font_mm, cap_ratio)
     lines = [_GROUP_OPEN, *(_element(mm, e, tint) for e in symbol.elements), "</g>"]
     return "\n".join(lines) + "\n"

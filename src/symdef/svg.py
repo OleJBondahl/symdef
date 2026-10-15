@@ -29,6 +29,7 @@ _HALF_TURN = 180
 _FULL_TURN = 360
 _MARGIN = 1.0
 _DASHED = ' stroke-dasharray="0.5 0.25"'
+_DASH_DOT = ' stroke-dasharray="1 0.25 0.0625 0.25"'
 _MAX_GRID_DOTS = 10_000
 
 # Annotation sizes and colours (D33). Port and anchor label boxes are 1 em wide per character, a
@@ -114,7 +115,7 @@ def _stroke(
 
     A tinted shape takes the tint colour, or none when no tint is given.
     """
-    dashed = _DASHED if style is Style.DASHED else ""
+    dashed = {Style.DASHED: _DASHED, Style.DASH_DOT: _DASH_DOT}.get(style, "")
     if fill is Fill.SOLID:
         solid = ' fill="#000"'
     elif fill is Fill.TINT:

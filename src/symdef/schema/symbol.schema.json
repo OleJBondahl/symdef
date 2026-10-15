@@ -80,7 +80,7 @@
     },
     "direction": { "enum": ["N", "E", "S", "W"] },
     "weight": { "enum": ["normal", "thick"] },
-    "style": { "enum": ["solid", "dashed"] },
+    "style": { "enum": ["solid", "dashed", "dash_dot"] },
     "fill": { "enum": ["none", "solid"] },
     "polyline_fill": { "enum": ["none", "solid", "tint"] },
     "port": {

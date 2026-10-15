@@ -52,10 +52,14 @@ class Fill(Enum):
 
 
 class Style(Enum):
-    """Line style; dashed is drawn with a dash of 0.5 M and a gap of 0.25 M."""
+    """Line style; dashed is drawn with a dash of 0.5 M and a gap of 0.25 M.
+
+    Dash-dot is a dash of 1 M, a gap of 0.25 M, a dot of 0.0625 M and a gap of 0.25 M.
+    """
 
     SOLID = "solid"
     DASHED = "dashed"
+    DASH_DOT = "dash_dot"
 
 
 class Orientation(Enum):
