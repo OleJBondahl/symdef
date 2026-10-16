@@ -1299,3 +1299,13 @@ and `nodes_of` (every node, the declared ones then one per unlisted port) join `
 docstring and a test.
 Why: SYMBOL-BOUNDARY SB5 and SB10: the caller reads these facts from symdef, not a copy.
 Cost if wrong: additive; `repeat`'s output is byte-identical (the tests of D0 to D72 stay green).
+
+## D78: a loaded library's symbols are read-only (SB6)
+
+Decided: `load_library` and `load_bundle` wrap `Library.symbols` in a `MappingProxyType`, so
+assigning into it raises `TypeError`. The field is typed `Mapping[str, Symbol]` (it already was);
+no writer of `.symbols` exists in the repository. A `Library` built by hand keeps whatever mapping
+its caller passes.
+Why: SYMBOL-BOUNDARY SB6: a library is a frozen value, as the other records are.
+Cost if wrong: a caller that edited a loaded library's symbols must copy them first; drop the wrap
+to revert.
