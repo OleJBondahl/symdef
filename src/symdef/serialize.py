@@ -12,7 +12,7 @@ from typing import Any
 from symdef.boxes import body_box, keepout_box
 from symdef.gallery import readme, sample_texts
 from symdef.geometry import Arc, Box, Circle, Element, Line, Point, Polyline, Text
-from symdef.model import Library, Slot, Symbol, nodes_of
+from symdef.model import Library, Slot, Stretch, Symbol, nodes_of
 from symdef.svg import to_svg
 
 _SCHEMA_VERSION = 1
@@ -47,6 +47,14 @@ def _slot(slot: Slot) -> dict[str, Any]:
     }
     if slot.turn:
         data["turn"] = True
+    return data
+
+
+def _cut(cut: Stretch) -> dict[str, Any]:
+    """Return a cut as plain data; `weight` only when it is not the default 1."""
+    data: dict[str, Any] = {"axis": cut.axis, "at": cut.at}
+    if cut.weight != 1:
+        data["weight"] = cut.weight
     return data
 
 
@@ -158,7 +166,7 @@ def symbol_to_data(symbol: Symbol) -> dict[str, Any]:
     if symbol.lint_allow:
         data["lint_allow"] = [{"rule": a.rule, "reason": a.reason} for a in symbol.lint_allow]
     if symbol.stretch:
-        data["stretch"] = [{"axis": s.axis, "at": s.at} for s in symbol.stretch]
+        data["stretch"] = [_cut(s) for s in symbol.stretch]
     return data
 
 
