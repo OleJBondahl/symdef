@@ -12,7 +12,7 @@ from typing import Any
 from symdef.boxes import body_box, keepout_box
 from symdef.font import FontMetrics
 from symdef.gallery import readme, sample_texts
-from symdef.geometry import Arc, Box, Circle, Element, Line, Point, Polyline, Text
+from symdef.geometry import Arc, Box, Circle, Element, Line, Point, Polyline, Text, Weight
 from symdef.model import Library, Slot, Stretch, Symbol, nodes_of
 from symdef.svg import to_svg
 from symdef.units import DEFAULT_GRID
@@ -180,7 +180,7 @@ def symbol_to_data(symbol: Symbol) -> dict[str, Any]:
 
 
 def _font(font: FontMetrics) -> dict[str, Any]:
-    """Return the font as the bundle writes it; `thick_factor` only when it is not 1."""
+    """Return the font as the bundle writes it; `advances` has one object per weight."""
     data: dict[str, Any] = {
         "name": font.name,
         "units_per_em": font.units_per_em,
@@ -188,10 +188,8 @@ def _font(font: FontMetrics) -> dict[str, Any]:
         "ascent": font.ascent,
         "descent": font.descent,
         "default_advance": font.default_advance,
-        "advances": dict(sorted(font.advances.items())),
+        "advances": {w.name.lower(): dict(sorted(font.advances[w].items())) for w in Weight},
     }
-    if font.thick_factor != 1.0:
-        data["thick_factor"] = font.thick_factor
     return data
 
 

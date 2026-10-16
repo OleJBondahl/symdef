@@ -1340,3 +1340,16 @@ parsers stay.
 Why: one base to catch, named causes, and a clean break while there are no other callers to keep.
 Cost if wrong: a consumer that caught the builtins must catch `SymdefError` or the subclass; add a
 second base to a class to revert one.
+
+## D82: `measure`, and the font holds one advance table per weight
+
+Decided (font part, committed first): `FontMetrics.advances` is a read-only mapping from `Weight`
+to a read-only mapping of character to advance, one table for every `Weight`; a font missing one
+raises `InvalidValueError` naming it. `thick_factor` is removed. `text_width` reads the table of the
+weight it is given, so a bold text differs glyph by glyph from a regular one. `library.toml`'s
+`[font]` takes `[font.advances.normal]` and `[font.advances.thick]`, both required, each a table of
+single characters to numbers above zero; the bundle's `font.advances` is an object with the keys
+`normal` and `thick`, each such a table. `default_advance` stays one number for both.
+Why: a bold face is not a scaled regular face, so a factor mismeasures it.
+Cost if wrong: a library with a font must write a second table; a bundle written by 0.11 does not
+load (its `advances` is flat). Fonts were new in 0.11, so the break is free.

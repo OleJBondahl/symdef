@@ -583,12 +583,14 @@ def _advances(value: object, location: str) -> list[Finding]:
     return found
 
 
+_ADVANCE_TABLES = _table(
+    {w.name.lower(): _advances for w in Weight}, required=tuple(w.name.lower() for w in Weight)
+)
 _FONT_FIELDS = ("units_per_em", "cap_height", "ascent", "descent", "default_advance")
 _FONT = _table(
     {
         **dict.fromkeys(_FONT_FIELDS, _positive),
-        "thick_factor": _positive,
-        "advances": _advances,
+        "advances": _ADVANCE_TABLES,
         "name": _string,
     },
     required=(*_FONT_FIELDS, "advances", "name"),
@@ -603,9 +605,8 @@ def font_from_data(data: Mapping[str, Any]) -> FontMetrics:
         data["cap_height"],
         data["ascent"],
         data["descent"],
-        dict(data["advances"]),
+        {Weight[key.upper()]: dict(table) for key, table in data["advances"].items()},
         data["default_advance"],
-        data.get("thick_factor", 1.0),
     )
 
 
@@ -732,9 +733,9 @@ def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
     tables `[vocabulary]` (`path_kinds`, `potentials`, `links`) and `[rules]` (`required_slots`)
     hold lists of strings; an absent list is empty. The `[[wire]]` tables (`id`, `weight`,
     `style`) give the wire styles `wire` draws; an absent list is empty. The optional `[font]` table
-    (`name`, `units_per_em`, `cap_height`, `ascent`, `descent`, `default_advance`, optional
-    `thick_factor` and a `[font.advances]` table of one number per character) is the font text is
-    measured with. The optional `[grid]` table (`module_mm`, `divisions_per_module`, a power of
+    (`name`, `units_per_em`, `cap_height`, `ascent`, `descent`, `default_advance` and
+    `[font.advances.normal]` and `[font.advances.thick]`, each one number per character) is the
+    font text is measured with. The optional `[grid]` table (`module_mm`, `divisions_per_module`, a power of
     two) is the drawing grid; without it the grid is 2.5 mm and 8 divisions.
 
     Args:
