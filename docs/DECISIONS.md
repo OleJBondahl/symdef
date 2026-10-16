@@ -1175,8 +1175,8 @@ they lie beyond (`stretch_slot.py`). A box across a cut grows by that cut's shar
 `position` and `box` are recomputed so `slot_box` of the result is exactly the moved corners: the
 side's own edge follows its corner, and the centred axis takes the middle of the moved corners. A box
 whose two edges move alike keeps its `box` and its position moves as in 0.9.0 (same bytes). A turned
-slot grows along its authored `box`. `slot_room` (the consumer's) reads the room from the stretched
-symbol and never the unstretched width.
+slot grows along its authored `box`. The room a slot has after stretching is the
+stretched symbol's `slot_box`.
 Why: designer ruling SS17; a slot that spans a cut must grow with the body.
 Cost if wrong: a symbol with a slot across a cut changes size; every other output is unchanged.
 
