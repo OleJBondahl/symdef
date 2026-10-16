@@ -2,7 +2,7 @@ import dataclasses
 
 import pytest
 
-from symdef.errors import GraphicalSymbolsError, LibraryError, UnknownSymbolError
+from symdef.errors import LibraryError, SymdefError, UnknownSymbolError
 from symdef.geometry import Direction, Line, Orientation, Point
 from symdef.model import (
     Anchor,
@@ -132,8 +132,8 @@ def test_library_iterates_sorted_by_number_and_has_a_length():
 
 
 def test_error_hierarchy():
-    assert issubclass(UnknownSymbolError, GraphicalSymbolsError)
-    assert issubclass(LibraryError, GraphicalSymbolsError)
+    assert issubclass(UnknownSymbolError, SymdefError)
+    assert issubclass(LibraryError, SymdefError)
 
 
 def test_library_error_carries_its_findings():

@@ -41,6 +41,7 @@ nav:
   - Guide: guide.md
   - Gallery: gallery.md
   - API: api.md
+  - Changelog: changelog.md
   - Decisions: decisions.md
   - Interface spec: SYMBOL_INTERFACE.html
   - JSON schema: symbol.schema.json

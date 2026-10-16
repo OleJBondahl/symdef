@@ -6,6 +6,7 @@ import pytest
 
 import symdef
 from symdef.boxes import slot_box, slots_box
+from symdef.errors import InvalidValueError
 from symdef.geometry import Box, Direction, Line, Point
 from symdef.model import Node, Port, Reference, Slot, Status, Symbol, SymbolKind
 from symdef.repeat import pole_pitch, pole_port
@@ -31,7 +32,7 @@ def test_union_of_three_boxes_spans_all_of_them():
 
 
 def test_union_of_no_box_raises():
-    with pytest.raises(ValueError, match="at least one box"):
+    with pytest.raises(InvalidValueError, match="at least one box"):
         Box.union()
 
 

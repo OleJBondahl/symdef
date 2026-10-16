@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from symdef.boxes import body_box, keepout_box
+from symdef.errors import InvalidValueError
 from symdef.files import load_bundle, load_library
 from symdef.font import FontMetrics, cap_height, text_width
 from symdef.geometry import Box, Direction, Point, Text, Weight
@@ -17,16 +18,18 @@ from symdef.serialize import bundle_to_data, to_json
 
 GUIDE = Path(__file__).resolve().parent / "fixtures" / "guide"
 
-# A planted three-glyph table: "A" is 500 units, "B" 700, "i" 250; anything else 600.
+# A planted three-glyph table per weight: regular "A" is 500 units, "B" 700, "i" 250; bold sets
+# each glyph by its own advance, not by a factor; anything else 600.
+REGULAR = {"A": 500, "B": 700, "i": 250}
+BOLD = {"A": 560, "B": 810, "i": 300}
 FONT = FontMetrics(
     name="Planted",
     units_per_em=1000,
     cap_height=700,
     ascent=900,
     descent=200,
-    advances={"A": 500, "B": 700, "i": 250},
+    advances={Weight.NORMAL: REGULAR, Weight.THICK: BOLD},
     default_advance=600,
-    thick_factor=1.5,
 )
 
 
@@ -50,8 +53,16 @@ def test_a_missing_character_takes_the_default_advance():
     assert text_width(FONT, "AZ", 1) == pytest.approx(1.1)
 
 
-def test_a_thick_weight_scales_by_the_thick_factor():
-    assert text_width(FONT, "AB", 1, Weight.THICK) == pytest.approx(1.2 * 1.5)
+def test_a_thick_weight_reads_its_own_table_glyph_by_glyph():
+    assert text_width(FONT, "AB", 1, Weight.THICK) == pytest.approx(1.37)
+    assert text_width(FONT, "i", 1, Weight.THICK) == pytest.approx(0.3)
+    ratios = {c: BOLD[c] / REGULAR[c] for c in REGULAR}
+    assert len(set(ratios.values())) == len(ratios)  # no single factor makes bold of regular
+
+
+def test_a_font_needs_a_table_for_every_weight():
+    with pytest.raises(InvalidValueError, match="no advance table for THICK"):
+        replace(FONT, advances={Weight.NORMAL: REGULAR})
 
 
 def test_no_font_measures_six_tenths_of_the_height_per_character():
@@ -82,16 +93,9 @@ def library(font):
 
 def test_a_bundle_round_trips_its_font():
     data = json.loads(to_json(bundle_to_data(library(FONT))))
-    assert data["font"]["advances"] == {"A": 500, "B": 700, "i": 250}
+    assert data["font"]["advances"] == {"normal": REGULAR, "thick": BOLD}
     assert validate_bundle(data) == ()
     assert library_from_bundle(data).font == FONT
-
-
-def test_a_font_without_a_thick_factor_writes_none_and_reads_one():
-    plain = replace(FONT, thick_factor=1.0)
-    data = json.loads(to_json(bundle_to_data(library(plain))))
-    assert "thick_factor" not in data["font"]
-    assert library_from_bundle(data).font == plain
 
 
 def test_a_library_without_a_font_has_no_font_key_and_no_font():
@@ -102,12 +106,14 @@ def test_a_library_without_a_font_has_no_font_key_and_no_font():
 
 def test_a_bad_font_in_a_bundle_is_reported():
     data = json.loads(to_json(bundle_to_data(library(FONT))))
-    data["font"]["advances"]["AB"] = 1
+    data["font"]["advances"]["normal"]["AB"] = 1
+    del data["font"]["advances"]["thick"]
     data["font"]["ascent"] = 0
     del data["font"]["descent"]
     messages = sorted(f.message for f in validate_bundle(data))
     assert messages == [
         "missing required key 'descent'",
+        "missing required key 'thick'",
         "must be a single character",
         "must be above zero",
     ]
@@ -125,12 +131,16 @@ cap_height = 700
 ascent = 900
 descent = 200
 default_advance = 600
-thick_factor = 1.5
 
-[font.advances]
+[font.advances.normal]
 A = 500
 B = 700
 i = 250
+
+[font.advances.thick]
+A = 560
+B = 810
+i = 300
 """
 
 
@@ -168,3 +178,37 @@ def test_load_library_carries_the_font_into_the_library_and_its_bundle(tmp_path)
     bundle = tmp_path / "bundle.json"
     bundle.write_text(to_json(bundle_to_data(loaded)), encoding="utf-8")
     assert load_bundle(bundle).font == FONT
+
+
+HEIGHTS = "\n[font.heights]\nsmallest = 1.8\nbody = 2.5\nheading_2 = 3.5\n"
+
+
+def test_font_heights_are_read_frozen_and_empty_by_default():
+    config, findings = parse_config(CONFIG + HEIGHTS)
+    assert findings == ()
+    assert config is not None
+    assert config.font is not None
+    assert dict(config.font.heights) == {"smallest": 1.8, "body": 2.5, "heading_2": 3.5}
+    with pytest.raises(TypeError):
+        config.font.heights["body"] = 1.0  # ty: ignore[invalid-assignment]  # frozen on purpose
+    assert FONT.heights == {}
+
+
+def test_font_heights_round_trip_through_the_bundle(tmp_path):
+    shutil.copytree(GUIDE, tmp_path / "lib")
+    toml = tmp_path / "lib" / "library.toml"
+    toml.write_text(
+        toml.read_text(encoding="utf-8") + "\n[font]" + CONFIG.split("[font]")[1] + HEIGHTS,
+        encoding="utf-8",
+    )
+    loaded = load_library(tmp_path / "lib")
+    assert loaded.font is not None
+    assert loaded.font.heights["body"] == 2.5
+    bundle = tmp_path / "bundle.json"
+    bundle.write_text(to_json(bundle_to_data(loaded)), encoding="utf-8")
+    assert load_bundle(bundle).font == loaded.font
+
+
+def test_a_font_height_must_be_a_positive_number():
+    _, findings = parse_config(CONFIG + "\n[font.heights]\nbody = 0\n")
+    assert findings != ()

@@ -29,6 +29,7 @@ PAGES = {
     "README.md": "index.md",
     "docs/TUTORIAL.md": "tutorial.md",
     "docs/GUIDE.md": "guide.md",
+    "docs/CHANGELOG.md": "changelog.md",
     "docs/DECISIONS.md": "decisions.md",
     SPEC: "SYMBOL_INTERFACE.html",
     SCHEMA: "symbol.schema.json",

@@ -10,6 +10,7 @@ import pytest
 from test_readme import BLOCK, GUIDE, README
 
 import symdef
+import symdef.authoring
 
 DOCS = [README, GUIDE]
 
@@ -33,7 +34,7 @@ def test_documented_imports_are_in_all(path):
 
 
 def test_the_two_names_the_spec_names_are_public():
-    assert {"RULES", "finding_key"} <= set(symdef.__all__)
+    assert {"RULES", "finding_key"} <= set(symdef.authoring.__all__)
     assert {"RULES", "finding_key"} <= set(importlib.import_module("symdef.lint").__all__)
 
 

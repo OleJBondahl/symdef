@@ -6,6 +6,7 @@ import pytest
 from roundtrip import round_trips
 
 from symdef.boxes import body_box
+from symdef.errors import InvalidValueError
 from symdef.geometry import (
     Arc,
     Circle,
@@ -122,7 +123,7 @@ def test_a_shape_wholly_left_of_the_cut_stays():
 )
 def test_a_circle_arc_or_text_across_the_cut_raises(shape):
     assert crosses_cut(shape, "x", 16)
-    with pytest.raises(ValueError, match="crosses the cut"):
+    with pytest.raises(InvalidValueError, match="crosses the cut"):
         stretch(replace(card(), elements=(shape,), ports=(), slots=()), "x", 40)
 
 
@@ -133,12 +134,12 @@ def test_a_shape_touching_the_cut_from_one_side_is_not_across_it():
 
 
 def test_a_length_below_the_natural_extent_raises():
-    with pytest.raises(ValueError, match="below the natural extent"):
+    with pytest.raises(InvalidValueError, match="below the natural extent"):
         stretch(card(), "x", 31)
 
 
 def test_a_symbol_without_a_stretch_on_the_axis_raises():
-    with pytest.raises(ValueError, match="no stretch on the y axis"):
+    with pytest.raises(InvalidValueError, match="no stretch on the y axis"):
         stretch(card(), "y", 40)
 
 
@@ -152,13 +153,13 @@ def test_a_symbol_without_a_stretch_on_the_axis_raises():
     ],
 )
 def test_a_bad_offset_raises(offsets, message):
-    with pytest.raises(ValueError, match=message):
+    with pytest.raises(InvalidValueError, match=message):
         stretch(card(), "x", 40, offsets)
 
 
 def test_a_port_on_another_edge_raises():
     side = replace(card(), ports=(Port("1", Point(0, 4), W),))
-    with pytest.raises(ValueError, match="not on an edge parallel"):
+    with pytest.raises(InvalidValueError, match="not on an edge parallel"):
         stretch(side, "x", 40, {"1": 4})
 
 

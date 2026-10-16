@@ -49,7 +49,15 @@ from symdef.model import (
     Vocabulary,
     WireStyle,
 )
-from symdef.units import DEFAULT_GRID, Grid, divisions_error, module_error
+from symdef.units import (
+    DEFAULT_GRID,
+    DEFAULT_WIRE_PITCH,
+    DEFAULT_WIRE_PITCH_FINE,
+    Grid,
+    divisions_error,
+    module_error,
+    pitch_error,
+)
 
 # Every number in a file is finite with an absolute value of at most this (1e6 M is 2.5 km).
 _LIMIT = 1_000_000
@@ -583,12 +591,15 @@ def _advances(value: object, location: str) -> list[Finding]:
     return found
 
 
+_ADVANCE_TABLES = _table(
+    {w.name.lower(): _advances for w in Weight}, required=tuple(w.name.lower() for w in Weight)
+)
 _FONT_FIELDS = ("units_per_em", "cap_height", "ascent", "descent", "default_advance")
 _FONT = _table(
     {
         **dict.fromkeys(_FONT_FIELDS, _positive),
-        "thick_factor": _positive,
-        "advances": _advances,
+        "advances": _ADVANCE_TABLES,
+        "heights": _map_of(_positive),
         "name": _string,
     },
     required=(*_FONT_FIELDS, "advances", "name"),
@@ -603,9 +614,9 @@ def font_from_data(data: Mapping[str, Any]) -> FontMetrics:
         data["cap_height"],
         data["ascent"],
         data["descent"],
-        dict(data["advances"]),
+        {Weight[key.upper()]: dict(table) for key, table in data["advances"].items()},
         data["default_advance"],
-        data.get("thick_factor", 1.0),
+        data.get("heights", {}),
     )
 
 
@@ -623,15 +634,43 @@ def _divisions(value: object, location: str) -> list[Finding]:
     return found or ([_finding(location, message)] if message else [])
 
 
-_GRID = _table(
-    {"module_mm": _module_mm, "divisions_per_module": _divisions},
+def _pitch(value: object, location: str) -> list[Finding]:
+    """Check a wire pitch: a whole number of divisions above zero."""
+    found = _integer(value, location)
+    return found or ([_finding(location, "must be above zero")] if value < 1 else [])  # ty: ignore[unsupported-operator] - _integer proved a whole number
+
+
+_GRID_KEYS = _table(
+    {
+        "module_mm": _module_mm,
+        "divisions_per_module": _divisions,
+        "wire_pitch": _pitch,
+        "wire_pitch_fine": _pitch,
+    },
     required=("module_mm", "divisions_per_module"),
 )
 
 
+def _grid_table(value: object, location: str) -> list[Finding]:
+    """Check the `[grid]` keys, then that the fine pitch divides the standard one."""
+    found = _GRID_KEYS(value, location)
+    if found or not isinstance(value, dict):
+        return found
+    message = pitch_error(
+        value.get("wire_pitch", DEFAULT_WIRE_PITCH),
+        value.get("wire_pitch_fine", DEFAULT_WIRE_PITCH_FINE),
+    )
+    return [_finding(location, message)] if message else []
+
+
 def grid_from_data(data: Mapping[str, Any]) -> Grid:
     """Build the grid of a checked `[grid]` table or a bundle's `grid` object."""
-    return Grid(data["module_mm"], int(data["divisions_per_module"]))
+    return Grid(
+        data["module_mm"],
+        int(data["divisions_per_module"]),
+        int(data.get("wire_pitch", DEFAULT_WIRE_PITCH)),
+        int(data.get("wire_pitch_fine", DEFAULT_WIRE_PITCH_FINE)),
+    )
 
 
 _BUNDLE = _table(
@@ -641,7 +680,7 @@ _BUNDLE = _table(
         "symbols": _map_of(_bundle_symbol),
         "wires": _wires,
         "font": _FONT,
-        "grid": _GRID,
+        "grid": _grid_table,
     },
     required=("schema", "standard", "symbols"),
 )
@@ -718,7 +757,7 @@ def _tables_problems(data: Mapping[str, Any]) -> list[Finding]:
         ("rules", _RULES),
         ("wire", _wires),
         ("font", _FONT),
-        ("grid", _GRID),
+        ("grid", _grid_table),
     ):
         if key in data:
             found += check(data[key], _child("", key))
@@ -732,10 +771,12 @@ def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
     tables `[vocabulary]` (`path_kinds`, `potentials`, `links`) and `[rules]` (`required_slots`)
     hold lists of strings; an absent list is empty. The `[[wire]]` tables (`id`, `weight`,
     `style`) give the wire styles `wire` draws; an absent list is empty. The optional `[font]` table
-    (`name`, `units_per_em`, `cap_height`, `ascent`, `descent`, `default_advance`, optional
-    `thick_factor` and a `[font.advances]` table of one number per character) is the font text is
-    measured with. The optional `[grid]` table (`module_mm`, `divisions_per_module`, a power of
-    two) is the drawing grid; without it the grid is 2.5 mm and 8 divisions.
+    (`name`, `units_per_em`, `cap_height`, `ascent`, `descent`, `default_advance` and
+    `[font.advances.normal]` and `[font.advances.thick]`, each one number per character, and
+    `[font.heights]`, a capital height in millimetres by name) is the font text is measured with.
+    The optional `[grid]` table (`module_mm`, `divisions_per_module`, a power of two, and the wire
+    pitches `wire_pitch` and `wire_pitch_fine` in divisions) is the drawing grid; without it the
+    grid is 2.5 mm, 8 divisions and pitches 8 and 4.
 
     Args:
         text: The file's TOML text.

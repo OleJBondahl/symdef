@@ -4,6 +4,7 @@ import json
 
 import pytest
 
+from symdef.errors import InvalidValueError, UnknownNameError
 from symdef.geometry import Fill, Point, Polyline, Style, Weight
 from symdef.load import library_from_bundle, parse_config, validate_bundle
 from symdef.model import Finding, Library, Reference, Severity, Status, SymbolKind, WireStyle
@@ -73,12 +74,12 @@ def test_pairs_and_points_give_the_same_wire():
 
 
 def test_an_unknown_style_id_is_a_key_error_naming_it():
-    with pytest.raises(KeyError, match="no wire style 'nope' in IEC 60617"):
+    with pytest.raises(UnknownNameError, match="no wire style 'nope' in IEC 60617"):
         wire(LIBRARY, "nope", PATH)
 
 
 def test_a_wire_needs_two_points():
-    with pytest.raises(ValueError, match="at least 2 points, got 1"):
+    with pytest.raises(InvalidValueError, match="at least 2 points, got 1"):
         wire(LIBRARY, "link", [(0, 0)])
 
 

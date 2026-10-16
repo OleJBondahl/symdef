@@ -8,6 +8,8 @@ from pathlib import Path
 import pytest
 
 import symdef
+import symdef.authoring
+from symdef.errors import InvalidValueError
 from symdef.files import load_library, stale_build, write_build
 from symdef.geometry import Direction, Line, Point, Text
 from symdef.model import Library, Port, Slot, Status
@@ -127,7 +129,7 @@ class TestWriteBuild:
         self, tmp_path, number
     ):
         symbols = {**LIBRARY.symbols, number: LIBRARY.get("S00227")}
-        with pytest.raises(ValueError, match="file name"):
+        with pytest.raises(InvalidValueError, match="file name"):
             write_build(replace(LIBRARY, symbols=symbols), tmp_path / "repo")
         assert not (tmp_path / "repo").exists()
         assert list(tmp_path.rglob("*")) == []
@@ -137,7 +139,7 @@ class TestWriteBuild:
         self, tmp_path, standard
     ):
         assert package_name(standard) == ""
-        with pytest.raises(ValueError, match="package"):
+        with pytest.raises(InvalidValueError, match="package"):
             write_build(replace(LIBRARY, standard=standard), tmp_path / "repo")
         assert list(tmp_path.rglob("*")) == []
 
@@ -280,12 +282,12 @@ class TestStaleBuild:
     @pytest.mark.parametrize("number", ["../../x", "a/b", "", "a..b"])
     def test_it_refuses_a_number_that_is_not_a_file_name_stem(self, tmp_path, number):
         symbols = {**LIBRARY.symbols, number: LIBRARY.get("S00227")}
-        with pytest.raises(ValueError, match="file name"):
+        with pytest.raises(InvalidValueError, match="file name"):
             stale_build(replace(LIBRARY, symbols=symbols), tmp_path)
 
     @pytest.mark.parametrize("standard", ["", "..."])
     def test_it_refuses_a_standard_with_no_package_name(self, tmp_path, standard):
-        with pytest.raises(ValueError, match="package"):
+        with pytest.raises(InvalidValueError, match="package"):
             stale_build(replace(LIBRARY, standard=standard), tmp_path)
 
     def test_the_result_is_sorted_under_the_root_and_writing_clears_it(self, built):
@@ -338,8 +340,9 @@ class TestOddText:
 
 
 def test_the_package_exports_the_build_functions():
-    assert symdef.write_build is write_build
-    assert symdef.stale_build is stale_build
+    assert symdef.authoring.write_build is write_build
+    assert symdef.authoring.stale_build is stale_build
+    assert "write_build" not in symdef.__all__
 
 
 class TestPackageKey:

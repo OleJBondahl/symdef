@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from symdef.errors import LibraryError
+from symdef.errors import InvalidValueError, LibraryError
 from symdef.files import (
     load_bundle,
     load_library,
@@ -21,13 +21,13 @@ def init(root: Path) -> tuple[Path, ...]:
     """Write the starter set under `root`: `library.toml`, one symbol and `.gitattributes`.
 
     Raises:
-        FileExistsError: If any of the files exists; nothing is written.
+        InvalidValueError: If any of the files exists; nothing is written.
     """
     targets = {root / relative: text for relative, text in starter_files().items()}
     for target in targets:
         if target.exists():
-            msg = f"{target} exists; init writes into an empty folder"
-            raise FileExistsError(msg)
+            msg = f"{target} exists; init writes into an empty folder: remove it or use another"
+            raise InvalidValueError(msg)
     for target, text in targets.items():
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(text.encode("utf-8"))

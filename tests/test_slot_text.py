@@ -21,6 +21,7 @@ from symdef import (
     to_fragment,
     to_fragment_mm,
 )
+from symdef.errors import InvalidValueError, UnknownNameError
 
 MM: dict[str, Any] = {
     "module_mm": 2.5,
@@ -92,7 +93,7 @@ def test_mm_positions_are_module_times_point_plus_the_cap_term():
 @pytest.mark.parametrize("draw", [module, mm])
 def test_unknown_id_raises_naming_it_also_for_an_empty_string(draw):
     for text in ("x", ""):
-        with pytest.raises(KeyError, match="nope"):
+        with pytest.raises(UnknownNameError, match="nope"):
             draw({"n": "A", "nope": text})
 
 
@@ -159,7 +160,7 @@ def mm_of(symbol, **kw):
 
 @pytest.mark.parametrize("draw", [to_fragment, mm_of])
 def test_a_missing_required_slot_raises_naming_it_and_the_symbol(draw):
-    with pytest.raises(ValueError, match=r"p: .*value"):
+    with pytest.raises(InvalidValueError, match=r"p: .*value"):
         draw(ported(), texts={"tag": "A"}, required_slots=("tag", "value"))
 
 
@@ -176,9 +177,9 @@ def test_texts_none_checks_nothing(draw):
 
 @pytest.mark.parametrize("draw", [to_fragment, mm_of])
 def test_a_marking_entry_demands_one_slot_per_port(draw):
-    with pytest.raises(ValueError, match=r"marking\.1.*marking\.2"):
+    with pytest.raises(InvalidValueError, match=r"marking\.1.*marking\.2"):
         draw(ported("1", "2"), texts={"tag": "A"}, required_slots=("marking.<port>",))
     both = ported("1", "2", marked=("1", "2"))
     draw(both, texts={"marking.1": "a", "marking.2": ""}, required_slots=("marking.<port>",))
-    with pytest.raises(ValueError, match=r"marking\.2$"):
+    with pytest.raises(InvalidValueError, match=r"marking\.2$"):
         draw(both, texts={"marking.1": "a"}, required_slots=("marking.<port>",))

@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 import symdef
+import symdef.authoring
 from symdef import (
     Box,
     Element,
@@ -14,13 +15,13 @@ from symdef import (
     Symbol,
     body_box,
     keepout_box,
-    lint,
     load_library,
     orient,
     repeat,
     slot_box,
     to_svg,
 )
+from symdef.authoring import lint
 
 GUIDE_FIXTURES = Path(__file__).resolve().parent / "fixtures" / "guide"
 
@@ -29,7 +30,7 @@ SECTION_11_NAMES = [
     *("Point", "Box", "Direction", "Orientation", "Line", "Polyline", "Circle", "Arc"),
     *("Text", "Port", "Node", "Path", "Anchor", "Slot", "Reference", "Symbol", "Library"),
     *("Finding", "load_library", "load_bundle", "orient", "translate", "repeat", "body_box"),
-    *("keepout_box", "slot_box", "lint", "to_svg", "write_build", "stale_build", "Element"),
+    *("keepout_box", "slot_box", "to_svg", "Element"),
 ]
 
 
@@ -37,6 +38,12 @@ SECTION_11_NAMES = [
 def test_a_section_11_name_is_public(name):
     assert name in symdef.__all__
     assert getattr(symdef, name) is not None
+
+
+@pytest.mark.parametrize("name", ["lint", "write_build", "stale_build"])
+def test_a_section_11_author_name_is_on_the_author_door(name):
+    assert name in symdef.authoring.__all__
+    assert name not in symdef.__all__
 
 
 def test_the_placement_type_is_the_consumers_own():
@@ -101,7 +108,11 @@ SECTION_11_SIGNATURES = {
     "lint": [
         *positional("symbol"),
         ("required_slots", "POSITIONAL_OR_KEYWORD", "()"),
-        ("grid", "POSITIONAL_OR_KEYWORD", "Grid(module_mm=2.5, divisions_per_module=8)"),
+        (
+            "grid",
+            "POSITIONAL_OR_KEYWORD",
+            "Grid(module_mm=2.5, divisions_per_module=8, wire_pitch=8, wire_pitch_fine=4)",
+        ),
     ],
     "to_svg": [
         *positional("symbol"),
@@ -122,7 +133,8 @@ SECTION_11_SIGNATURES = {
 
 @pytest.mark.parametrize("name", SECTION_11_SIGNATURES)
 def test_a_section_11_function_has_the_guides_signature(name):
-    assert shape(getattr(symdef, name)) == SECTION_11_SIGNATURES[name]
+    door = symdef.authoring if name in symdef.authoring.__all__ else symdef
+    assert shape(getattr(door, name)) == SECTION_11_SIGNATURES[name]
 
 
 # The field order of each section 11 dataclass. `Symbol` ends with `lint_allow`, which the guide's
