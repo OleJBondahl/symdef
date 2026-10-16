@@ -1416,3 +1416,22 @@ changelog line in the same commit. The first entry is the retroactive `Slot.side
 Why: a consumer pins a version and needs to see what moved; the snapshot makes a silent move a
 red test.
 Cost if wrong: additive; delete the file, the script and the two tests to revert.
+
+## D86: two wire pitches in `Grid`, and a map of text heights in the font
+
+Decided: `Grid` gains `wire_pitch` (default 8) and `wire_pitch_fine` (default 4), in divisions;
+`module_mm` stays the fixed symbol size. `[grid]` takes `wire_pitch` and `wire_pitch_fine` and
+refuses a third pitch key (`unknown key`), a pitch that is not a whole number above zero, and a
+fine pitch that does not divide the standard one. Every port of a resolved symbol must sit on the
+standard pitch: `resolve_library` adds the `port-off-wiring-grid` finding (the lint rule, reused,
+exempt through `lint_allow`) at load, so a library with an off-pitch port does not load.
+`electrical_symbols` was measured first: 76 symbols, 117 ports, none off a 1 M pitch. `FontMetrics`
+gains `heights`, a read-only map from a name to a capital height in millimetres, read from
+`[font.heights]` and carried by the bundle (written only when not empty). symdef does not interpret
+the names. `measure` is unchanged and takes no `module_mm`.
+Why: Fransys's GRID-HOME needs the pitches and the text heights as library data. A default of 8/4
+with 8 divisions is 1 M and 0.5 M; a library with 4 divisions and no pitch keys gets a standard
+pitch of 2 M.
+Cost if wrong: additive for a library that sets nothing; the loader check is new for one that has
+an off-pitch port (set `wire_pitch` or move the port).
+

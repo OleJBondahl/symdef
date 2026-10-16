@@ -69,6 +69,18 @@ class TestTheThreeVerbsInAnEmptyFolder:
         assert stop.value.code == 2
 
 
+def widen_for_repeat(root):
+    """Make the symbol wider than the default pole pitch: fine alone, overflowing repeated."""
+    edit(
+        root,
+        SYMBOL,
+        "[-0.5, -1], [0.5, -1], [0.5, 1], [-0.5, 1]",
+        "[-3, -1], [3, -1], [3, 1], [-3, 1]",
+    )
+    edit(root, SYMBOL, "at = [0.75, -1.5]", "at = [3.25, -1.5]")
+    edit(root, SYMBOL, "at = [0.75, 1.5]", "at = [3.25, 1.5]")
+
+
 class TestBuild:
     def test_a_broken_symbol_fails_and_writes_nothing(self, tmp_path, capsys):
         authoring.init(tmp_path)
@@ -83,6 +95,14 @@ class TestBuild:
         with pytest.raises(LibraryError) as raised:
             authoring.build(tmp_path)
         assert "port-off-wiring-grid" in rules(raised.value.findings)
+
+    def test_a_lint_error_after_a_clean_load_raises_and_writes_nothing(self, tmp_path):
+        authoring.init(tmp_path)
+        edit(tmp_path, SYMBOL, "[0, -2], dir", "[0, -4], dir")
+        with pytest.raises(LibraryError) as raised:
+            authoring.build(tmp_path)
+        assert "port-off-geometry" in rules(raised.value.findings)
+        assert not (tmp_path / "build").exists()
 
 
 class TestCheck:
@@ -106,14 +126,7 @@ class TestCheck:
 
     def test_a_symbol_that_fails_only_when_repeated(self, built):
         # Wider than the default pole pitch of 4: fine alone, overflowing when repeated (gate 3).
-        edit(
-            built,
-            SYMBOL,
-            "[-0.5, -1], [0.5, -1], [0.5, 1], [-0.5, 1]",
-            "[-3, -1], [3, -1], [3, 1], [-3, 1]",
-        )
-        edit(built, SYMBOL, "at = [0.75, -1.5]", "at = [3.25, -1.5]")
-        edit(built, SYMBOL, "at = [0.75, 1.5]", "at = [3.25, 1.5]")
+        widen_for_repeat(built)
         found = authoring.check(built)
         assert any("repeated 3 times" in f.message for f in found)
 

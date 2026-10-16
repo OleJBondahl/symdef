@@ -178,3 +178,37 @@ def test_load_library_carries_the_font_into_the_library_and_its_bundle(tmp_path)
     bundle = tmp_path / "bundle.json"
     bundle.write_text(to_json(bundle_to_data(loaded)), encoding="utf-8")
     assert load_bundle(bundle).font == FONT
+
+
+HEIGHTS = "\n[font.heights]\nsmallest = 1.8\nbody = 2.5\nheading_2 = 3.5\n"
+
+
+def test_font_heights_are_read_frozen_and_empty_by_default():
+    config, findings = parse_config(CONFIG + HEIGHTS)
+    assert findings == ()
+    assert config is not None
+    assert config.font is not None
+    assert dict(config.font.heights) == {"smallest": 1.8, "body": 2.5, "heading_2": 3.5}
+    with pytest.raises(TypeError):
+        config.font.heights["body"] = 1.0  # ty: ignore[invalid-assignment]  # frozen on purpose
+    assert FONT.heights == {}
+
+
+def test_font_heights_round_trip_through_the_bundle(tmp_path):
+    shutil.copytree(GUIDE, tmp_path / "lib")
+    toml = tmp_path / "lib" / "library.toml"
+    toml.write_text(
+        toml.read_text(encoding="utf-8") + "\n[font]" + CONFIG.split("[font]")[1] + HEIGHTS,
+        encoding="utf-8",
+    )
+    loaded = load_library(tmp_path / "lib")
+    assert loaded.font is not None
+    assert loaded.font.heights["body"] == 2.5
+    bundle = tmp_path / "bundle.json"
+    bundle.write_text(to_json(bundle_to_data(loaded)), encoding="utf-8")
+    assert load_bundle(bundle).font == loaded.font
+
+
+def test_a_font_height_must_be_a_positive_number():
+    _, findings = parse_config(CONFIG + "\n[font.heights]\nbody = 0\n")
+    assert findings != ()

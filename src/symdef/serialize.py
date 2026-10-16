@@ -190,6 +190,8 @@ def _font(font: FontMetrics) -> dict[str, Any]:
         "default_advance": font.default_advance,
         "advances": {w.name.lower(): dict(sorted(font.advances[w].items())) for w in Weight},
     }
+    if font.heights:
+        data["heights"] = dict(sorted(font.heights.items()))
     return data
 
 
@@ -198,7 +200,8 @@ def bundle_to_data(library: Library) -> dict[str, Any]:
 
     A library with wire styles adds the `wires` array; one with a font adds the `font` object
     (the font's fields and an `advances` object); a grid other than the default adds the `grid`
-    object (`module_mm`, `divisions_per_module`); one with none of these has none of the keys.
+    object (`module_mm`, `divisions_per_module` and the two wire pitches); one with none of these
+    has none of the keys.
     """
     data: dict[str, Any] = {
         "schema": _SCHEMA_VERSION,
@@ -218,6 +221,8 @@ def bundle_to_data(library: Library) -> dict[str, Any]:
         data["grid"] = {
             "module_mm": library.grid.module_mm,
             "divisions_per_module": library.grid.divisions_per_module,
+            "wire_pitch": library.grid.wire_pitch,
+            "wire_pitch_fine": library.grid.wire_pitch_fine,
         }
     return data
 

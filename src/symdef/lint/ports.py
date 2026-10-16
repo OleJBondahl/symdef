@@ -6,6 +6,7 @@ from symdef.lint.geometry import point_on_geometry
 from symdef.lint.overlap import boxes_overlap, overlaps_rect, wire_lane
 from symdef.lint.registry import quote, rule_finding
 from symdef.model import Finding, Port, Symbol, nodes_of
+from symdef.units import Grid
 
 # How far past the symbol's own extent the finite frame of a wire lane reaches, in module units.
 _LANE_MARGIN = 1.0
@@ -85,6 +86,28 @@ def port_off_wiring_grid(symbol: Symbol) -> tuple[Finding, ...]:
         ]
         if off:
             message = f"the port {quote(port.id)} is not on the 1 M wiring grid: {', '.join(off)}"
+            found.append(rule_finding("port-off-wiring-grid", message, f"ports[{index}]"))
+    return tuple(found)
+
+
+def port_off_pitch(symbol: Symbol, grid: Grid) -> tuple[Finding, ...]:
+    """Report every port off the library's standard wire pitch, which the loader refuses.
+
+    The pitch is `grid.wire_pitch` divisions; a position is on it when it is a whole multiple.
+    """
+    pitch = grid.wire_pitch * grid.division
+    found: list[Finding] = []
+    for index, port in enumerate(symbol.ports):
+        off = [
+            f"{axis} {value!r}"
+            for axis, value in (("x", port.position.x), ("y", port.position.y))
+            if value % pitch != 0
+        ]
+        if off:
+            message = (
+                f"the port {quote(port.id)} is not on the wire pitch of {grid.wire_pitch} "
+                f"divisions: {', '.join(off)}; move it onto the pitch"
+            )
             found.append(rule_finding("port-off-wiring-grid", message, f"ports[{index}]"))
     return tuple(found)
 
