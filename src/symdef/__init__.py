@@ -42,7 +42,7 @@ from symdef.model import (
     Vocabulary,
     WireStyle,
 )
-from symdef.orient import orient, translate
+from symdef.orient import orient, orient_box, orient_direction, orient_point, translate
 from symdef.project import build, check, init
 from symdef.repeat import repeat
 from symdef.slottext import TextPlacement, slot_text
@@ -118,6 +118,9 @@ __all__ = [
     "load_library",
     "on_grid",
     "orient",
+    "orient_box",
+    "orient_direction",
+    "orient_point",
     "repeat",
     "slot_box",
     "slot_text",
