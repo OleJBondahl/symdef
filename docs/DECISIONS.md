@@ -1463,8 +1463,8 @@ Decided: `Library.with_settings(*, module_mm=None, font=None, heights=None, line
 replaced library. `font` is the pair of TTF bytes, measured by `measure_font`; the library's
 `heights` are kept unless `heights` is given. `Grid` and `FontMetrics` run their own checks, a
 height or width must be a number above zero, a wire weight needs a width, and then the rule
-`text-too-large` runs over every symbol of the result and a hit raises `InvalidValueError` naming
-the symbol. The logic is the free function `symdef.settings.with_settings`; the method delegates
+`text-outside-body` runs over every symbol of the result (D90, which replaced `text-too-large` here) and a hit raises
+`InvalidValueError` naming the symbol. The logic is the free function `symdef.settings.with_settings`; the method delegates
 through a deferred import because `settings` imports `model`. Concern, recorded as the spec says:
 `text-too-large` compares a text's `height` with 1 M and reads neither the font nor the grid, so a
 replaced font cannot raise it today. The run is a guard on what the library holds; the designer

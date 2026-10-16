@@ -464,8 +464,8 @@ thick = 0.5
 ```
 
 `measure_font(regular, bold)` does the same on bytes, and `Library.with_settings` returns a library
-with a new module, font, text heights or line widths. It checks each value, then runs the lint rule
-`text-too-large` over every symbol and raises `InvalidValueError` naming a hit. `fonts` below is the
+with a new module, font, text heights or line widths. It checks each value, then runs the check
+`text-outside-body` over every symbol (a fixed text anchored in the body must fit inside it, measured with the font) and raises `InvalidValueError` naming a hit. `fonts` below is the
 folder that holds the two files.
 
 ```python

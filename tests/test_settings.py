@@ -8,7 +8,7 @@ import pytest
 from symdef import load_library
 from symdef.errors import InvalidValueError
 from symdef.font import FontMetrics
-from symdef.geometry import Point, Style, Text, Weight
+from symdef.geometry import Point, Polyline, Style, Text, Weight
 from symdef.model import Library, Reference, Status, Symbol, SymbolKind, WireStyle
 from symdef.settings import with_settings
 
@@ -113,11 +113,28 @@ def test_bad_lines_raise(bad):
         library().with_settings(lines=bad)
 
 
-def test_text_too_large_after_the_replace_raises_naming_each_symbol():
-    base = library(symbol("S1", 1.5), symbol("S2", 0.5), symbol("S3", 2.0))
+def boxed(number, width=2.2):
+    """A symbol: a rectangle `width` by 1.5 M with the fixed text AAAA, 1 M tall, in its middle."""
+    rect = Polyline(
+        (Point(0, 0), Point(width, 0), Point(width, 1.5), Point(0, 1.5), Point(0, 0)),
+    )
+    text = Text("AAAA", Point(width / 2, 0.75), 1)
+    return Symbol("t", SymbolKind.SYMBOL, Status.UNVERIFIED, Reference("X", number), (rect, text))
+
+
+def test_a_font_that_outgrows_the_body_raises_naming_the_symbol_and_the_overflow():
+    base = library(boxed("S1"), boxed("S2", 9.0), font=FONT)
+    assert base.with_settings() == base
     with pytest.raises(InvalidValueError) as raised:
-        base.with_settings(module_mm=2.0)
+        base.with_settings(font=(REGULAR, BOLD), module_mm=2.0)
     message = str(raised.value)
-    assert "S1" in message
-    assert "S3" in message
+    assert "symbol S1" in message
     assert "S2" not in message
+    assert "mm; shorten the text" in message
+
+
+def test_a_text_anchored_outside_the_body_is_not_checked():
+    beside = replace(
+        boxed("S1"), elements=(*boxed("S1").elements[:1], Text("A" * 40, Point(20, 0.75), 1))
+    )
+    library(beside, font=FONT).with_settings(font=(REGULAR, BOLD))
