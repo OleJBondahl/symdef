@@ -9,7 +9,7 @@ from symdef.font import FontMetrics
 from symdef.fontmeasure import measure_font
 from symdef.geometry import Weight
 from symdef.lines import lines_problems
-from symdef.lint.geometry import text_too_large
+from symdef.lint.textbody import text_outside_body
 from symdef.model import Library
 
 _PAIR = 2
@@ -78,22 +78,22 @@ def with_settings(
     """Return `library` with the given grid module, font, text heights and line widths replaced.
 
     `font` is the bytes of a regular and a bold TTF, measured by `measure_font`. `Grid` and
-    `FontMetrics` run their own checks; then `text_too_large` runs over every symbol. An argument
+    `FontMetrics` run their own checks; then `text_outside_body` runs over every symbol. An argument
     left as None keeps the library's value.
 
     Raises:
         InvalidValueError: If a value is unusable, a wire weight has no width, a face is not a
-            usable font, or a symbol's text is too large; the message names each hit.
+            usable font, or a symbol's text leaves its body; the message names each hit.
     """
     grid = library.grid if module_mm is None else replace(library.grid, module_mm=module_mm)
     result = replace(
         library, grid=grid, font=_font(library, font, heights), lines=_lines(library, lines)
     )
     hits = [
-        f"{symbol.reference.number}: {found.message}"
+        found.message
         for symbol in result
-        for found in text_too_large(symbol)
+        for found in text_outside_body(symbol, result.font, result.grid.module_mm)
     ]
     if hits:
-        raise InvalidValueError("text too large after the new settings: " + "; ".join(hits))
+        raise InvalidValueError("text outside its body after the new settings: " + "; ".join(hits))
     return result
