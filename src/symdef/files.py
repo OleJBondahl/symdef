@@ -58,7 +58,9 @@ def _read_font(root: Path, config: LibraryConfig) -> tuple[FontMetrics | None, t
         except OSError as error:
             return None, _named("library.toml", (rule_finding("schema", str(error), location),))
     try:
-        return replace(measure_font(*faces), name=config.font_name), ()
+        return replace(
+            measure_font(*faces), name=config.font_name, heights=dict(config.font_heights)
+        ), ()
     except InvalidValueError as error:
         return None, _named("library.toml", (rule_finding("schema", str(error), location),))
 
