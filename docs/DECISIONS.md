@@ -1377,3 +1377,14 @@ port raises naming the port and the value. A slot's text is measured in the norm
 `Text` uses its own weight's table.
 Why: SB12: layout gets the data from symdef and converts nothing.
 Cost if wrong: additive; delete the module and the exports to revert.
+
+## D83: `to_placed_fragment` draws a symbol at a grid position
+
+Decided: `to_placed_fragment(symbol, orientation, at, library, *, tint, muted, texts,
+required_slots)` in `symdef.svg_placed` orients the symbol, draws it with `to_fragment`, and wraps
+it in one `<g transform="translate(X Y)">`, X and Y being `at` (a `GridPoint`) turned into module
+units by `from_divisions(library.grid, n)`. `to_fragment`, `to_fragment_mm` and `to_svg` are
+unchanged, so every golden is byte-identical; `to_fragment_mm` is listed in the changelog for
+removal in 0.13, once its callers use the placed call.
+Why: SB12: the renderer places a symbol with no unit conversion of its own.
+Cost if wrong: additive; delete the module and the export to revert.
