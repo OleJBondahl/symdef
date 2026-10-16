@@ -44,6 +44,7 @@ from symdef.lint.slots import (
 )
 from symdef.model import Finding, Symbol
 from symdef.orient import orient
+from symdef.units import DEFAULT_GRID, Grid
 
 # One entry per rule that inspects a symbol; the rule's `Rule` row is in `registry.RULES`. The
 # rest of `RULES` is computed elsewhere: the resolver's rules, and the two exemption rules below.
@@ -122,7 +123,9 @@ def ordered(findings: tuple[Finding, ...]) -> tuple[Finding, ...]:
     return tuple(sorted(findings, key=finding_key))
 
 
-def lint(symbol: Symbol, required_slots: tuple[str, ...] = ()) -> tuple[Finding, ...]:
+def lint(
+    symbol: Symbol, required_slots: tuple[str, ...] = (), grid: Grid = DEFAULT_GRID
+) -> tuple[Finding, ...]:
     """Lint a flattened symbol in base orientation and return its findings.
 
     Every rule runs, the orientation-dependent ones in all 8 orientations.
@@ -135,11 +138,17 @@ def lint(symbol: Symbol, required_slots: tuple[str, ...] = ()) -> tuple[Finding,
         symbol: A resolved symbol in base orientation.
         required_slots: The slots a `kind = "symbol"` file must carry, the set's
             `Library.required_slots`; with none, the `slot-missing` rule never fires.
+        grid: The set's `Library.grid`, which `off-drawing-grid` checks against; the default is
+            8 divisions per module.
 
     Returns:
         The findings, ordered by the guide table's rule order, then orientation, then location.
     """
-    checks = {**CHECKS, "slot-missing": partial(slot_missing, required_slots=required_slots)}
+    checks = {
+        **CHECKS,
+        "slot-missing": partial(slot_missing, required_slots=required_slots),
+        "off-drawing-grid": partial(off_drawing_grid, grid=grid),
+    }
     raw = run_checks(symbol, RULES, checks)
     return ordered(
         (

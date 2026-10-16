@@ -19,22 +19,21 @@ from symdef.geometry import (
 from symdef.lint.registry import rule_finding
 from symdef.model import Finding, Symbol
 from symdef.stretch import crosses_cut
-from symdef.units import GRID_DIVISION
+from symdef.units import DEFAULT_GRID, Grid
 
 # The distance under which a point counts as on a curve; the guide's tolerance for derived values.
 TOLERANCE = 1e-9
 _MAX_TEXT_HEIGHT = 1
 _FULL_TURN = 360
-_PER_GRID = round(1 / GRID_DIVISION)
 
 
-def _on_grid(value: float) -> bool:
+def _on_grid(value: float, per_grid: int) -> bool:
     """Return whether a value is a multiple of the drawing grid.
 
-    Exact: 0.125 is a power of two, so `value * 8` loses nothing, and NaN and infinity are not
-    multiples. Multiplying instead of dividing cannot overflow into an exception.
+    Exact: a division is a power of two, so `value * per_grid` loses nothing, and NaN and
+    infinity are not multiples. Multiplying instead of dividing cannot overflow into an exception.
     """
-    return (value * _PER_GRID).is_integer()
+    return (value * per_grid).is_integer()
 
 
 def _grid_values(element: Element) -> tuple[tuple[str, float], ...]:
@@ -59,17 +58,25 @@ def _grid_values(element: Element) -> tuple[tuple[str, float], ...]:
             return (("position.x", at.x), ("position.y", at.y), ("height", height))
 
 
-def _off_grid(location: str, values: tuple[tuple[str, float], ...]) -> tuple[Finding, ...]:
+def _off_grid(
+    location: str, values: tuple[tuple[str, float], ...], grid: Grid
+) -> tuple[Finding, ...]:
     """Return one finding naming every value that is not on the grid, or none if all are."""
-    bad = [f"{label} {value!r}" for label, value in values if not _on_grid(value)]
+    bad = [
+        f"{label} {value!r}"
+        for label, value in values
+        if not _on_grid(value, grid.divisions_per_module)
+    ]
     if not bad:
         return ()
-    message = f"not a multiple of {GRID_DIVISION}: {', '.join(bad)}"
+    message = f"not a multiple of {grid.division}: {', '.join(bad)}"
     return (rule_finding("off-drawing-grid", message, location),)
 
 
-def off_drawing_grid(symbol: Symbol) -> tuple[Finding, ...]:
+def off_drawing_grid(symbol: Symbol, grid: Grid = DEFAULT_GRID) -> tuple[Finding, ...]:
     """Check every element value, anchor, slot point and slot box size against the drawing grid.
+
+    `grid` is the library's own; without one, 8 divisions per module.
 
     Element values are coordinates, radii, text positions and heights, not arc angles. Port
     positions are on the wiring grid, which `port-off-wiring-grid` checks. One finding per
@@ -79,7 +86,7 @@ def off_drawing_grid(symbol: Symbol) -> tuple[Finding, ...]:
         *(
             f
             for i, element in enumerate(symbol.elements)
-            for f in _off_grid(f"elements[{i}]", _grid_values(element))
+            for f in _off_grid(f"elements[{i}]", _grid_values(element), grid)
         ),
         *(
             f
@@ -87,6 +94,7 @@ def off_drawing_grid(symbol: Symbol) -> tuple[Finding, ...]:
             for f in _off_grid(
                 f"anchors[{i}]",
                 (("position.x", anchor.position.x), ("position.y", anchor.position.y)),
+                grid,
             )
         ),
         *(
@@ -100,6 +108,7 @@ def off_drawing_grid(symbol: Symbol) -> tuple[Finding, ...]:
                     ("box.width", slot.box[0]),
                     ("box.height", slot.box[1]),
                 ),
+                grid,
             )
         ),
     )

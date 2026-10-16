@@ -5,6 +5,7 @@ from dataclasses import replace
 
 from symdef.geometry import (
     Arc,
+    Box,
     Circle,
     Direction,
     Element,
@@ -99,6 +100,16 @@ def orient_direction(direction: Direction, orientation: Orientation) -> Directio
     for _ in range(turns):
         x, y = -y, x
     return Direction((x, y))
+
+
+def orient_box(box: Box, orientation: Orientation) -> Box:
+    """Return a box mirrored (if the orientation is an MR) and then turned about the origin.
+
+    It is the box of its two corners turned as points, so it matches `body_box` of the oriented
+    symbol, whose extents turn the same way.
+    """
+    a, b = orient_point(box.min, orientation), orient_point(box.max, orientation)
+    return Box(Point(min(a.x, b.x), min(a.y, b.y)), Point(max(a.x, b.x), max(a.y, b.y)))
 
 
 def orient(symbol: Symbol, orientation: Orientation) -> Symbol:
