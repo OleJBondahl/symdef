@@ -1363,27 +1363,40 @@ divisions: `GridPoint(x, y)`, `GridBox(min, max)` with `width`, `height` and `Gr
 Why: divisions are a second unit; a float-typed `Point` could carry either unit unnoticed.
 Cost if wrong: additive; drop the module to revert.
 
-`measure(symbol, orientation, library, texts=None, text_height=None) -> Measure` (module
+GRID-HOME (SB13, designer 2026-10-16): `Grid` is `Grid(divisions_per_module)` and `[grid]` holds
+that one key; `module_mm` is gone from `Grid`, the TOML, the loader and the bundle. The size of a
+module in millimetres is the sheet's, not the library's, so every call that needs millimetres
+(`measure`, `to_placed_fragment`, `to_fragment_mm`, `to_svg`) takes it as an argument.
+`DEFAULT_MODULE_MM` stays, as the preview scale of `to_svg` and the author tools. A library file that
+still declares `module_mm` gets an "unknown key" finding. A 0.11 bundle with the key is rejected the
+same way.
+Why: the scale belongs to the sheet; two sheets of one library may differ.
+Cost if wrong: breaking for a 0.11 `library.toml` that declares `module_mm`: delete the line.
+
+`measure(symbol, orientation, library, *, module_mm, texts=None, text_height_mm=None) -> Measure` (module
 `symdef.gridmeasure`, so the function does not shadow its own module). It orients the symbol, then
 reads `body_box`, `slot_box` (with `library.font`) and the ports, and returns a frozen `Measure`:
 `body`, `keepout` (the body united with every slot box, text included) as `GridBox`; `slots` as id
 to `GridBox`; `ports` as id to `GridPort` with the direction after the turn; `slots` and `ports`
 are read-only. Choices: slot text comes from the optional `texts` (slot id to string) with
-`text_height`; a text given without a height raises `InvalidValueError` naming `text_height`, a
+`text_height_mm`, which `module_mm` turns into module units; a text given without a height raises
+`InvalidValueError` naming `text_height_mm`, as does a `module_mm` not above zero; a
 key that is no slot raises `UnknownNameError`; a slot with no string is its reserved box. An
 extent rounds outward (`min = -ceil_divisions(-min)`, `max = ceil_divisions(max)`), so a body
 already on the grid is exact; a port is a position and goes through `to_divisions`, so an off-grid
 port raises naming the port and the value. A slot's text is measured in the normal weight; a body
-`Text` uses its own weight's table.
+`Text` uses its own weight's table. `module_mm` is required: the sheet's scale. Body, ports and
+reserved slot boxes are in module units and do not depend on it; a text has a fixed height in mm,
+so a larger module gives it fewer divisions (GRID-HOME, see D81).
 Why: SB12: layout gets the data from symdef and converts nothing.
 Cost if wrong: additive; delete the module and the exports to revert.
 
 ## D83: `to_placed_fragment` draws a symbol at a grid position
 
-Decided: `to_placed_fragment(symbol, orientation, at, library, *, tint, muted, texts,
-required_slots)` in `symdef.svg_placed` orients the symbol, draws it with `to_fragment`, and wraps
-it in one `<g transform="translate(X Y)">`, X and Y being `at` (a `GridPoint`) turned into module
-units by `from_divisions(library.grid, n)`. `to_fragment`, `to_fragment_mm` and `to_svg` are
+Decided: `to_placed_fragment(symbol, orientation, at, library, *, module_mm, weights_mm, dash_mm,
+dash_dot_mm, font_family, font_mm, cap_ratio, tint, muted, texts, required_slots)` in `symdef.svg_placed` orients the symbol, draws it with `to_fragment_mm`, and wraps
+it in one `<g transform="translate(X Y)">`, X and Y being `at` (a `GridPoint`) in millimetres:
+`from_divisions(library.grid, n) * module_mm`. It takes the keywords of `to_fragment_mm`. `to_fragment`, `to_fragment_mm` and `to_svg` are
 unchanged, so every golden is byte-identical; `to_fragment_mm` is listed in the changelog for
 removal in 0.13, once its callers use the placed call.
 Why: SB12: the renderer places a symbol with no unit conversion of its own.
