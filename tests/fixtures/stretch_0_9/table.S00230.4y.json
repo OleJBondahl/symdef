@@ -1,0 +1,723 @@
+{
+  "anchors": [
+    {
+      "at": [
+        -0.5,
+        0
+      ],
+      "dir": "W",
+      "id": "link"
+    }
+  ],
+  "body_box": [
+    [
+      -2,
+      -2
+    ],
+    [
+      0,
+      14
+    ]
+  ],
+  "elements": [
+    {
+      "line": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          0,
+          -2
+        ],
+        [
+          0,
+          -1
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          -2,
+          -2
+        ],
+        [
+          -2,
+          -1
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          -2,
+          -1
+        ],
+        [
+          -1,
+          -1
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          0,
+          1
+        ],
+        [
+          -1.125,
+          -1.25
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          0,
+          6
+        ],
+        [
+          0,
+          5
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          -2,
+          2
+        ],
+        [
+          -2,
+          3
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          -2,
+          3
+        ],
+        [
+          -1,
+          3
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          0,
+          5
+        ],
+        [
+          -1.125,
+          2.75
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          0,
+          10
+        ],
+        [
+          0,
+          9
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          0,
+          6
+        ],
+        [
+          0,
+          7
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          -2,
+          6
+        ],
+        [
+          -2,
+          7
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          -2,
+          7
+        ],
+        [
+          -1,
+          7
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          0,
+          9
+        ],
+        [
+          -1.125,
+          6.75
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          0,
+          14
+        ],
+        [
+          0,
+          13
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          0,
+          10
+        ],
+        [
+          0,
+          11
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          -2,
+          10
+        ],
+        [
+          -2,
+          11
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          -2,
+          11
+        ],
+        [
+          -1,
+          11
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          0,
+          13
+        ],
+        [
+          -1.125,
+          10.75
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    }
+  ],
+  "keepout_box": [
+    [
+      -10,
+      -2
+    ],
+    [
+      1.75,
+      14
+    ]
+  ],
+  "kind": "symbol",
+  "name": "Change-over break before make contact",
+  "nodes": [
+    {
+      "ports": [
+        "1.com"
+      ]
+    },
+    {
+      "ports": [
+        "1.no"
+      ]
+    },
+    {
+      "ports": [
+        "1.nc"
+      ]
+    },
+    {
+      "ports": [
+        "2.com"
+      ]
+    },
+    {
+      "ports": [
+        "2.no"
+      ]
+    },
+    {
+      "ports": [
+        "2.nc"
+      ]
+    },
+    {
+      "ports": [
+        "3.com"
+      ]
+    },
+    {
+      "ports": [
+        "3.no"
+      ]
+    },
+    {
+      "ports": [
+        "3.nc"
+      ]
+    },
+    {
+      "ports": [
+        "4.com"
+      ]
+    },
+    {
+      "ports": [
+        "4.no"
+      ]
+    },
+    {
+      "ports": [
+        "4.nc"
+      ]
+    }
+  ],
+  "paths": [
+    {
+      "from": "1.no",
+      "kind": "switch_open",
+      "through": true,
+      "to": "1.com"
+    },
+    {
+      "from": "1.nc",
+      "kind": "switch_closed",
+      "through": false,
+      "to": "1.com"
+    },
+    {
+      "from": "2.no",
+      "kind": "switch_open",
+      "through": false,
+      "to": "2.com"
+    },
+    {
+      "from": "2.nc",
+      "kind": "switch_closed",
+      "through": false,
+      "to": "2.com"
+    },
+    {
+      "from": "3.no",
+      "kind": "switch_open",
+      "through": false,
+      "to": "3.com"
+    },
+    {
+      "from": "3.nc",
+      "kind": "switch_closed",
+      "through": false,
+      "to": "3.com"
+    },
+    {
+      "from": "4.no",
+      "kind": "switch_open",
+      "through": false,
+      "to": "4.com"
+    },
+    {
+      "from": "4.nc",
+      "kind": "switch_closed",
+      "through": false,
+      "to": "4.com"
+    }
+  ],
+  "pole_pitch": 8,
+  "ports": [
+    {
+      "at": [
+        0,
+        2
+      ],
+      "description": "common",
+      "dir": "S",
+      "id": "1.com"
+    },
+    {
+      "at": [
+        0,
+        -2
+      ],
+      "description": "closes on actuation",
+      "dir": "N",
+      "id": "1.no"
+    },
+    {
+      "at": [
+        -2,
+        -2
+      ],
+      "description": "opens on actuation",
+      "dir": "N",
+      "id": "1.nc"
+    },
+    {
+      "at": [
+        0,
+        6
+      ],
+      "description": "common",
+      "dir": "S",
+      "id": "2.com"
+    },
+    {
+      "at": [
+        0,
+        2
+      ],
+      "description": "closes on actuation",
+      "dir": "N",
+      "id": "2.no"
+    },
+    {
+      "at": [
+        -2,
+        2
+      ],
+      "description": "opens on actuation",
+      "dir": "N",
+      "id": "2.nc"
+    },
+    {
+      "at": [
+        0,
+        10
+      ],
+      "description": "common",
+      "dir": "S",
+      "id": "3.com"
+    },
+    {
+      "at": [
+        0,
+        6
+      ],
+      "description": "closes on actuation",
+      "dir": "N",
+      "id": "3.no"
+    },
+    {
+      "at": [
+        -2,
+        6
+      ],
+      "description": "opens on actuation",
+      "dir": "N",
+      "id": "3.nc"
+    },
+    {
+      "at": [
+        0,
+        14
+      ],
+      "description": "common",
+      "dir": "S",
+      "id": "4.com"
+    },
+    {
+      "at": [
+        0,
+        10
+      ],
+      "description": "closes on actuation",
+      "dir": "N",
+      "id": "4.no"
+    },
+    {
+      "at": [
+        -2,
+        10
+      ],
+      "description": "opens on actuation",
+      "dir": "N",
+      "id": "4.nc"
+    }
+  ],
+  "reference": {
+    "number": "S00230",
+    "standard": "IEC 60617"
+  },
+  "schema": 1,
+  "slots": {
+    "1.tag": {
+      "at": [
+        -4,
+        0
+      ],
+      "box": [
+        6,
+        1
+      ],
+      "side": "W"
+    },
+    "2.tag": {
+      "at": [
+        -4,
+        4
+      ],
+      "box": [
+        6,
+        1
+      ],
+      "side": "W"
+    },
+    "3.tag": {
+      "at": [
+        -4,
+        8
+      ],
+      "box": [
+        6,
+        1
+      ],
+      "side": "W"
+    },
+    "4.tag": {
+      "at": [
+        -4,
+        12
+      ],
+      "box": [
+        6,
+        1
+      ],
+      "side": "W"
+    },
+    "marking.1.com": {
+      "at": [
+        0.25,
+        1.5
+      ],
+      "box": [
+        1.5,
+        1
+      ],
+      "side": "E"
+    },
+    "marking.1.nc": {
+      "at": [
+        -2.25,
+        -1.5
+      ],
+      "box": [
+        1.5,
+        1
+      ],
+      "side": "W"
+    },
+    "marking.1.no": {
+      "at": [
+        0.25,
+        -1.5
+      ],
+      "box": [
+        1.5,
+        1
+      ],
+      "side": "E"
+    },
+    "marking.2.com": {
+      "at": [
+        0.25,
+        5.5
+      ],
+      "box": [
+        1.5,
+        1
+      ],
+      "side": "E"
+    },
+    "marking.2.nc": {
+      "at": [
+        -2.25,
+        2.5
+      ],
+      "box": [
+        1.5,
+        1
+      ],
+      "side": "W"
+    },
+    "marking.2.no": {
+      "at": [
+        0.25,
+        2.5
+      ],
+      "box": [
+        1.5,
+        1
+      ],
+      "side": "E"
+    },
+    "marking.3.com": {
+      "at": [
+        0.25,
+        9.5
+      ],
+      "box": [
+        1.5,
+        1
+      ],
+      "side": "E"
+    },
+    "marking.3.nc": {
+      "at": [
+        -2.25,
+        6.5
+      ],
+      "box": [
+        1.5,
+        1
+      ],
+      "side": "W"
+    },
+    "marking.3.no": {
+      "at": [
+        0.25,
+        6.5
+      ],
+      "box": [
+        1.5,
+        1
+      ],
+      "side": "E"
+    },
+    "marking.4.com": {
+      "at": [
+        0.25,
+        13.5
+      ],
+      "box": [
+        1.5,
+        1
+      ],
+      "side": "E"
+    },
+    "marking.4.nc": {
+      "at": [
+        -2.25,
+        10.5
+      ],
+      "box": [
+        1.5,
+        1
+      ],
+      "side": "W"
+    },
+    "marking.4.no": {
+      "at": [
+        0.25,
+        10.5
+      ],
+      "box": [
+        1.5,
+        1
+      ],
+      "side": "E"
+    }
+  },
+  "status": "unverified"
+}

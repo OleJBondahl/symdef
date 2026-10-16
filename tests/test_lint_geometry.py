@@ -452,12 +452,26 @@ class TestStretchCut:
             ("stretch-cut", "stretch[0]")
         ]
 
-    def test_two_stretches_on_one_axis_report_the_second(self):
+    def test_two_cuts_on_one_axis_are_clean(self):
         line = Line(P(0, 0), P(4, 0))
-        symbol = stretched(line, stretch_cuts=(Stretch("x", 1), Stretch("x", 2)))
+        symbol = stretched(line, stretch_cuts=(Stretch("x", 1), Stretch("x", 2, 3)))
+        assert stretch_cut(symbol) == ()
+
+    def test_two_cuts_at_the_same_place_report_the_second(self):
+        line = Line(P(0, 0), P(4, 0))
+        symbol = stretched(line, stretch_cuts=(Stretch("x", 1), Stretch("x", 1)))
         (found,) = stretch_cut(symbol)
         assert (found.rule, found.location) == ("stretch-cut", "stretch[1]")
-        assert "second stretch on the x axis" in found.message
+        assert "second cut at 1 on the x axis" in found.message
+
+    def test_a_text_across_the_second_of_two_cuts_is_an_error(self):
+        symbol = stretched(
+            Text("MM", P(0, 0), 1), stretch_cuts=(Stretch("x", -3), Stretch("x", 0.5))
+        )
+        assert where(stretch_cut(symbol)) == [
+            ("stretch-cut", "elements[0]"),
+            ("stretch-cut", "stretch[0]"),
+        ]
 
     def test_one_stretch_on_each_axis_is_clean(self):
         symbol = stretched(

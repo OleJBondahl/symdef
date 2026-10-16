@@ -29,6 +29,7 @@ from symdef import (
 )
 from symdef.files import load_library
 from symdef.gallery import sample_texts
+from symdef.model import Centre
 
 GUIDE = Path(__file__).resolve().parent / "fixtures" / "guide"
 LIBRARY = load_library(GUIDE)
@@ -510,7 +511,7 @@ class TestOrientedSymbols:
 
         samples = by_class(root, "sample-text")
         assert len(samples) == len(slots)
-        anchors = {E: "start", W: "end", N: "middle", S: "middle"}
+        anchors = {E: "start", W: "end", N: "middle", S: "middle", Centre.C: "middle"}
         for slot, text in zip(slots, samples, strict=True):
             assert text.get("text-anchor") == anchors[slot.side]
             assert float(text.get("x")) == pytest.approx(slot.position.x)

@@ -14,7 +14,7 @@ from symdef.geometry import (
     Polyline,
     Text,
 )
-from symdef.model import Symbol
+from symdef.model import Centre, SlotSide, Symbol
 
 _QUARTER = 90
 _FULL_TURN = 360
@@ -53,6 +53,11 @@ def _map_element(element: Element, move: _Move, angles: _Angles) -> Element:
             return replace(element, position=move(position))
 
 
+def _slot_side(side: SlotSide, turn: _Turn) -> SlotSide:
+    """Turn a slot side; `C` has no direction and stays."""
+    return side if isinstance(side, Centre) else turn(side)
+
+
 def _map_symbol(symbol: Symbol, move: _Move, turn: _Turn, angles: _Angles) -> Symbol:
     """Carry every geometric part of a symbol along: points with `move`, directions with `turn`.
 
@@ -68,7 +73,10 @@ def _map_symbol(symbol: Symbol, move: _Move, turn: _Turn, angles: _Angles) -> Sy
             replace(a, position=move(a.position), direction=turn(a.direction))
             for a in symbol.anchors
         ),
-        slots=tuple(replace(s, position=move(s.position), side=turn(s.side)) for s in symbol.slots),
+        slots=tuple(
+            replace(s, position=move(s.position), side=_slot_side(s.side, turn))
+            for s in symbol.slots
+        ),
     )
 
 

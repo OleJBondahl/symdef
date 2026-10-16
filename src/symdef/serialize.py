@@ -12,7 +12,7 @@ from typing import Any
 from symdef.boxes import body_box, keepout_box
 from symdef.gallery import readme, sample_texts
 from symdef.geometry import Arc, Box, Circle, Element, Line, Point, Polyline, Text
-from symdef.model import Library, Slot, Symbol, nodes_of
+from symdef.model import Library, Slot, Stretch, Symbol, nodes_of
 from symdef.svg import to_svg
 
 _SCHEMA_VERSION = 1
@@ -50,10 +50,18 @@ def _slot(slot: Slot) -> dict[str, Any]:
     return data
 
 
+def _cut(cut: Stretch) -> dict[str, Any]:
+    """Return a cut as plain data; `weight` only when it is not the default 1."""
+    data: dict[str, Any] = {"axis": cut.axis, "at": cut.at}
+    if cut.weight != 1:
+        data["weight"] = cut.weight
+    return data
+
+
 def _element(element: Element) -> dict[str, Any]:
     """Write an element in the source vocabulary with every default key present."""
     match element:
-        case Line(start=start, end=end, weight=weight, style=style, port=port):
+        case Line(start=start, end=end, weight=weight, style=style, port=port, between=between):
             data = {
                 "line": [_point(start), _point(end)],
                 "weight": weight.name.lower(),
@@ -61,15 +69,22 @@ def _element(element: Element) -> dict[str, Any]:
             }
             if port is not None:
                 data["port"] = port
+            if between:
+                data["between"] = True
             return data
-        case Polyline(points=points, closed=closed, fill=fill, weight=weight, style=style):
-            return {
+        case Polyline(
+            points=points, closed=closed, fill=fill, weight=weight, style=style, between=between
+        ):
+            data = {
                 "polyline": [_point(p) for p in points],
                 "closed": closed,
                 "fill": fill.value,
                 "weight": weight.name.lower(),
                 "style": style.value,
             }
+            if between:
+                data["between"] = True
+            return data
         case Circle(center=center, radius=radius, fill=fill, weight=weight):
             return {
                 "circle": _point(center),
@@ -158,7 +173,7 @@ def symbol_to_data(symbol: Symbol) -> dict[str, Any]:
     if symbol.lint_allow:
         data["lint_allow"] = [{"rule": a.rule, "reason": a.reason} for a in symbol.lint_allow]
     if symbol.stretch:
-        data["stretch"] = [{"axis": s.axis, "at": s.at} for s in symbol.stretch]
+        data["stretch"] = [_cut(s) for s in symbol.stretch]
     return data
 
 
