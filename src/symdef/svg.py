@@ -344,7 +344,7 @@ def _sample_text(slot: Slot, content: str, size: float) -> str:
 def check_texts(
     symbol: Symbol, texts: Mapping[str, str] | None, required_slots: Sequence[str] = ()
 ) -> None:
-    """Check `texts` against the slots of the symbol (SS15); nothing is checked when it is None.
+    """Check `texts` against the slots of the symbol (D63); nothing is checked when it is None.
 
     Raises KeyError naming every key that is not a slot id, and ValueError naming the symbol and
     every required slot (`required_ids`) that has no key; an empty string satisfies it.
@@ -363,7 +363,7 @@ def check_texts(
 def slot_align(slot: Slot) -> tuple[str, float, float]:
     """Return the text anchor and the baseline shift, in cap heights, east and south of the point.
 
-    A slot text reads left to right; a turned one reads bottom-up (SS15).
+    A slot text reads left to right; a turned one reads bottom-up (D65).
     """
     if slot.turn:
         anchor, east = TURNED_ALIGN[slot.side]
@@ -395,7 +395,7 @@ def slot_text_tag(  # noqa: PLR0913 - one slot text tag is these things
 
 
 def _slot_texts(symbol: Symbol, texts: Mapping[str, str] | None, muted: str | None) -> list[str]:
-    """Render the strings of `texts` in module units, one tag per slot in id order (SS15)."""
+    """Render the strings of `texts` in module units, one tag per slot in id order (D63)."""
     if texts is None:
         return []
     fill = "#000" if muted is None else muted
@@ -601,7 +601,7 @@ def to_fragment(
     For embedding one placed symbol inside a larger document the caller assembles. The caller
     wraps the result in its own `<g transform="...">` to position, orient and scale it; this
     function applies none of its own. No title and no annotations. Elements are drawn exactly as
-    in `to_svg`'s plain mode, in module units. The strings in `texts` follow them (SS15).
+    in `to_svg`'s plain mode, in module units. The strings in `texts` follow them (D63).
 
     Args:
         symbol: The symbol to render, already oriented and repeated by the caller (via

@@ -949,7 +949,7 @@ transform and no scale. `to_svg` and `to_fragment` bytes are unchanged; the gold
 Why: the owner wants every size set in millimetres and rendered exactly, with nothing scaled.
 Cost if wrong: the function is additive; remove it and its export.
 
-## D53. stretch(): a cut line moves everything beyond it (SYMDEF-SLOTS SS1, SS7)
+## D53. stretch(): a cut line moves everything beyond it
 
 Superseded in part by D67 (0.10.0): "at most one per axis" no longer holds; D69 changes how slots move.
 
@@ -963,7 +963,7 @@ raises `ValueError`. Offsets place each named port, its bound lead and its `mark
 a coordinate inside the stretched body on the 1 M wiring grid; the port must face across the axis
 (N or S for x, E or W for y), and an offset naming no port raises `ValueError` too. A `length`
 equal to the natural extent is allowed. The result drops that axis's stretch, so a frame is
-stretched on both axes by two calls (SS7); no extra API. `orient`, `translate` and `repeat` carry
+stretched on both axes by two calls; no extra API. `orient`, `translate` and `repeat` carry
 the field unchanged and do not raise; the stretch is applied before them. The lint driver does not
 clear it: every rule ignores it except `stretch-cut` (D55), which runs once on the base symbol. A
 composite does not inherit its parts' stretch; its own `[[stretch]]` is its own. `crosses_cut` is
@@ -971,7 +971,7 @@ the one predicate the function and the lint rule share.
 Why: the owner chose the stretch value: layout passes one length and symdef builds the symbol.
 Cost if wrong: the field, the function and the schema key are additive; remove them and the export.
 
-## D54. table(): rows with their own ports and slots (SYMDEF-SLOTS SS2)
+## D54. table(): rows with their own ports and slots
 
 Decided: `table(row, n, axis, head=None)` in the new `table.py` returns `n` copies of `row`, copy k
 (from 1) stepping by the row's body extent (`body_box`) along the axis. Ports, bound leads, nodes
@@ -987,7 +987,7 @@ where it is authored, relative to row 1, as built, and is never translated. `rep
 Why: a table is cells with their own text, not poles of one device.
 Cost if wrong: additive; remove the module and its export. A head that must move is a later keyword.
 
-## D55. Lint rule stretch-cut and the schema key (SYMDEF-SLOTS SS3)
+## D55. Lint rule stretch-cut and the schema key
 
 Decided: a second rule beyond the spec's 33, `stretch-cut` (after `lead-off-port`, D40): group
 Geometry, severity error, not orientation dependent, so it runs once on the base symbol and
@@ -1002,7 +1002,7 @@ Why: a symbol whose cut crosses a circle cannot be stretched, and the error shou
 at the consumer's build.
 Cost if wrong: the rule is additive; remove its row, check and the 35 in the counts.
 
-## D56. Wire styles and wire() (SYMDEF-SLOTS SS8)
+## D56. Wire styles and wire()
 
 Decided: a symbol set declares wire styles in `library.toml` as `[[wire]]` with `id`, `weight`
 (`normal` or `thick`) and `style` (`solid` or `dashed`); the table is optional, and a missing key, an
@@ -1018,7 +1018,7 @@ by `validate_bundle` and read by `library_from_bundle`. A junction dot is an ord
 Why: the owner ruled that wires are symdef functions and layout names only a style and points.
 Cost if wrong: additive; remove the module, the dataclass, the field and the bundle key.
 
-## D57. Tint fill (SYMDEF-SLOTS SS9)
+## D57. Tint fill
 
 Decided: `Fill` gains `TINT = "tint"`. A file may write `fill = "tint"` on a closed polyline only;
 on a circle or an open polyline it is a `schema` finding, and the JSON schema agrees (a separate
@@ -1032,7 +1032,7 @@ change; the golden fixtures prove it.
 Why: the consumer passes the colour, as it passes slot texts.
 Cost if wrong: additive; remove the enum member, the keyword and the check.
 
-## D58. The interface spec is amended in place for 0.7.0 (SYMDEF-SLOTS SS4)
+## D58. The interface spec is amended in place for 0.7.0
 
 Decided (owner C1; model D51): `SYMBOL_INTERFACE.html` gets a dated change-list row, 2026-10-15,
 0.7.0, and the sections that define the new pieces change in place: section 4 (`[[stretch]]`,
@@ -1045,7 +1045,7 @@ release are not part of this change.
 Why: the spec is the one design document and must describe what the code does.
 Cost if wrong: revert the file; code and tests read only its code blocks and the rule table.
 
-## D59. `leads(symbol, ports)` (SYMDEF-SLOTS SS12)
+## D59. `leads(symbol, ports)`
 
 Decided: a public free function in `leads.py`. It removes every `Line` whose `port` is not None
 and not in `ports`; every other element stays in order, and so does every other field. A listed
@@ -1055,7 +1055,7 @@ symdef knows no net.
 Why: a router draws a stub only for a wired port, and a symbol's file cannot know which.
 Cost if wrong: additive; remove the module, the export and the test.
 
-## D60. `Style.DASH_DOT` and `dash_dot_mm` (SYMDEF-SLOTS SS13)
+## D60. `Style.DASH_DOT` and `dash_dot_mm`
 
 Decided: `Style` gains `DASH_DOT = "dash_dot"`, accepted wherever `dashed` is: element `style`, a
 `[[wire]]` style, the loader, the JSON schema and the serialized form. `to_fragment` draws module
@@ -1066,7 +1066,7 @@ keyword, and a symbol with none never asks for it. Output without the style is b
 Why: the style words are the file's, the lengths are the caller's, as for `dash_mm`.
 Cost if wrong: additive; remove the member, the keyword and the schema entries.
 
-## D61. `muted` (SYMDEF-SLOTS SS14)
+## D61. `muted`
 
 Decided: `to_fragment` and `to_fragment_mm` gain a keyword-only `muted: str | None = None`, the
 colour of a symbol drawn as not installed (designer ruling, amendment 3: the caller's colour, as
@@ -1079,7 +1079,7 @@ read. With `None` the bytes are those of 0.7.0.
 Why: one look for a thing that is not installed, with the colour a drawing convention of the caller.
 Cost if wrong: additive; remove the keyword and the helper.
 
-## D62. The interface spec is amended in place for 0.8.0 (SYMDEF-SLOTS SS4)
+## D62. The interface spec is amended in place for 0.8.0
 
 Decided: `SYMBOL_INTERFACE.html` gets a change-list row (2026-10-15, 0.8.0); section 4 names
 `dash_dot` and its pattern, section 7 gains `leads`, section 11 lists `leads`, `muted` and
@@ -1088,7 +1088,7 @@ leads and muted symbols". The version bump, tag and release are not part of this
 Why: the spec is the one design document and must describe what the code does.
 Cost if wrong: revert the file; tests read only its code blocks and the rule table.
 
-## D63. `texts` in `to_fragment` and `to_fragment_mm` (SYMDEF-SLOTS SS15)
+## D63. `texts` in `to_fragment` and `to_fragment_mm`
 
 Decided: both gain the keyword-only `texts: Mapping[str, str] | None = None`. `None` gives the 0.8.0
 bytes (pinned by `tests/test_slot_text_identity.py`). Otherwise one `<text>` per slot with a
@@ -1100,7 +1100,7 @@ never measures; `to_fragment` auto-sizes as the preview does (at most 1 M, size 
 Attributes: `fill` black or the `muted` colour, `stroke="none"`, `font-family="sans-serif"` in
 module units and the caller's family in mm, no `class` (designer, G6). A key that is no slot id raises
 `KeyError` before anything is drawn, also for an empty string.
-Why: render must not build slot text itself (SS10); the preview already fixes the baseline rule.
+Why: render must not build slot text itself; the preview already fixes the baseline rule.
 Cost if wrong: additive; remove the keyword, the table and the helpers.
 
 ## D64. Required slots checked when texts are drawn
@@ -1113,7 +1113,7 @@ with the shared function, so another kind demands nothing here either.
 Why: designer ruling G1; one rule in one place.
 Cost if wrong: additive; remove the keyword and the check.
 
-## D65. `turn = true` (SS15)
+## D65. `turn = true`
 
 Decided: `Slot.turn: bool = False` (last field), the slot key `turn` (loader, schema), written by
 `serialize` only when true so a set without turned slots keeps its bytes. `box` is the footprint as
@@ -1128,7 +1128,7 @@ Why: designer rulings G2 to G5.
 Cost if wrong: additive; remove the field, the key and the branch.
 Known: the `to_svg` preview ignores `turn` in 0.9.0, so a turned slot drawn flat misleads a symbol author; the fix comes in the next release through the shared SIDE_ALIGN table (designer 2026-10-16).
 
-## D66. The interface spec is amended in place for 0.9.0 (SS15)
+## D66. The interface spec is amended in place for 0.9.0
 
 Decided: `SYMBOL_INTERFACE.html` gets a change-list row (2026-10-16, 0.9.0), section 6 the `turn` key
 and two paragraphs on drawing, section 11 the two keywords. `docs/GUIDE.md` gains "Drawing slot
@@ -1136,7 +1136,7 @@ text". The rule count stays 35. The version bump, tag and release are not part o
 Why: the spec is the one design document and must describe what the code does.
 Cost if wrong: revert the file; tests read only its code blocks and the rule table.
 
-## D67. Weighted cuts (SYMDEF-SLOTS SS16)
+## D67. Weighted cuts
 
 Decided: `Stretch.weight: float = 1` (last field), the file key `weight` (a number above zero; the
 loader and the schema refuse zero and below), written by `serialize` only when not 1. An axis may
@@ -1147,10 +1147,10 @@ single-cut result is the 0.9.0 bytes. A line or polyline across a cut grows by t
 circle, arc or text across any cut raises `ValueError`; one wholly beyond some cuts moves by their
 shares. `offsets` is unchanged and runs after the shares. `stretch-cut` loses its "second stretch
 per axis" finding and gains "a second cut at the same `at`", so the rule count stays 35.
-Why: designer ruling SS16 and Q4, Q5. A title block needs a fixed edge and two growing spans.
+Why: designer ruling on weighted cuts (Q4, Q5). A title block needs a fixed edge and two growing spans.
 Cost if wrong: additive; a file without `weight` and with one cut per axis is unchanged.
 
-## D68. Slot side `C` (SYMDEF-SLOTS SS18)
+## D68. Slot side `C`
 
 Decided: `C` is not a compass point. `Centre` (a one-member enum, `Centre.C`) and
 `SlotSide = Direction | Centre` are new in `model.py`; `Slot.side` is a `SlotSide`, so `Direction`,
@@ -1164,11 +1164,11 @@ glyphs centred across the reading line. `orient` leaves a `C` side as it is and 
 Why: designer ruling Q1 to Q3. A slot side is where text sits and a port side is where a wire
 leaves; keeping `C` out of `Direction` means a port can never be `C`.
 Cost if wrong: remove the enum, the schema value and the table entries.
-Concern (spec): SS18 asks for a lint check that a `C` slot's `position` is its box's centre. With
+Concern (spec): the spec asks for a lint check that a `C` slot's `position` is its box's centre. With
 the box centred on `position` by definition (Q3) and `stretch` recomputing `position` as the new
 centre, no stored slot can fail it. No such check is in 0.10.0 pending the designer's ruling.
 
-## D69. Slots follow the cuts (SYMDEF-SLOTS SS17)
+## D69. Slots follow the cuts
 
 Decided: `stretch` moves each corner of a slot's box and its `position` by the shares of the cuts
 they lie beyond (`stretch_slot.py`). A box across a cut grows by that cut's share, and the stored
@@ -1177,10 +1177,10 @@ side's own edge follows its corner, and the centred axis takes the middle of the
 whose two edges move alike keeps its `box` and its position moves as in 0.9.0 (same bytes). A turned
 slot grows along its authored `box`. The room a slot has after stretching is the
 stretched symbol's `slot_box`.
-Why: designer ruling SS17; a slot that spans a cut must grow with the body.
+Why: designer ruling; a slot that spans a cut must grow with the body.
 Cost if wrong: a symbol with a slot across a cut changes size; every other output is unchanged.
 
-## D70. `between` elements (SYMDEF-SLOTS SS19)
+## D70. `between` elements
 
 Decided: `Line.between` and `Polyline.between` (last field, default false), the file key `between`
 on those two element tables only (a circle, arc or text with it is a schema finding), written by
@@ -1188,10 +1188,10 @@ on those two element tables only (a circle, arc or text with it is a schema find
 n-1 and leaves it out of row n, so n = 1 draws none. The head is unaffected: a `between` element in a
 head is drawn as authored, and so is one on a lone symbol. `repeat` and `translate` keep the flag
 (`replace`). A table without a `between` element is byte-identical to 0.9.0.
-Why: designer ruling SS19; a strip has one tick fewer than it has cells.
+Why: designer ruling; a strip has one tick fewer than it has cells.
 Cost if wrong: additive; remove the field, the key and `_row_elements`.
 
-## D71. The interface spec is amended in place for 0.10.0 (SYMDEF-SLOTS SS16 to SS19)
+## D71. The interface spec is amended in place for 0.10.0 (D67 to D70)
 
 Decided: `SYMBOL_INTERFACE.html` gets a change-list row (2026-10-16, 0.10.0), the `stretch` and
 element keys in section 4, side `C` in section 6, the stretch and table paragraphs in section 7, the
@@ -1201,19 +1201,19 @@ are not part of this change.
 Why: the spec is the one design document and must describe what the code does.
 Cost if wrong: revert the files; tests read only the code blocks and the rule table.
 
-## D72. A non-C slot keeps its SS17 position (0.10.1)
+## D72. A non-C slot keeps its position across a cut (0.10.1)
 
 Decided: `stretch_slot` moves the `position` of every slot but `C` by its own shift, the shares of
 the cuts it lies beyond, as in 0.9.0, and grows `box` by the difference of its edges' shifts. Only a
-`C` slot is placed at the middle of its moved edges (SS18). So a W, E, N or S box across a cut
+`C` slot is placed at the middle of its moved edges (D68). So a W, E, N or S box across a cut
 grows while its position stays where 0.9.0 put it; `slot_box` of such a result is centred on the
 position on the centred axis and is no longer the moved corners there. 0.10.0 re-centred every
 side, which moved the text of `marking.<port>` slots across a cut.
-Why: designer spec SS17 (position moves with the cuts it lies beyond) and SS18 (only `C` is centred);
+Why: designer spec (position moves with the cuts it lies beyond, D69; only `C` is centred, D68);
 found by a byte check against 0.9.0.
 Cost if wrong: a non-`C` slot across a cut sits at its box centre again; revert `_place`.
 
-## D73. Font metrics are library data (0.11.0, SB1)
+## D73. Font metrics are library data (0.11.0)
 
 Decided: `library.toml` takes an optional `[font]` table with `units_per_em`, `cap_height`,
 `ascent`, `descent` and `default_advance` (numbers above zero, all required), an optional
@@ -1228,11 +1228,11 @@ per character, the measure of 0.10.1, computed in the same order so existing out
 byte-identical. `body_box`, `keepout_box` and `element_box` take `font=None`. `cap_height(font,
 height)` is the capital's height in module units (0.72 em with no font). The font is data in the
 library, never global state; kerning, ligatures and per-weight advance tables are not modelled.
-Why: SYMBOL-BOUNDARY SB1, "Font metrics are symdef library data."
+Why: font metrics are symdef library data, as the rest of the library is.
 Cost if wrong: the keys are additive and optional; remove `font` from the two dataclasses, the
 loader and the bundle, and `font=None` from the three box functions.
 
-## D74. Slot text: `slot_text`, `slot_box` with a text, `TextPlacement` (0.11.0, SB2)
+## D74. Slot text: `slot_text`, `slot_box` with a text, `TextPlacement` (0.11.0)
 
 Decided: the module `symdef.slottext` holds `SIDE_ALIGN` and `TURNED_ALIGN` (moved out of `svg`,
 which reads them from there) and `slot_text(slot, text, height, font) -> TextPlacement(point,
@@ -1243,11 +1243,11 @@ in the signature as the ruling gives it. `slot_box(slot, text=None, height=None,
 no text is the reserved box of 0.10.1; with a text it is the union of the reserved box and the
 string's extent (its measured width by one cap height, upright from the anchor, or turned
 bottom-up with the caps to the west of the point). A text without a height raises `ValueError`.
-Why: SYMBOL-BOUNDARY SB2.
+Why: the caller reads slot text placement from symdef, not its own copy.
 Cost if wrong: additive; the new parameters default to the old behaviour. Revert `slottext.py`
 and the three parameters.
 
-## D73 amended: the library's settings are `[font]` and `[grid]` in `library.toml` (SB0)
+## D73 amended: the library's settings are `[font]` and `[grid]` in `library.toml`
 
 Decided: the `[font]` table of D73 also takes a required `name` (a string; it changes no
 measure), and `library.toml` gains an optional `[grid]` table with `module_mm` (a number above
@@ -1262,33 +1262,33 @@ bundles stay byte-identical. `lint(symbol, required_slots=(), grid=DEFAULT_GRID)
 `check` and `build` pass `library.grid`. The wiring grid (`port-off-wiring-grid`) is a separate
 rule and is unchanged. `to_fragment_mm` keeps its `module_mm` keyword; a caller passes
 `library.grid.module_mm`.
-Why: SYMBOL-BOUNDARY amendment 1 (SB0): one settings file, frozen in the loaded library.
+Why: one settings file, frozen in the loaded library.
 Cost if wrong: both tables are optional; revert `Grid`, the two keys and the `grid` argument.
 
-## D75: grid divisions are helpers that take the grid (SB3)
+## D75: grid divisions are helpers that take the grid
 
 Decided: `to_divisions(grid, v) -> int`, `from_divisions(grid, n) -> float` and
-`ceil_divisions(grid, v) -> int` in `symdef.units`, exported. The grid comes first, as SB0 rules;
+`ceil_divisions(grid, v) -> int` in `symdef.units`, exported. The grid comes first, as the amended D73 rules;
 there is no public `DIVISIONS_PER_MODULE` constant, a caller reads `grid.divisions_per_module`.
 `to_divisions` raises `ValueError` naming the value (`repr`) when `v` is not a whole number of
 divisions, and for NaN or infinity. `ceil_divisions` is the one round-up rule: it counts a value
 within 1e-9 divisions above a multiple as that multiple, so float noise from a measured extent
 adds no division. `GRID_DIVISION` and `snap` stay unchanged.
-Why: SYMBOL-BOUNDARY SB3, with the amendment that the grid is library data.
+Why: the grid is library data, so the helpers take it.
 Cost if wrong: additive. Move the tolerance by editing `_DIVISION_TOLERANCE`; remove the three
 functions to revert.
 
-## D76: turning helpers are public; `orient_box` turns a box about the origin (SB4)
+## D76: turning helpers are public; `orient_box` turns a box about the origin
 
 Decided: `orient_point` and `orient_direction` join `__all__`, and `orient_box(box, orientation)
 -> Box` is new in `symdef.orient`. It turns the box's two corners as points (mirror x first for an
 MR orientation, then clockwise quarter turns) and re-bounds them, about the symbol's origin, as
 `orient` does. For any symbol and all eight orientations `orient_box(body_box(s), o)` equals
 `body_box(orient(s, o))`; a test asserts it on a non-square symbol.
-Why: SYMBOL-BOUNDARY SB4: a caller turns a box once, in symdef, not by its own copy of the maths.
+Why: a caller turns a box once, in symdef, not by its own copy of the maths.
 Cost if wrong: additive; remove `orient_box` and the two exports.
 
-## D77: small accessors, and `nodes_of` public (SB5, SB10)
+## D77: small accessors, and `nodes_of` public
 
 Decided: `Box.union(*boxes)` (a static method; one box gives itself, none raises `ValueError`),
 `slots_box(symbol)` (the union of the slots' reserved boxes without the body; the origin box when
@@ -1297,15 +1297,15 @@ there are no slots), `pole_pitch(symbol)` (the effective pitch: the symbol's own
 port takes in pole `k`, `"<k>.<port_id>"`; `repeat` now builds every pole id through it). All four
 and `nodes_of` (every node, the declared ones then one per unlisted port) join `__all__`, each with a
 docstring and a test.
-Why: SYMBOL-BOUNDARY SB5 and SB10: the caller reads these facts from symdef, not a copy.
+Why: the caller reads these facts from symdef, not a copy.
 Cost if wrong: additive; `repeat`'s output is byte-identical (the tests of D0 to D72 stay green).
 
-## D78: a loaded library's symbols are read-only (SB6)
+## D78: a loaded library's symbols are read-only
 
 Decided: `load_library` and `load_bundle` wrap `Library.symbols` in a `MappingProxyType`, so
 assigning into it raises `TypeError`. The field is typed `Mapping[str, Symbol]` (it already was);
 no writer of `.symbols` exists in the repository. A `Library` built by hand keeps whatever mapping
 its caller passes.
-Why: SYMBOL-BOUNDARY SB6: a library is a frozen value, as the other records are.
+Why: a library is a frozen value, as the other records are.
 Cost if wrong: a caller that edited a loaded library's symbols must copy them first; drop the wrap
 to revert.

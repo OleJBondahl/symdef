@@ -1,4 +1,4 @@
-"""`turn = true`: a slot whose string reads bottom-up (SS15)."""
+"""`turn = true`: a slot whose string reads bottom-up (D65)."""
 
 import tomllib
 import xml.etree.ElementTree as ET
