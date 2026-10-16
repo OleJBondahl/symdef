@@ -1,6 +1,8 @@
 """Where a string drawn in a slot sits, and the room it takes there."""
 
+from collections.abc import Mapping
 from dataclasses import dataclass
+from types import MappingProxyType
 from typing import Literal
 
 from symdef.font import FontMetrics, cap_height, text_width
@@ -10,23 +12,27 @@ from symdef.model import Centre, Slot
 type Anchor = Literal["start", "middle", "end"]
 
 # Per slot side: the text anchor and the baseline below the slot point as a fraction of the cap
-# height. `slot_text` and the SVG output read this one table (SS15).
-SIDE_ALIGN: dict[Direction | Centre, tuple[Anchor, float]] = {
-    Direction.E: ("start", 0.5),
-    Direction.W: ("end", 0.5),
-    Direction.N: ("middle", 0.0),
-    Direction.S: ("middle", 1.0),
-    Centre.C: ("middle", 0.5),
-}
+# height. `slot_text` and the SVG output read this one table (D63).
+SIDE_ALIGN: Mapping[Direction | Centre, tuple[Anchor, float]] = MappingProxyType(
+    {
+        Direction.E: ("start", 0.5),
+        Direction.W: ("end", 0.5),
+        Direction.N: ("middle", 0.0),
+        Direction.S: ("middle", 1.0),
+        Centre.C: ("middle", 0.5),
+    }
+)
 # A turned slot reads bottom-up: N starts at the anchor, S ends there, E and W centre the text on
 # it. The second number is how far east of the slot point the baseline sits, in cap heights.
-TURNED_ALIGN: dict[Direction | Centre, tuple[Anchor, float]] = {
-    Direction.N: ("start", 0.5),
-    Direction.S: ("end", 0.5),
-    Direction.E: ("middle", 1.0),
-    Direction.W: ("middle", 0.0),
-    Centre.C: ("middle", 0.5),
-}
+TURNED_ALIGN: Mapping[Direction | Centre, tuple[Anchor, float]] = MappingProxyType(
+    {
+        Direction.N: ("start", 0.5),
+        Direction.S: ("end", 0.5),
+        Direction.E: ("middle", 1.0),
+        Direction.W: ("middle", 0.0),
+        Centre.C: ("middle", 0.5),
+    }
+)
 
 
 @dataclass(frozen=True, slots=True)

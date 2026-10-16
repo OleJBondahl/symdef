@@ -2,6 +2,7 @@
 
 from collections.abc import Mapping
 from dataclasses import dataclass
+from types import MappingProxyType
 
 from symdef.geometry import Weight
 
@@ -33,6 +34,10 @@ class FontMetrics:
     advances: Mapping[str, float]
     default_advance: float
     thick_factor: float = 1.0
+
+    def __post_init__(self) -> None:
+        """Copy `advances` into a read-only mapping, so the font cannot change after it is built."""
+        object.__setattr__(self, "advances", MappingProxyType(dict(self.advances)))
 
 
 def text_width(
