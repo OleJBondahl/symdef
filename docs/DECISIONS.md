@@ -1436,3 +1436,60 @@ pitch of 2 M.
 Cost if wrong: additive for a library that sets nothing; the loader check is new for one that has
 an off-pitch port (set `wire_pitch` or move the port).
 
+
+## D87: `measure_font`, and `[font]` may name its files
+
+Decided: `measure_font(regular: bytes, bold: bytes) -> FontMetrics` (new module `fontmeasure`)
+measures two TTFs with fontTools. The advances are `hmtx` widths for ASCII, Latin-1 and eight
+symbols, the regular face for `Weight.NORMAL` and the bold face for `Weight.THICK`. `cap_height` is
+the top of the glyph H, `descent` the depth of the glyph p, `ascent` the OS/2 typographic
+ascender, all from the regular face. `default_advance` is the largest regular advance of the
+covered set (1843 for the house face). `name` is the regular face's family name (name id 1). A face
+without H or p, faces that differ in units per em, and bytes that are not a TTF raise
+`InvalidValueError`; the first names the glyph. `[font]` takes either the literal metrics or
+`name` and `files = { regular, bold }`, never both; `symdef build` reads the files, relative to
+`library.toml`, in `files.py` and writes the measured table into the bundle. The measure takes
+bytes, so symdef reads no file at runtime. `fonttools==4.67.0` is a runtime dependency, ruled by the
+designer (spec SETTINGS ST5); CLAUDE.md's "no runtime dependency" line is out of date and the
+designer edits it. `fontmeasure.py` is in the purity gate's `IMPURE_MODULES` only because fontTools
+needs a `BytesIO`; it touches no file.
+Why: a consumer font must come from its files with one function (spec SETTINGS ST5).
+Cost if wrong: the tables of the house font are tested exactly against an independent copy; a
+different default-advance rule moves only characters outside the covered set.
+
+## D88: `Library.with_settings`
+
+Decided: `Library.with_settings(*, module_mm=None, font=None, heights=None, lines=None)` returns a
+replaced library. `font` is the pair of TTF bytes, measured by `measure_font`; the library's
+`heights` are kept unless `heights` is given. `Grid` and `FontMetrics` run their own checks, a
+height or width must be a number above zero, a wire weight needs a width, and then the rule
+`text-outside-body` runs over every symbol of the result (D90, which replaced `text-too-large` here) and a hit raises
+`InvalidValueError` naming the symbol. The logic is the free function `symdef.settings.with_settings`; the method delegates
+through a deferred import because `settings` imports `model`. The concern that `text-too-large` reads no font was ruled in D90: `text-outside-body` measures with the font.
+Why: spec SETTINGS ST4.
+Cost if wrong: additive; the font-aware rule would be a lint-rule change in a later release.
+
+## D89: `[lines]`, a width in millimetres per weight
+
+Decided: `library.toml` takes `[lines]` with `normal` and `thick` as millimetres above zero.
+`Library.lines` is a read-only `Mapping[Weight, float]`, empty when the table is absent, and the
+bundle carries `lines` only when not empty, so existing bundles keep their bytes. With the table
+present, a `[[wire]]` weight without a width is a load error (`lines_problems`), and
+`with_settings(lines=...)` runs the same check. Nothing in drawing reads `lines`.
+Why: spec SETTINGS ST4; the millimetres lived in the consumer. `Weight.value * module_mm` already
+equals them (0.1 and 0.2 of 2.5 mm).
+Cost if wrong: additive.
+
+## D90: `text-outside-body`, the font-aware check that replaces `text-too-large` at build
+
+Decided: `text-outside-body` (`symdef.lint.textbody.text_outside_body(symbol, font, module_mm)`) checks a fixed
+Text anchored inside the symbol's body, the union of its non-Text elements, and requires its extent to lie wholly
+inside that box, measured with the library font at the text's height and weight. A text anchored outside the body,
+or a symbol with no other element, is not checked. It is a library-level check outside the per-symbol lint registry:
+not one of the 35 guide-table rules, not in `__all__`: `lint()` takes no font, so a registered rule could not measure.
+Two call sites run it: `load_library` (and so `symdef build`) with the library font when it has one, raising
+`LibraryError` naming the symbol; and `Library.with_settings`, instead of `text-too-large`;
+`text-too-large` stays for authoring.
+Why: designer ruling 2026-10-16 (b), spec SETTINGS ST4 amendment 2. `text-too-large` compared height with 1 M and read
+no font, so a consumer font could never fail the build.
+Cost if wrong: additive; the free function can move into the lint registry later.

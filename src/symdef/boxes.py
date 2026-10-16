@@ -72,6 +72,11 @@ def element_box(element: Element, font: FontMetrics | None = None) -> Box:
     return _bounding(_extent_points(element, font))
 
 
+def elements_box(elements: tuple[Element, ...], font: FontMetrics | None = None) -> Box:
+    """Return the box holding every element's extent, as `element_box`; none gives the origin."""
+    return _bounding(tuple(p for e in elements for p in _extent_points(e, font)))
+
+
 def body_box(symbol: Symbol, font: FontMetrics | None = None) -> Box:
     """Return the union of the element extents, in module units, ignoring stroke width.
 
@@ -79,7 +84,7 @@ def body_box(symbol: Symbol, font: FontMetrics | None = None) -> Box:
     arcs (the true swept extent) and the other elements. A symbol without elements has the box
     (0, 0) to (0, 0). Ports, anchors and slots do not count.
     """
-    return _bounding(tuple(p for e in symbol.elements for p in _extent_points(e, font)))
+    return elements_box(symbol.elements, font)
 
 
 def slots_box(symbol: Symbol) -> Box:

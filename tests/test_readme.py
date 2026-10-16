@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parent.parent
 README = ROOT / "README.md"
 GUIDE = ROOT / "docs" / "GUIDE.md"
 GUIDE_FIXTURES = Path(__file__).resolve().parent / "fixtures" / "guide"
+FONTS = Path(__file__).resolve().parent / "data" / "dejavu"  # the docs' `fonts` folder
 BLOCK = re.compile(r"^```python[^\n]*\n(.*?)^```$", re.MULTILINE | re.DOTALL)
 
 
@@ -23,7 +24,7 @@ def run_examples(path: Path, tmp_path: Path) -> Path:
     """
     root = tmp_path / "repo"
     shutil.copytree(GUIDE_FIXTURES, root)
-    namespace = {"root": root}
+    namespace = {"root": root, "fonts": FONTS}
     for number, code in enumerate(examples(path), start=1):
         exec(compile(code, f"{path.name} example {number}", "exec"), namespace)  # noqa: S102
     return root

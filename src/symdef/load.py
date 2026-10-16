@@ -29,6 +29,7 @@ from symdef.geometry import (
     Text,
     Weight,
 )
+from symdef.lines import lines_problems
 from symdef.model import (
     Allow,
     Anchor,
@@ -620,6 +621,35 @@ def font_from_data(data: Mapping[str, Any]) -> FontMetrics:
     )
 
 
+_FONT_FILES = _table(
+    {"name": _string, "files": _table({"regular": _string, "bold": _string}, ("regular", "bold"))},
+    required=("name", "files"),
+)
+
+
+def _font_table(value: object, location: str) -> list[Finding]:
+    """Check a library's `[font]`: the literal tables, or `name` and `files`, never both."""
+    if not isinstance(value, dict) or "files" not in value:
+        return _FONT(value, location)
+    if set(value) - {"name", "files"}:
+        message = "give either the measured tables or `name` and `files`, not both"
+        return [_finding(location, message)]
+    return _FONT_FILES(value, location)
+
+
+def _literal_font(data: Mapping[str, Any]) -> bool:
+    """Whether a checked config has a `[font]` of the literal form."""
+    return "font" in data and "files" not in data["font"]
+
+
+def _font_files(data: Mapping[str, Any]) -> tuple[tuple[str, str] | None, str]:
+    """Return the `files` paths and the name of a checked config's `[font]`, or None and ''."""
+    font = data.get("font", {})
+    if "files" not in font:
+        return None, ""
+    return (font["files"]["regular"], font["files"]["bold"]), font["name"]
+
+
 def _module_mm(value: object, location: str) -> list[Finding]:
     """Check `module_mm` by the rule `Grid` itself applies, once it is a number."""
     found = _number(value, location)
@@ -673,6 +703,24 @@ def grid_from_data(data: Mapping[str, Any]) -> Grid:
     )
 
 
+def _lines_table(value: object, location: str) -> list[Finding]:
+    """Check the `lines` table: a width above zero for a weight name, nothing else."""
+    names = tuple(w.name.lower() for w in Weight)
+    found = _map_of(_positive)(value, location)
+    if isinstance(value, dict):
+        found += [
+            _finding(_child(location, key), f"unknown weight {_short(key)!r}: use one of {names}")
+            for key in value
+            if key not in names
+        ]
+    return found
+
+
+def lines_from_data(data: Mapping[str, Any]) -> Mapping[Weight, float]:
+    """Build the line widths of a checked `[lines]` table or a bundle's `lines` object."""
+    return MappingProxyType({Weight[key.upper()]: width for key, width in data.items()})
+
+
 _BUNDLE = _table(
     {
         "schema": _schema_version,
@@ -681,6 +729,7 @@ _BUNDLE = _table(
         "wires": _wires,
         "font": _FONT,
         "grid": _grid_table,
+        "lines": _lines_table,
     },
     required=("schema", "standard", "symbols"),
 )
@@ -741,6 +790,7 @@ def library_from_bundle(data: Mapping[str, Any]) -> Library:
         wires=_wires_from_data(data.get("wires", [])),
         font=font_from_data(data["font"]) if "font" in data else None,
         grid=grid_from_data(data["grid"]) if "grid" in data else DEFAULT_GRID,
+        lines=lines_from_data(data.get("lines", {})),
     )
 
 
@@ -750,14 +800,15 @@ _RULES = _table({"required_slots": _array(_string)})
 
 
 def _tables_problems(data: Mapping[str, Any]) -> list[Finding]:
-    """Check the optional `[vocabulary]`, `[rules]`, `[[wire]]` `[font]` and `[grid]`."""
+    """Check the optional `[vocabulary]`, `[rules]`, `[[wire]]` `[font]`, `[grid]` and `[lines]`."""
     found: list[Finding] = []
     for key, check in (
         ("vocabulary", _VOCABULARY),
         ("rules", _RULES),
         ("wire", _wires),
-        ("font", _FONT),
+        ("font", _font_table),
         ("grid", _grid_table),
+        ("lines", _lines_table),
     ):
         if key in data:
             found += check(data[key], _child("", key))
@@ -774,9 +825,14 @@ def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
     (`name`, `units_per_em`, `cap_height`, `ascent`, `descent`, `default_advance` and
     `[font.advances.normal]` and `[font.advances.thick]`, each one number per character, and
     `[font.heights]`, a capital height in millimetres by name) is the font text is measured with.
+    Instead of the measured tables, `[font]` may hold `name` and `files = { regular, bold }`, two
+    TTF paths relative to the folder of `library.toml` (D87); `files.py` measures them.
     The optional `[grid]` table (`module_mm`, `divisions_per_module`, a power of two, and the wire
     pitches `wire_pitch` and `wire_pitch_fine` in divisions) is the drawing grid; without it the
-    grid is 2.5 mm, 8 divisions and pitches 8 and 4.
+    grid is 2.5 mm, 8 divisions and pitches 8 and 4. The optional `[lines]` table gives the stroke
+    width in millimetres, a number above zero, of each weight name (`normal`, `thick`). Once it is
+    present, every weight a `[[wire]]` uses needs a width; an absent table is empty and checks
+    nothing.
 
     Args:
         text: The file's TOML text.
@@ -797,6 +853,10 @@ def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
     if not isinstance(package, str) or (package and not _PACKAGE.fullmatch(package)):
         problems.append(_finding("/package", "must be a Python package name: letters, digits, _"))
     problems += _tables_problems(data)
+    if not problems:
+        wires = _wires_from_data(data.get("wire", []))
+        lines = lines_from_data(data.get("lines", {}))
+        problems += [_finding("/lines", m) for m in lines_problems(wires, lines)]
     pattern = data.get("number_pattern")
     if isinstance(pattern, str):
         try:
@@ -820,6 +880,8 @@ def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
         words,
         required,
         _wires_from_data(data.get("wire", [])),
-        font_from_data(data["font"]) if "font" in data else None,
+        font_from_data(data["font"]) if _literal_font(data) else None,
         grid_from_data(data["grid"]) if "grid" in data else DEFAULT_GRID,
+        lines_from_data(data.get("lines", {})),
+        *_font_files(data),
     ), ()
