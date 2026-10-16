@@ -34,12 +34,12 @@ def test_width_and_height_are_ints():
 
 def test_grid_point_rejects_a_float_and_names_the_value():
     with pytest.raises(InvalidValueError, match=r"GridPoint\.x is 1\.5;"):
-        GridPoint(1.5, 0)  # ty: ignore[invalid-argument-type]  # a float on purpose
+        GridPoint(1.5, 0)
 
 
 def test_grid_port_rejects_a_float_and_names_the_value():
     with pytest.raises(InvalidValueError, match=r"GridPort\.y is 2\.0;"):
-        GridPort("1", 0, 2.0, Direction.N)  # ty: ignore[invalid-argument-type]  # a float on purpose
+        GridPort("1", 0, 2.0, Direction.N)
 
 
 def test_grid_point_rejects_bool():
@@ -52,4 +52,4 @@ def test_the_message_says_how_to_fix_it():
         InvalidValueError,
         match=r"grid divisions are whole numbers; round with ceil_divisions or to_divisions",
     ):
-        GridPoint(0.5, 0)  # ty: ignore[invalid-argument-type]  # a float on purpose
+        GridPoint(0.5, 0)
