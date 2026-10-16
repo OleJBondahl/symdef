@@ -4,6 +4,7 @@ from symdef._version import LIBRARY_VERSION
 from symdef.boxes import body_box, keepout_box, slot_box
 from symdef.errors import GraphicalSymbolsError, LibraryError, UnknownSymbolError
 from symdef.files import load_bundle, load_library, stale_build, write_build
+from symdef.font import FontMetrics, text_width
 from symdef.geometry import (
     Arc,
     Box,
@@ -66,6 +67,7 @@ __all__ = [
     "Element",
     "Fill",
     "Finding",
+    "FontMetrics",
     "GraphicalSymbolsError",
     "Library",
     "LibraryConfig",
@@ -108,6 +110,7 @@ __all__ = [
     "stale_build",
     "stretch",
     "table",
+    "text_width",
     "to_fragment",
     "to_fragment_mm",
     "to_svg",

@@ -2,6 +2,7 @@
 
 import math
 
+from symdef.font import FontMetrics, text_width
 from symdef.geometry import (
     Arc,
     Box,
@@ -19,11 +20,10 @@ from symdef.model import Centre, Slot, Symbol
 
 _AXIS_ANGLES = (0, 90, 180, 270)
 _FULL_TURN = 360
-_TEXT_WIDTH_PER_HEIGHT = 0.6
 _ORIGIN_BOX = Box(Point(0, 0), Point(0, 0))
 
 
-def _extent_points(element: Element) -> tuple[Point, ...]:
+def _extent_points(element: Element, font: FontMetrics | None = None) -> tuple[Point, ...]:
     """Return points whose bounding box is the element's extent, ignoring stroke width.
 
     An arc with a non-finite angle has no swept extent and counts as its centre.
@@ -42,8 +42,8 @@ def _extent_points(element: Element) -> tuple[Point, ...]:
             sweep = arc_sweep(arc)
             extremes = tuple(a for a in _AXIS_ANGLES if (a - start) % _FULL_TURN <= sweep)
             return tuple(arc_point(arc, a) for a in (start, end, *extremes))
-        case Text(content=content, position=at, height=height):
-            half_w = _TEXT_WIDTH_PER_HEIGHT * height * len(content) / 2
+        case Text(content=content, position=at, height=height, weight=weight):
+            half_w = text_width(font, content, height, weight) / 2
             return (
                 Point(at.x - half_w, at.y - height / 2),
                 Point(at.x + half_w, at.y + height / 2),
@@ -59,24 +59,25 @@ def _bounding(points: tuple[Point, ...]) -> Box:
     return Box(Point(min(xs), min(ys)), Point(max(xs), max(ys)))
 
 
-def element_box(element: Element) -> Box:
+def element_box(element: Element, font: FontMetrics | None = None) -> Box:
     """Return the extent of one element.
 
     A line or polyline extends over its points, a circle over its full diameter, an arc over its
-    true swept extent, and text is a box centred on its position, `height` tall and `0.6 * height`
-    per character wide. Stroke width is ignored. A polyline without points has the origin box.
+    true swept extent, and text is a box centred on its position, `height` tall and `text_width`
+    wide (`0.6 * height` per character when `font` is None). Stroke width is ignored. A polyline
+    without points has the origin box.
     """
-    return _bounding(_extent_points(element))
+    return _bounding(_extent_points(element, font))
 
 
-def body_box(symbol: Symbol) -> Box:
+def body_box(symbol: Symbol, font: FontMetrics | None = None) -> Box:
     """Return the union of the element extents, in module units, ignoring stroke width.
 
-    Extents are as for text (`0.6 * height` per character), arcs (the true swept extent) and the
-    other elements. A symbol without elements has the box (0, 0) to (0, 0). Ports, anchors and
-    slots do not count.
+    Extents are as for text (`text_width` with `font`; with no font `0.6 * height` per character),
+    arcs (the true swept extent) and the other elements. A symbol without elements has the box
+    (0, 0) to (0, 0). Ports, anchors and slots do not count.
     """
-    return _bounding(tuple(p for e in symbol.elements for p in _extent_points(e)))
+    return _bounding(tuple(p for e in symbol.elements for p in _extent_points(e, font)))
 
 
 def slot_box(slot: Slot) -> Box:
@@ -101,7 +102,10 @@ def slot_box(slot: Slot) -> Box:
             return Box(Point(x - w / 2, y - h / 2), Point(x + w / 2, y + h / 2))
 
 
-def keepout_box(symbol: Symbol) -> Box:
-    """Return the body box united with every slot box: the room the symbol needs kept clear."""
-    boxes = (body_box(symbol), *(slot_box(s) for s in symbol.slots))
+def keepout_box(symbol: Symbol, font: FontMetrics | None = None) -> Box:
+    """Return the body box united with every slot box: the room the symbol needs kept clear.
+
+    `font` measures the body's text as `body_box` does.
+    """
+    boxes = (body_box(symbol, font), *(slot_box(s) for s in symbol.slots))
     return _bounding(tuple(p for b in boxes for p in (b.min, b.max)))
