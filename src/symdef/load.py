@@ -49,7 +49,7 @@ from symdef.model import (
     Vocabulary,
     WireStyle,
 )
-from symdef.units import DEFAULT_GRID, Grid
+from symdef.units import DEFAULT_GRID, Grid, divisions_error, module_error
 
 # Every number in a file is finite with an absolute value of at most this (1e6 M is 2.5 km).
 _LIMIT = 1_000_000
@@ -609,19 +609,22 @@ def font_from_data(data: Mapping[str, Any]) -> FontMetrics:
     )
 
 
-def _power_of_two(value: object, location: str) -> list[Finding]:
-    """Check for an integer above zero that is a power of two."""
+def _module_mm(value: object, location: str) -> list[Finding]:
+    """Check `module_mm` by the rule `Grid` itself applies, once it is a number."""
+    found = _number(value, location)
+    message = None if found else module_error(value)
+    return found or ([_finding(location, message)] if message else [])
+
+
+def _divisions(value: object, location: str) -> list[Finding]:
+    """Check `divisions_per_module` by the rule `Grid` itself applies, once it is an integer."""
     found = _integer(value, location)
-    if found or not isinstance(value, int | float):
-        return found
-    count = int(value)
-    if count < 1 or count & (count - 1):
-        return [_finding(location, "must be a power of two")]
-    return []
+    message = None if found else divisions_error(int(value))  # ty: ignore[invalid-argument-type] - _integer proved a whole number
+    return found or ([_finding(location, message)] if message else [])
 
 
 _GRID = _table(
-    {"module_mm": _positive, "divisions_per_module": _power_of_two},
+    {"module_mm": _module_mm, "divisions_per_module": _divisions},
     required=("module_mm", "divisions_per_module"),
 )
 

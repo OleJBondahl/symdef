@@ -1309,3 +1309,16 @@ its caller passes.
 Why: a library is a frozen value, as the other records are.
 Cost if wrong: a caller that edited a loaded library's symbols must copy them first; drop the wrap
 to revert.
+
+## D79: the grid helpers read the grid, and `Grid` checks itself
+
+Decided: `Grid.__post_init__` raises `ValueError` naming the value and the fix when
+`module_mm` is not a finite number above zero or `divisions_per_module` is not a power of two; the
+two rules are `units.module_error` and `units.divisions_error`, and the loader's `[grid]` checks
+call them, so there is no second copy. `snap(v, grid)` and `on_grid(v, tol, grid)` take the grid as
+a trailing argument (as `lint` does), defaulting to `DEFAULT_GRID`; a call without a grid is
+byte-identical to 0.10.1. `FontMetrics.advances` and `SIDE_ALIGN`/`TURNED_ALIGN` are read-only
+mappings (`MappingProxyType`). This replaces D75's "`snap` stays unchanged".
+Why: a library's grid is data, so every grid function must read it; a grid that is built by hand
+must not be able to hold an inexact division; frozen records hold no mutable contents.
+Cost if wrong: additive for callers; drop the trailing argument to revert.
