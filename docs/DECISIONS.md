@@ -1497,7 +1497,7 @@ Cost if wrong: additive; the free function can move into the lint registry later
 
 ## D91: `measure(attach=)`, a coil's contact-table room is measured by symdef
 
-Decided: `measure(symbol, orientation, library, texts=None, text_height=None, attach=None)` takes `attach`, a map of
+Decided: `measure(symbol, orientation, library, texts=None, text_height=None, *, attach=None)` takes `attach`, a map of
 slot id to a `Symbol`. The attached symbol's `keepout_box` is placed with its origin at the turned slot's point and
 united with the slot's box (`slot_box`, with its text when given). The result is `Measure.slots[slot_id]`, and so part
 of `Measure.keepout`. As with a slot's box, only the point is turned with the view, never the attached box. A key of
