@@ -4,11 +4,11 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
 
-from symdef.boxes import body_box, slot_box
+from symdef.boxes import body_box, keepout_box, slot_box
 from symdef.errors import InvalidValueError
-from symdef.geometry import Box, Direction
+from symdef.geometry import Box, Direction, Point
 from symdef.gridtypes import GridBox, GridPoint, GridPort
-from symdef.model import Library, Symbol
+from symdef.model import Library, Slot, Symbol
 from symdef.orient import Orientation, orient
 from symdef.svg import check_texts
 from symdef.units import ceil_divisions, to_divisions
@@ -56,32 +56,54 @@ def _port(library: Library, port_id: str, x: float, y: float, direction: Directi
         raise InvalidValueError(msg) from error
 
 
+def _slot_with_attached(
+    slot: Slot,
+    texts: Mapping[str, str] | None,
+    text_height: float | None,
+    library: Library,
+    attach: Mapping[str, Symbol] | None,
+) -> Box:
+    """Return the slot's box, grown to hold the symbol attached to it, if any."""
+    box = slot_box(slot, (texts or {}).get(slot.id), text_height, library.font)
+    if not attach or slot.id not in attach:
+        return box
+    inner = keepout_box(attach[slot.id], library.font)
+    x, y = slot.position.x, slot.position.y
+    placed = Box(Point(x + inner.min.x, y + inner.min.y), Point(x + inner.max.x, y + inner.max.y))
+    return Box.union(box, placed)
+
+
 def measure(
     symbol: Symbol,
     orientation: Orientation,
     library: Library,
     texts: Mapping[str, str] | None = None,
     text_height: float | None = None,
+    attach: Mapping[str, Symbol] | None = None,
 ) -> Measure:
     """Return the symbol turned to `orientation`, measured in divisions of `library.grid`.
 
     The symbol is oriented first. Extents (the body and every slot box) round outward, so a
     caller never rounds; ports are positions and must sit on the grid. Text is measured with
     `library.font`: the body's own text, and a slot's string when `texts` has one for its id
-    (at `text_height`). A slot with no string is its reserved box.
+    (at `text_height`). A slot with no string is its reserved box. A symbol in `attach` under a
+    slot id has its keep-out box placed with its origin at the turned slot's point and united
+    with that slot's box, so `slots[id]` and `keepout` hold it. The attached symbol is not
+    turned, as a slot's box is not.
 
     Raises:
         InvalidValueError: If `texts` is given without `text_height`, or a port is off the grid.
-        UnknownNameError: If a key of `texts` is not a slot id of the symbol.
+        UnknownNameError: If a key of `texts` or `attach` is not a slot id of the symbol.
     """
     if texts and text_height is None:
         msg = "texts needs text_height to measure a string; pass text_height="
         raise InvalidValueError(msg)
     check_texts(symbol, texts)
+    check_texts(symbol, attach)
     turned = orient(symbol, orientation)
     body = _extent(library, body_box(turned, library.font))
     slots = {
-        s.id: _extent(library, slot_box(s, (texts or {}).get(s.id), text_height, library.font))
+        s.id: _extent(library, _slot_with_attached(s, texts, text_height, library, attach))
         for s in turned.slots
     }
     ports = {
