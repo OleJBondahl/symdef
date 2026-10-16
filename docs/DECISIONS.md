@@ -1508,3 +1508,16 @@ with `table(row, n, "y")`, and tiers as `table(that, tiers, "y")`.
 Why: designer ruling 2026-10-16 (SYMDEF-LAYER Part D Q1 a). The room for a coil's contact table is a drawn size, and
 symdef owns drawn sizes (owner 2026-10-16), so the Fransys layer only copies fields.
 Cost if wrong: additive; a new keyword with a default.
+
+
+## D92: `FontMetrics.family`, read from the font file
+
+Decided: `FontMetrics` has a field `family`, the family name a renderer resolves the font by. An empty `family` at
+construction means `name`, so `.family` is never empty. `measure_font(regular, bold)` sets it from the regular face's name
+ID 16 (typographic family), else name ID 1; `name` stays ID 1. The literal-table `[font]` form, which has no bytes, takes
+an optional `family`, default `name`. The `files` form takes its family from the bytes; a `family` key beside `files` is a
+schema finding saying the family comes from the font file. The bundle's `font` object writes and reads `family`.
+Why: designer ruling 2026-10-16. Typst resolves a font by its typographic family (ID 16); symdef recorded ID 1, which is
+"DejaVu Sans Condensed" for the house face (ID 16 is "DejaVu Sans", ID 17 "Condensed"), and Typst does not resolve it.
+A family read from the bytes cannot disagree with the face that is drawn and measured.
+Cost if wrong: additive; a new field with a default.

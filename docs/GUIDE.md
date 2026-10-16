@@ -418,6 +418,7 @@ wire_pitch_fine = 4        # must divide wire_pitch; no third pitch
 
 [font]
 name = "Planted"           # a label, it changes no measure
+family = "Planted"         # optional, default name: the family a renderer resolves the font by
 units_per_em = 1000
 cap_height = 700
 ascent = 800
@@ -433,6 +434,8 @@ i = 340
 smallest = 1.8
 body = 2.5
 ```
+
+`FontMetrics.family` is the family a renderer resolves the font by. In the `name` and `files` form it is read from the font file (the typographic family, name ID 16, else ID 1), and a `family` key there is an error.
 
 With no `[font]`, `Library.font` is `None` and a text measures 0.6 em per character and a capital
 0.72 em tall, as before. `text_width(font, text, height, weight=Weight.NORMAL)` is the width of a
