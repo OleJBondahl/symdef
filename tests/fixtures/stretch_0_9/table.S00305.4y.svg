@@ -1,0 +1,14 @@
+<g fill="none" stroke="#000" stroke-linecap="butt" stroke-linejoin="miter">
+<line x1="0" y1="-3" x2="0" y2="-1" stroke-width="0.1"/>
+<line x1="0" y1="3" x2="0" y2="1" stroke-width="0.1"/>
+<polygon points="-2,-1 2,-1 2,1 -2,1" stroke-width="0.1"/>
+<line x1="0" y1="3" x2="0" y2="5" stroke-width="0.1"/>
+<line x1="0" y1="9" x2="0" y2="7" stroke-width="0.1"/>
+<polygon points="-2,5 2,5 2,7 -2,7" stroke-width="0.1"/>
+<line x1="0" y1="9" x2="0" y2="11" stroke-width="0.1"/>
+<line x1="0" y1="15" x2="0" y2="13" stroke-width="0.1"/>
+<polygon points="-2,11 2,11 2,13 -2,13" stroke-width="0.1"/>
+<line x1="0" y1="15" x2="0" y2="17" stroke-width="0.1"/>
+<line x1="0" y1="21" x2="0" y2="19" stroke-width="0.1"/>
+<polygon points="-2,17 2,17 2,19 -2,19" stroke-width="0.1"/>
+</g>

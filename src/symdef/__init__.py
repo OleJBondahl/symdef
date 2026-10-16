@@ -24,6 +24,7 @@ from symdef.lint import RULES, finding_key, lint
 from symdef.model import (
     Allow,
     Anchor,
+    Centre,
     Finding,
     Library,
     LibraryConfig,
@@ -59,6 +60,7 @@ __all__ = [
     "Anchor",
     "Arc",
     "Box",
+    "Centre",
     "Circle",
     "Direction",
     "Element",

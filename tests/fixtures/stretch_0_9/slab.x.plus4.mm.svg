@@ -1,0 +1,9 @@
+<g fill="none" stroke="#000" stroke-linecap="butt" stroke-linejoin="miter">
+<polygon points="0,0 50,0 50,30 0,30" stroke-width="0.25"/>
+<line x1="10" y1="7.5" x2="40" y2="7.5" stroke-width="0.25"/>
+<line x1="7.5" y1="5" x2="7.5" y2="25" stroke-width="0.25"/>
+<circle cx="40" cy="22.5" r="3.75" stroke-width="0.25"/>
+<text x="5" y="23.2" font-size="2" text-anchor="middle" fill="#000" stroke="none" font-family="Inter, sans-serif">A</text>
+<line x1="50" y1="7.5" x2="55" y2="7.5" stroke-width="0.25"/>
+<line x1="10" y1="30" x2="10" y2="35" stroke-width="0.25"/>
+</g>

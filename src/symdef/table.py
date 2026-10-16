@@ -3,12 +3,21 @@
 from dataclasses import replace
 
 from symdef.boxes import body_box
+from symdef.geometry import Element, Line, Polyline
 from symdef.model import Slot, Symbol, nodes_of
 from symdef.orient import translate
 from symdef.repeat import MAX_REPEAT, pole_elements, pole_parts
 from symdef.stretch import Axis, stretch
 
 _MARKING = "marking."
+
+
+def _row_elements(row: Symbol, k: int, n: int) -> tuple[Element, ...]:
+    """Return row `k` of `n`'s elements; a `between` element is left out of the last row."""
+    elements = pole_elements(row.elements, k)
+    if k < n:
+        return elements
+    return tuple(e for e in elements if not (isinstance(e, Line | Polyline) and e.between))
 
 
 def _row_slots(slots: tuple[Slot, ...], k: int) -> tuple[Slot, ...]:
@@ -35,7 +44,9 @@ def table(row: Symbol, n: int, axis: Axis, head: Symbol | None = None) -> Symbol
     1's anchors become the result's anchors. The head keeps its own ids and comes first; if it has
     a stretch on the axis, it is stretched to span all `n` rows. The head is placed as authored,
     in the row's frame: author it before the first row on the axis or, with a stretch on the axis,
-    spanning the rows. The result has no stretch and the row's `pole_pitch`.
+    spanning the rows. A `between` element is drawn in rows 1 to n-1 and left out of row n; a
+    single row draws none, and the head is unaffected. The result has no stretch and the row's
+    `pole_pitch`.
 
     Args:
         row: A symbol in base orientation.
@@ -66,7 +77,7 @@ def table(row: Symbol, n: int, axis: Axis, head: Symbol | None = None) -> Symbol
     return replace(
         row,
         elements=head_elements
-        + tuple(e for k, r in enumerate(rows, start=1) for e in pole_elements(r.elements, k)),
+        + tuple(e for k, r in enumerate(rows, start=1) for e in _row_elements(r, k, n)),
         ports=head_ports + tuple(p for ports, _, _ in parts for p in ports),
         nodes=head_nodes + tuple(node for _, nodes, _ in parts for node in nodes),
         paths=head_paths + tuple(path for _, _, paths in parts for path in paths),

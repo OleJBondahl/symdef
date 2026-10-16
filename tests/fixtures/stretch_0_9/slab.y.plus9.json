@@ -1,0 +1,239 @@
+{
+  "anchors": [
+    {
+      "at": [
+        0,
+        4
+      ],
+      "dir": "W",
+      "id": "a"
+    }
+  ],
+  "body_box": [
+    [
+      0,
+      0
+    ],
+    [
+      18,
+      23
+    ]
+  ],
+  "elements": [
+    {
+      "closed": true,
+      "fill": "none",
+      "polyline": [
+        [
+          0,
+          0
+        ],
+        [
+          16,
+          0
+        ],
+        [
+          16,
+          21
+        ],
+        [
+          0,
+          21
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          4,
+          3
+        ],
+        [
+          12,
+          3
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          3,
+          2
+        ],
+        [
+          3,
+          19
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "circle": [
+        12,
+        18
+      ],
+      "fill": "none",
+      "r": 1.5,
+      "weight": "normal"
+    },
+    {
+      "at": [
+        2,
+        18
+      ],
+      "height": 1,
+      "text": "A",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          16,
+          3
+        ],
+        [
+          18,
+          3
+        ]
+      ],
+      "port": "E1",
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          4,
+          21
+        ],
+        [
+          4,
+          23
+        ]
+      ],
+      "port": "S1",
+      "style": "solid",
+      "weight": "normal"
+    }
+  ],
+  "keepout_box": [
+    [
+      -2,
+      -1
+    ],
+    [
+      18,
+      23
+    ]
+  ],
+  "kind": "symbol",
+  "name": "slab",
+  "nodes": [
+    {
+      "ports": [
+        "E1"
+      ]
+    },
+    {
+      "ports": [
+        "S1"
+      ]
+    }
+  ],
+  "paths": [],
+  "ports": [
+    {
+      "at": [
+        16,
+        3
+      ],
+      "description": "",
+      "dir": "E",
+      "id": "E1"
+    },
+    {
+      "at": [
+        4,
+        21
+      ],
+      "description": "",
+      "dir": "S",
+      "id": "S1"
+    }
+  ],
+  "reference": {
+    "number": "2",
+    "standard": "X"
+  },
+  "schema": 1,
+  "slots": {
+    "marking.E1": {
+      "at": [
+        16,
+        3
+      ],
+      "box": [
+        2,
+        1
+      ],
+      "side": "E"
+    },
+    "marking.S1": {
+      "at": [
+        4,
+        21
+      ],
+      "box": [
+        1,
+        2
+      ],
+      "side": "S",
+      "turn": true
+    },
+    "marking.W1": {
+      "at": [
+        0,
+        18
+      ],
+      "box": [
+        2,
+        1
+      ],
+      "side": "W"
+    },
+    "note": {
+      "at": [
+        12,
+        0
+      ],
+      "box": [
+        2,
+        1
+      ],
+      "side": "N"
+    },
+    "tag": {
+      "at": [
+        1,
+        1
+      ],
+      "box": [
+        2,
+        1
+      ],
+      "side": "E"
+    }
+  },
+  "status": "unverified",
+  "stretch": [
+    {
+      "at": 8,
+      "axis": "x"
+    }
+  ]
+}

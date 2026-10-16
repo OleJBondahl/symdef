@@ -30,6 +30,7 @@ from symdef.geometry import (
 from symdef.model import (
     Allow,
     Anchor,
+    Centre,
     Finding,
     Library,
     LibraryConfig,
@@ -115,6 +116,14 @@ def _integer(value: object, location: str) -> list[Finding]:
     return []
 
 
+def _positive(value: object, location: str) -> list[Finding]:
+    """Check for a number within the limit that is above zero."""
+    found = _number(value, location)
+    if not found and value <= 0:  # ty: ignore[unsupported-operator] - _number proved a number
+        return [_finding(location, "must be above zero")]
+    return found
+
+
 def _boolean(value: object, location: str) -> list[Finding]:
     """Check for a boolean."""
     return [] if isinstance(value, bool) else [_finding(location, "must be true or false")]
@@ -190,6 +199,7 @@ def _map_of(item: _Check) -> _Check:
 _POINT = _array(_number, 2)
 _BOX = _array(_POINT, 2)
 _DIRECTION = _enum("N", "E", "S", "W")
+_SLOT_SIDE = _enum("N", "E", "S", "W", "C")
 _WEIGHT = _enum("normal", "thick")
 _STYLE = _enum("solid", "dashed", "dash_dot")
 _FILL = _enum("none", "solid")
@@ -221,7 +231,7 @@ _PATH = _table(
 )
 _ANCHOR = _table({"id": _string, "at": _POINT, "dir": _DIRECTION}, required=("id", "at", "dir"))
 _SLOT = _table(
-    {"at": _POINT, "side": _DIRECTION, "box": _array(_number, 2), "turn": _boolean},
+    {"at": _POINT, "side": _SLOT_SIDE, "box": _array(_number, 2), "turn": _boolean},
     required=("at", "side", "box"),
 )
 _PART = _table(
@@ -239,7 +249,9 @@ _PART = _table(
     required=("as", "use"),
 )
 _ALLOW = _table({"rule": _string, "reason": _string}, required=("rule", "reason"))
-_STRETCH = _table({"axis": _enum("x", "y"), "at": _number}, required=("axis", "at"))
+_STRETCH = _table(
+    {"axis": _enum("x", "y"), "at": _number, "weight": _positive}, required=("axis", "at")
+)
 
 _POLYLINE = _table(
     {
@@ -248,6 +260,7 @@ _POLYLINE = _table(
         "fill": _POLYLINE_FILL,
         "weight": _WEIGHT,
         "style": _STYLE,
+        "between": _boolean,
     },
     required=("polyline",),
 )
@@ -264,7 +277,13 @@ def _polyline(value: dict[str, Any], location: str) -> list[Finding]:
 # One table per shape, keyed by the shape key; an element has exactly one of these keys.
 _ELEMENTS = {
     "line": _table(
-        {"line": _array(_POINT, 2), "weight": _WEIGHT, "style": _STYLE, "port": _string},
+        {
+            "line": _array(_POINT, 2),
+            "weight": _WEIGHT,
+            "style": _STYLE,
+            "port": _string,
+            "between": _boolean,
+        },
         required=("line",),
     ),
     "polyline": _polyline,
@@ -401,7 +420,12 @@ def _element_from_data(item: Mapping[str, Any]) -> Element:
     if "line" in item:
         start, end = item["line"]
         return Line(
-            _point(start), _point(end), weight, Style(item.get("style", "solid")), item.get("port")
+            _point(start),
+            _point(end),
+            weight,
+            Style(item.get("style", "solid")),
+            item.get("port"),
+            between=item.get("between", False),
         )
     if "polyline" in item:
         return Polyline(
@@ -410,6 +434,7 @@ def _element_from_data(item: Mapping[str, Any]) -> Element:
             Fill(item.get("fill", "none")),
             weight,
             Style(item.get("style", "solid")),
+            between=item.get("between", False),
         )
     if "circle" in item:
         return Circle(_point(item["circle"]), item["r"], Fill(item.get("fill", "none")), weight)
@@ -468,7 +493,7 @@ def symbol_from_data(data: Mapping[str, Any]) -> Symbol:
             Slot(
                 key,
                 _point(s["at"]),
-                Direction[s["side"]],
+                Centre.C if s["side"] == "C" else Direction[s["side"]],
                 (s["box"][0], s["box"][1]),
                 s.get("turn", False),
             )
@@ -477,7 +502,9 @@ def symbol_from_data(data: Mapping[str, Any]) -> Symbol:
         ),
         pole_pitch=int(data["pole_pitch"]) if "pole_pitch" in data else None,
         lint_allow=tuple(Allow(a["rule"], a["reason"]) for a in data.get("lint_allow", ())),
-        stretch=tuple(Stretch(s["axis"], s["at"]) for s in data.get("stretch", ())),
+        stretch=tuple(
+            Stretch(s["axis"], s["at"], s.get("weight", 1)) for s in data.get("stretch", ())
+        ),
     )
 
 

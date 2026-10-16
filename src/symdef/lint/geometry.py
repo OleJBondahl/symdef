@@ -176,10 +176,10 @@ def _cut_crossings(symbol: Symbol) -> tuple[Finding, ...]:
 
 
 def _cut_placement(symbol: Symbol) -> tuple[Finding, ...]:
-    """Report each cut outside the body, and each stretch after the first on an axis."""
+    """Report each cut outside the body, and each cut at the same place as an earlier one."""
     body = body_box(symbol)
     found: list[Finding] = []
-    axes: set[str] = set()
+    seen: set[tuple[str, float]] = set()
     for i, cut in enumerate(symbol.stretch):
         low, high = (body.min.x, body.max.x) if cut.axis == "x" else (body.min.y, body.max.y)
         if not low <= cut.at < high:
@@ -187,10 +187,12 @@ def _cut_placement(symbol: Symbol) -> tuple[Finding, ...]:
                 f"the cut at {cut.at!r} lies outside the body [{low!r}, {high!r}) on {cut.axis}"
             )
             found.append(rule_finding("stretch-cut", message, f"stretch[{i}]"))
-        if cut.axis in axes:
-            message = f"a second stretch on the {cut.axis} axis; at most one per axis"
+        if (cut.axis, cut.at) in seen:
+            message = (
+                f"a second cut at {cut.at!r} on the {cut.axis} axis; each cut needs its own place"
+            )
             found.append(rule_finding("stretch-cut", message, f"stretch[{i}]"))
-        axes.add(cut.axis)
+        seen.add((cut.axis, cut.at))
     return tuple(found)
 
 
@@ -199,7 +201,7 @@ def stretch_cut(symbol: Symbol) -> tuple[Finding, ...]:
 
     A circle, arc or text that a cut crosses is reported at its element. A cut must satisfy
     `body_min <= at < body_max` on its axis, so a symbol with no elements takes none at 0 either.
-    At most one stretch per axis: each later one is reported at its stretch.
+    An axis may have several cuts, but two at the same `at` are reported at the later one.
     """
     return (*_cut_crossings(symbol), *_cut_placement(symbol))
 

@@ -115,6 +115,8 @@ class Line:
 
     Attributes:
         port: The id of the port this line is the lead of, or None for an ordinary line.
+        between: True for a tick that `table` draws in every row but the last; outside a table
+            it is drawn as authored.
     """
 
     start: Point
@@ -122,6 +124,7 @@ class Line:
     weight: Weight = Weight.NORMAL
     style: Style = Style.SOLID
     port: str | None = None
+    between: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -131,6 +134,8 @@ class Polyline:
     Attributes:
         closed: Whether the last point joins back to the first.
         fill: Whether a closed polyline is filled.
+        between: True for a tick that `table` draws in every row but the last; outside a table
+            it is drawn as authored.
     """
 
     points: tuple[Point, ...]
@@ -138,6 +143,7 @@ class Polyline:
     fill: Fill = Fill.NONE
     weight: Weight = Weight.NORMAL
     style: Style = Style.SOLID
+    between: bool = False
 
 
 @dataclass(frozen=True, slots=True)

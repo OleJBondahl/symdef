@@ -6,7 +6,8 @@ from typing import Literal
 
 from symdef.boxes import body_box, element_box
 from symdef.geometry import Arc, Circle, Direction, Element, Line, Point, Polyline, Text
-from symdef.model import Slot, Symbol
+from symdef.model import Slot, Stretch, Symbol
+from symdef.stretch_slot import stretch_slot
 
 type Axis = Literal["x", "y"]
 
@@ -54,18 +55,42 @@ def _nudge(element: Circle | Arc | Text, axis: Axis, delta: float) -> Element:
 
 
 def _stretch_element(
-    element: Element, axis: Axis, at: float, delta: float, move: Callable[[Point], Point]
+    element: Element, axis: Axis, cuts: tuple[Stretch, ...], shift: Callable[[float], float]
 ) -> Element:
-    """Return the element with its points beyond the cut moved; a whole shape moves or stays."""
+    """Return the element with its points moved by their shifts; a whole shape moves or stays."""
     match element:
         case Line(start=start, end=end):
-            return replace(element, start=move(start), end=move(end))
+            return replace(element, start=_move(start, axis, shift), end=_move(end, axis, shift))
         case Polyline(points=points):
-            return replace(element, points=tuple(move(p) for p in points))
-    if crosses_cut(element, axis, at):
-        msg = f"a {type(element).__name__.lower()} crosses the cut at {at} on the {axis} axis"
-        raise ValueError(msg)
-    return _nudge(element, axis, delta) if _span(element, axis)[1] > at else element
+            return replace(element, points=tuple(_move(p, axis, shift) for p in points))
+    for cut in cuts:
+        if crosses_cut(element, axis, cut.at):
+            msg = (
+                f"a {type(element).__name__.lower()} crosses the cut at {cut.at} on the {axis} axis"
+            )
+            raise ValueError(msg)
+    delta = shift(_span(element, axis)[1])
+    return _nudge(element, axis, delta) if delta else element
+
+
+def _move(point: Point, axis: Axis, shift: Callable[[float], float]) -> Point:
+    """Return the point moved by the shift of its coordinate."""
+    delta = shift(_coord(point, axis))
+    return _add(point, axis, delta) if delta else point
+
+
+def _shift(cuts: tuple[Stretch, ...], delta: float) -> Callable[[float], float]:
+    """Return the shift of a coordinate: the shares of the cuts it lies beyond, summed.
+
+    One cut takes `delta` whole, so a single-cut result is the 0.9.0 one to the byte.
+    """
+    total = sum(c.weight for c in cuts)
+    shares = (delta,) if len(cuts) == 1 else tuple(delta * c.weight / total for c in cuts)
+
+    def shift(coord: float) -> float:
+        return sum((share for c, share in zip(cuts, shares, strict=True) if coord > c.at), 0.0)
+
+    return shift
 
 
 def _move_offsets(symbol: Symbol, axis: Axis, offsets: Mapping[str, float]) -> Symbol:
@@ -121,11 +146,13 @@ def stretch(
 ) -> Symbol:
     """Return the symbol grown along an axis to a body extent of `length`.
 
-    Every point beyond the symbol's cut line on that axis moves by `length` minus the natural
-    extent: element points, ports, anchors and slots. A line or polyline segment across the cut
-    gets longer. `offsets` then places each named port at its coordinate along the axis, with its
-    bound lead and its `marking.<port>` slot; the port must stand on an edge parallel to the axis,
-    on the 1 M wiring grid, inside the stretched body. The result has no stretch on that axis.
+    The growth, `length` minus the natural extent, is shared among the axis's cuts in proportion
+    to their weights. A point moves by the shares of the cuts it lies beyond: element points,
+    ports, anchors and slot corners. A line or polyline segment across a cut gets longer by that
+    cut's share; a slot box across one grows the same way. `offsets` then places each named port
+    at its coordinate along the axis, with its bound lead and its `marking.<port>` slot; the port
+    must stand on an edge parallel to the axis, on the 1 M wiring grid, inside the stretched body.
+    The result has no stretch on that axis.
 
     Args:
         symbol: A symbol in base orientation with a stretch on `axis`.
@@ -138,11 +165,11 @@ def stretch(
 
     Raises:
         ValueError: If the symbol has no stretch on the axis, `length` is below the natural
-            extent, a circle, arc or text crosses the cut, an offset names no port or a port on
+            extent, a circle, arc or text crosses a cut, an offset names no port or a port on
             another edge, or an offset lies outside the stretched body or off the grid.
     """
-    cut = next((s for s in symbol.stretch if s.axis == axis), None)
-    if cut is None:
+    cuts = tuple(sorted((s for s in symbol.stretch if s.axis == axis), key=lambda s: s.at))
+    if not cuts:
         msg = f"the symbol has no stretch on the {axis} axis"
         raise ValueError(msg)
     box = body_box(symbol)
@@ -151,17 +178,13 @@ def stretch(
         msg = f"the length {length} is below the natural extent {natural}"
         raise ValueError(msg)
     _check_offsets(symbol, axis, low, length, offsets or {})
-    delta = length - natural
-
-    def move(point: Point) -> Point:
-        return _add(point, axis, delta) if _coord(point, axis) > cut.at else point
-
+    shift = _shift(cuts, length - natural)
     stretched = replace(
         symbol,
-        elements=tuple(_stretch_element(e, axis, cut.at, delta, move) for e in symbol.elements),
-        ports=tuple(replace(p, position=move(p.position)) for p in symbol.ports),
-        anchors=tuple(replace(a, position=move(a.position)) for a in symbol.anchors),
-        slots=tuple(replace(s, position=move(s.position)) for s in symbol.slots),
+        elements=tuple(_stretch_element(e, axis, cuts, shift) for e in symbol.elements),
+        ports=tuple(replace(p, position=_move(p.position, axis, shift)) for p in symbol.ports),
+        anchors=tuple(replace(a, position=_move(a.position, axis, shift)) for a in symbol.anchors),
+        slots=tuple(stretch_slot(s, axis, shift) for s in symbol.slots),
         stretch=tuple(s for s in symbol.stretch if s.axis != axis),
     )
     return _move_offsets(stretched, axis, offsets or {})

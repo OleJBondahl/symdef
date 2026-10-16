@@ -115,8 +115,8 @@ def test_a_section_11_function_has_the_guides_signature(name):
 SECTION_11_FIELDS = {
     "Point": ["x", "y"],
     "Box": ["min", "max"],
-    "Line": ["start", "end", "weight", "style", "port"],
-    "Polyline": ["points", "closed", "fill", "weight", "style"],
+    "Line": ["start", "end", "weight", "style", "port", "between"],
+    "Polyline": ["points", "closed", "fill", "weight", "style", "between"],
     "Circle": ["center", "radius", "fill", "weight"],
     "Arc": ["center", "radius", "start_deg", "end_deg", "weight", "style"],
     "Text": ["content", "position", "height", "weight"],

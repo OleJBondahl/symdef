@@ -226,10 +226,10 @@ millimetres. Use it when a drawing must show each size exactly as given. `to_svg
 ## Stretching and tables
 
 A symbol whose size is decided at placement time carries a cut line, `[[stretch]]` with `axis`
-(`x` or `y`) and `at`, at most one per axis (D53). `stretch(symbol, axis, length, offsets=None)`
-moves every point beyond the cut by `length` minus the body's natural extent: element points,
-ports, anchors and slots. A line or polyline across the cut gets longer; a circle, arc or text
-across it raises `ValueError`, and the lint rule `stretch-cut` reports it first (D55). `offsets`
+(`x` or `y`) and `at` (D53). `stretch(symbol, axis, length, offsets=None)` moves every point
+beyond a cut: element points, ports, anchors and slot corners. A line or polyline across a cut gets
+longer; a circle, arc or text across any cut raises `ValueError`, and the lint rule `stretch-cut`
+reports it first (D55). `offsets`
 puts named ports, with their leads and `marking.<port>` slots, at coordinates along the axis. The
 result is an ordinary symbol without that axis's stretch, so `orient` and `to_fragment` come
 after it.
@@ -344,11 +344,47 @@ dim = to_fragment(card, muted="#888")
 assert "#000" not in dim and 'stroke="#888"' in dim
 ```
 
+## Weighted cuts, moving slots and ticks between rows
+
+An axis may carry several cuts. Each has a `weight`, a number above zero that defaults to 1. The
+growth, `length` minus the natural extent, is shared among the cuts in proportion to their
+weights, and a point moves by the shares of the cuts it lies beyond (D67). With cuts of weight 1
+and 3 grown by 8, the first takes 2 and the second 6: a point beyond both moves by 8, a point
+between them by 2, and a line across the second grows by 6. A single cut takes the whole growth
+whatever its weight. `offsets` applies afterwards, unchanged. Two cuts at the same `at` are a
+`stretch-cut` finding.
+
+A slot box is two corners, and `stretch` moves each like a point (D69). A box across a cut grows by
+that cut's share, and a box wholly beyond one moves and keeps its size. So the room a slot has after
+stretching is the stretched symbol's `slot_box`.
+
+An element of a row symbol may say `between = true` (a line or polyline). `table(row, n, ...)`
+draws it in rows 1 to n-1 and leaves it out of row n, so a row of four with one tick shows three
+ticks and a single row shows none. A `between` element of the head is drawn as authored, and on a
+symbol drawn on its own it is drawn as authored too (D70).
+
+```toml
+[[stretch]]
+axis = "x"
+at = 4
+weight = 1
+
+[[stretch]]
+axis = "x"
+at = 8
+weight = 3
+
+elements = [
+  { line = [[0, 0], [12, 0]] },
+  { line = [[2, -1], [2, 1]], between = true },
+]
+```
+
 ## Drawing slot text
 
 `to_fragment(symbol, texts={...})` and `to_fragment_mm(..., texts={...})` draw the string you pass
 for each slot, by slot id, after the symbol's elements. The slot's `side` sets the alignment
-and a slot with `turn = true` reads bottom-up. symdef never measures, shrinks or wraps a string:
+and a slot with `turn = true` reads bottom-up. A slot side is where text sits, and a port side is where a wire leaves. Keeping `C` out of `Direction` means a port can never be `C`. The side `C` centres the string on the slot point, and its box is centred on it too (D68). symdef never measures, shrinks or wraps a string:
 `to_fragment_mm` draws at your `font_mm`, and `to_fragment` sizes to the box. An empty string draws
 nothing; an id that is no slot raises `KeyError`. `required_slots` (the entries `lint` takes)
 makes a missing string a `ValueError`, and the check runs only when `texts` is given (D63 to D65).

@@ -79,6 +79,10 @@
       "maxItems": 2
     },
     "direction": { "enum": ["N", "E", "S", "W"] },
+    "slot_side": {
+      "description": "A direction the box grows towards, or C for a box centred on the slot point.",
+      "enum": ["N", "E", "S", "W", "C"]
+    },
     "weight": { "enum": ["normal", "thick"] },
     "style": { "enum": ["solid", "dashed", "dash_dot"] },
     "fill": { "enum": ["none", "solid"] },
@@ -130,7 +134,7 @@
       "additionalProperties": false,
       "properties": {
         "at": { "$ref": "#/$defs/point" },
-        "side": { "$ref": "#/$defs/direction" },
+        "side": { "$ref": "#/$defs/slot_side" },
         "box": {
           "description": "[width, height]; the text stays upright, so the box never rotates.",
           "type": "array",
@@ -166,7 +170,11 @@
       "additionalProperties": false,
       "properties": {
         "axis": { "enum": ["x", "y"] },
-        "at": { "$ref": "#/$defs/number" }
+        "at": { "$ref": "#/$defs/number" },
+        "weight": {
+          "description": "The cut's share of the growth against the other cuts on its axis; above zero, 1 when absent.",
+          "allOf": [{ "$ref": "#/$defs/number" }, { "exclusiveMinimum": 0 }]
+        }
       }
     },
     "allow": {
@@ -179,7 +187,7 @@
       }
     },
     "element": {
-      "description": "Exactly one shape key. weight is allowed on every shape, style on line, polyline and arc, fill on polyline and circle, closed on polyline.",
+      "description": "Exactly one shape key. weight is allowed on every shape, style on line, polyline and arc, fill on polyline and circle, closed on polyline, between on line and polyline.",
       "oneOf": [
         {
           "type": "object",
@@ -194,7 +202,8 @@
             },
             "weight": { "$ref": "#/$defs/weight" },
             "style": { "$ref": "#/$defs/style" },
-            "port": { "type": "string" }
+            "port": { "type": "string" },
+            "between": { "type": "boolean" }
           }
         },
         {
@@ -206,7 +215,8 @@
             "closed": { "type": "boolean" },
             "fill": { "$ref": "#/$defs/polyline_fill" },
             "weight": { "$ref": "#/$defs/weight" },
-            "style": { "$ref": "#/$defs/style" }
+            "style": { "$ref": "#/$defs/style" },
+            "between": { "type": "boolean" }
           },
           "if": { "properties": { "fill": { "const": "tint" } }, "required": ["fill"] },
           "then": { "required": ["closed"], "properties": { "closed": { "const": true } } }
