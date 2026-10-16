@@ -23,7 +23,7 @@ from symdef.geometry import (
     arc_point,
     arc_sweep,
 )
-from symdef.model import Anchor, Port, Slot, Symbol
+from symdef.model import Anchor, Centre, Port, Slot, Symbol
 from symdef.required import required_ids
 from symdef.units import DEFAULT_MODULE_MM
 
@@ -71,6 +71,7 @@ SIDE_ALIGN = {
     Direction.W: ("end", 0.5),
     Direction.N: ("middle", 0.0),
     Direction.S: ("middle", 1.0),
+    Centre.C: ("middle", 0.5),
 }
 # A turned slot reads bottom-up: N starts at the anchor, S ends there, E and W centre the text on
 # it. The second number is how far east of the slot point the baseline sits, in cap heights.
@@ -79,6 +80,7 @@ TURNED_ALIGN = {
     Direction.S: ("end", 0.5),
     Direction.E: ("middle", 1.0),
     Direction.W: ("middle", 0.0),
+    Centre.C: ("middle", 0.5),
 }
 _SAMPLE_ALIGN = {side: (anchor, f * _CAP_HEIGHT) for side, (anchor, f) in SIDE_ALIGN.items()}
 # What XML 1.0 cannot carry: most C0 controls, lone surrogates, U+FFFE and U+FFFF.
