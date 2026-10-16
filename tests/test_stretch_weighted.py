@@ -135,6 +135,14 @@ def test_a_side_slot_across_a_cut_keeps_its_ss17_position_and_grows_its_box(side
     assert out.box == (4 + 2, 2)
 
 
+@pytest.mark.parametrize("side", [N, S])
+def test_a_side_slot_beyond_a_cut_moves_by_its_share_and_its_box_grows(side):
+    slot = Slot("s", Point(5, 3), side, (4, 2))  # box x 3..7 spans the cut at 4; 5 lies beyond it
+    out = stretch(base(slots=(slot,), cuts=(Stretch("x", 4),)), "x", 20).slots[0]  # grown by 8
+    assert out.position.x == 5 + 8  # the position lies beyond the cut: it moves by the share
+    assert out.box == (4 + 8, 2)  # the box spans the cut: it grows by the share
+
+
 @pytest.mark.parametrize("side", [W, E])
 def test_a_w_or_e_slot_across_a_y_cut_moves_by_the_cut_shares_not_to_the_box_centre(side):
     tall = base(
