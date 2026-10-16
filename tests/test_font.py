@@ -243,3 +243,27 @@ def test_font_heights_round_trip_through_the_bundle(tmp_path):
 def test_a_font_height_must_be_a_positive_number():
     _, findings = parse_config(CONFIG + "\n[font.heights]\nbody = 0\n")
     assert findings != ()
+
+
+def test_the_literal_font_family_defaults_to_the_name_and_may_be_given():
+    config, _ = parse_config(CONFIG)
+    assert config is not None
+    assert config.font is not None
+    assert config.font.family == "Planted"
+    config, findings = parse_config(
+        CONFIG.replace('name = "Planted"', 'name = "Planted"\nfamily = "Fam"')
+    )
+    assert findings == ()
+    assert config is not None
+    assert config.font is not None
+    assert (config.font.name, config.font.family) == ("Planted", "Fam")
+
+
+def test_a_bundle_round_trips_the_font_family():
+    font = replace(FONT, family="Fam")
+    data = json.loads(to_json(bundle_to_data(library(font))))
+    assert data["font"]["family"] == "Fam"
+    assert validate_bundle(data) == ()
+    loaded = library_from_bundle(data).font
+    assert loaded is not None
+    assert loaded.family == "Fam"

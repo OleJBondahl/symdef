@@ -183,6 +183,7 @@ def _font(font: FontMetrics) -> dict[str, Any]:
     """Return the font as the bundle writes it; `advances` has one object per weight."""
     data: dict[str, Any] = {
         "name": font.name,
+        "family": font.family,
         "units_per_em": font.units_per_em,
         "cap_height": font.cap_height,
         "ascent": font.ascent,
