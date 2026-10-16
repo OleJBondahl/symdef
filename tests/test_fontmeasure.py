@@ -263,3 +263,9 @@ class TestHeights:
         assert again.font is not None
         assert base.font is not None
         assert dict(again.font.heights) == dict(base.font.heights) != {}
+
+    def test_family_beside_files_and_heights_is_the_only_finding(self):
+        _, findings = parse_config(HEAD + FILES + HEIGHTS + 'family = "DejaVu Sans"\n')
+        assert [f.message for f in findings] == [
+            "`family` comes from the font file; remove it beside `files`"
+        ]
