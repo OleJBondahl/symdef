@@ -6,6 +6,7 @@ import re
 import pytest
 from test_font import CONFIG
 
+from symdef.errors import InvalidValueError
 from symdef.geometry import Line, Point
 from symdef.lint import lint
 from symdef.lint.geometry import off_drawing_grid
@@ -97,7 +98,7 @@ def test_to_divisions_follows_the_librarys_divisions_per_module():
     parsed, _ = config("[grid]\nmodule_mm = 5\ndivisions_per_module = 4\n")
     assert to_divisions(parsed.grid, 0.75) == 3
     assert to_divisions(DEFAULT_GRID, 0.75) == 6
-    with pytest.raises(ValueError, match=re.escape(repr(0.125))):
+    with pytest.raises(InvalidValueError, match=re.escape(repr(0.125))):
         to_divisions(parsed.grid, 0.125)
 
 
@@ -114,12 +115,12 @@ def test_to_divisions_follows_the_librarys_divisions_per_module():
     ],
 )
 def test_a_grid_built_by_hand_is_checked(args, named):
-    with pytest.raises(ValueError, match=named):
+    with pytest.raises(InvalidValueError, match=named):
         Grid(*args)
 
 
 def test_the_error_names_the_fix():
-    with pytest.raises(ValueError, match="use 1, 2, 4, 8"):
+    with pytest.raises(InvalidValueError, match="use 1, 2, 4, 8"):
         Grid(2.5, 6)
 
 

@@ -4,6 +4,7 @@ import pytest
 from test_font import FONT
 
 from symdef.boxes import slot_box
+from symdef.errors import InvalidValueError
 from symdef.geometry import Box, Direction, Point
 from symdef.model import Centre, Slot
 from symdef.slottext import SIDE_ALIGN, TURNED_ALIGN, TextPlacement, slot_text
@@ -106,5 +107,5 @@ def test_a_text_with_no_font_is_measured_at_six_tenths_of_an_em():
 
 
 def test_a_text_needs_a_height():
-    with pytest.raises(ValueError, match="needs a height"):
+    with pytest.raises(InvalidValueError, match="needs a height"):
         slot_box(slot(Direction.E), "ABi")

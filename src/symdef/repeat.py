@@ -2,6 +2,7 @@
 
 from dataclasses import replace
 
+from symdef.errors import InvalidValueError
 from symdef.geometry import Element, Line, Point, Style, Weight
 from symdef.model import Node, Path, Port, Slot, Symbol, nodes_of
 from symdef.orient import translate
@@ -81,14 +82,14 @@ def repeat(symbol: Symbol, n: int) -> Symbol:
         The repeated symbol; with `n = 1` it is the symbol with renamed ports and slots.
 
     Raises:
-        ValueError: If `n` is below 1, or no path of the symbol has `through`.
+        InvalidValueError: If `n` is below 1, or no path of the symbol has `through`.
     """
     if n < 1:
         msg = f"the pole count must be at least 1, got {n}"
-        raise ValueError(msg)
+        raise InvalidValueError(msg)
     if not any(p.through for p in symbol.paths):
         msg = "the symbol has no through path to repeat"
-        raise ValueError(msg)
+        raise InvalidValueError(msg)
     pitch = pole_pitch(symbol)
     poles = tuple(translate(symbol, (k - 1) * pitch, 0) for k in range(1, n + 1))
     parts = tuple(pole_parts(pole, k) for k, pole in enumerate(poles, start=1))

@@ -7,6 +7,7 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
+from symdef.errors import InvalidValueError
 from symdef.geometry import Direction, Line, Point, Style, Weight
 from symdef.load import parse_toml, symbol_from_data
 from symdef.model import (
@@ -311,15 +312,15 @@ class TestEdgeCases:
 class TestPreconditions:
     @pytest.mark.parametrize("n", [0, -1])
     def test_a_pole_count_below_one_is_rejected(self, s227, n):
-        with pytest.raises(ValueError, match=r"pole count|through path"):
+        with pytest.raises(InvalidValueError, match=r"pole count|through path"):
             repeat(s227, n)
 
     def test_a_symbol_without_a_through_path_is_rejected(self):
-        with pytest.raises(ValueError, match=r"pole count|through path"):
+        with pytest.raises(InvalidValueError, match=r"pole count|through path"):
             repeat(bare(paths=(Path("in", "out", "conductor"),)), 2)
 
     def test_a_symbol_without_paths_is_rejected(self):
-        with pytest.raises(ValueError, match=r"pole count|through path"):
+        with pytest.raises(InvalidValueError, match=r"pole count|through path"):
             repeat(bare(paths=()), 1)
 
 

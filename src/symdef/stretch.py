@@ -5,6 +5,7 @@ from dataclasses import replace
 from typing import Literal
 
 from symdef.boxes import body_box, element_box
+from symdef.errors import InvalidValueError
 from symdef.geometry import Arc, Circle, Direction, Element, Line, Point, Polyline, Text
 from symdef.model import Slot, Stretch, Symbol
 from symdef.stretch_slot import stretch_slot
@@ -68,7 +69,7 @@ def _stretch_element(
             msg = (
                 f"a {type(element).__name__.lower()} crosses the cut at {cut.at} on the {axis} axis"
             )
-            raise ValueError(msg)
+            raise InvalidValueError(msg)
     delta = shift(_span(element, axis)[1])
     return _nudge(element, axis, delta) if delta else element
 
@@ -124,21 +125,21 @@ def _move_offsets(symbol: Symbol, axis: Axis, offsets: Mapping[str, float]) -> S
 def _check_offsets(
     symbol: Symbol, axis: Axis, low: float, length: float, offsets: Mapping[str, float]
 ) -> None:
-    """Raise `ValueError` for an offset naming no port, a port on another edge, or a bad place."""
+    """Raise `InvalidValueError` for an offset naming no port, another edge or a bad place."""
     ports = {p.id: p for p in symbol.ports}
     for port_id, value in offsets.items():
         if port_id not in ports:
             msg = f"offsets name the port {port_id!r}, which the symbol does not have"
-            raise ValueError(msg)
+            raise InvalidValueError(msg)
         if ports[port_id].direction not in _EDGE_NORMALS[axis]:
             msg = f"the port {port_id!r} is not on an edge parallel to the {axis} axis"
-            raise ValueError(msg)
+            raise InvalidValueError(msg)
         if not low <= value <= low + length:
             msg = f"the offset {value!r} of port {port_id!r} lies outside the stretched body"
-            raise ValueError(msg)
+            raise InvalidValueError(msg)
         if not float(value).is_integer():
             msg = f"the offset {value!r} of port {port_id!r} is off the 1 M wiring grid"
-            raise ValueError(msg)
+            raise InvalidValueError(msg)
 
 
 def stretch(
@@ -164,19 +165,19 @@ def stretch(
         An ordinary symbol; orient it afterwards.
 
     Raises:
-        ValueError: If the symbol has no stretch on the axis, `length` is below the natural
+        InvalidValueError: If the symbol has no stretch on the axis, `length` is below the natural
             extent, a circle, arc or text crosses a cut, an offset names no port or a port on
             another edge, or an offset lies outside the stretched body or off the grid.
     """
     cuts = tuple(sorted((s for s in symbol.stretch if s.axis == axis), key=lambda s: s.at))
     if not cuts:
         msg = f"the symbol has no stretch on the {axis} axis"
-        raise ValueError(msg)
+        raise InvalidValueError(msg)
     box = body_box(symbol)
     low, natural = (box.min.x, box.width) if axis == "x" else (box.min.y, box.height)
     if length < natural:
         msg = f"the length {length} is below the natural extent {natural}"
-        raise ValueError(msg)
+        raise InvalidValueError(msg)
     _check_offsets(symbol, axis, low, length, offsets or {})
     shift = _shift(cuts, length - natural)
     stretched = replace(

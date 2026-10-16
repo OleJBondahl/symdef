@@ -23,6 +23,7 @@ from symdef import (
     to_fragment_mm,
     to_svg,
 )
+from symdef.errors import UnknownNameError
 
 NS = "{http://www.w3.org/2000/svg}"
 GOLDEN = Path(__file__).parent / "fixtures" / "svg_golden"
@@ -115,7 +116,7 @@ def test_solid_fill_is_still_black():
 
 
 def test_a_missing_weight_raises_key_error_naming_it():
-    with pytest.raises(KeyError, match="THICK"):
+    with pytest.raises(UnknownNameError, match="THICK"):
         render(3.0, weights_mm={Weight.NORMAL: 0.25})
 
 

@@ -4,6 +4,7 @@ import re
 
 import pytest
 
+from symdef.errors import InvalidValueError, UnknownNameError
 from symdef.geometry import Arc, Circle, Fill, Line, Point, Polyline, Style, Text, Weight
 from symdef.model import Reference, Status, Symbol, SymbolKind
 from symdef.svg import to_fragment
@@ -87,7 +88,7 @@ def test_a_muted_millimetre_draw_needs_no_dash_keywords():
 
 
 def test_a_muted_millimetre_draw_needs_the_normal_weight():
-    with pytest.raises(KeyError, match="NORMAL"):
+    with pytest.raises(UnknownNameError, match="NORMAL"):
         to_fragment_mm(
             sym(),
             module_mm=2.5,
@@ -102,7 +103,7 @@ def test_a_muted_millimetre_draw_needs_the_normal_weight():
 
 @pytest.mark.parametrize("draw", [unit, mm])
 def test_a_bad_colour_is_refused_even_for_a_symbol_without_fills(draw):
-    with pytest.raises(ValueError, match="muted must be"):
+    with pytest.raises(InvalidValueError, match="muted must be"):
         draw(sym(), muted='x" onload="y')
 
 

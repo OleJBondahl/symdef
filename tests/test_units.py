@@ -2,6 +2,7 @@ import re
 
 import pytest
 
+from symdef.errors import InvalidValueError
 from symdef.units import (
     DEFAULT_GRID,
     DEFAULT_MODULE_MM,
@@ -49,7 +50,7 @@ def test_to_divisions_of_a_negative_value():
 
 @pytest.mark.parametrize("v", [0.1, 0.3, float("nan"), float("inf")])
 def test_off_grid_or_non_finite_values_raise(v):
-    with pytest.raises(ValueError, match=re.escape(repr(v))):
+    with pytest.raises(InvalidValueError, match=re.escape(repr(v))):
         to_divisions(DEFAULT_GRID, v)
 
 

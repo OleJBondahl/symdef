@@ -3,6 +3,7 @@
 from dataclasses import replace
 
 from symdef.boxes import body_box
+from symdef.errors import InvalidValueError
 from symdef.geometry import Element, Line, Polyline
 from symdef.model import Slot, Symbol, nodes_of
 from symdef.orient import translate
@@ -58,11 +59,12 @@ def table(row: Symbol, n: int, axis: Axis, head: Symbol | None = None) -> Symbol
         The table, carrying the row's name, kind, status, reference and lint allowances.
 
     Raises:
-        ValueError: If `n` is outside 1 to `MAX_REPEAT`, or the head's stretch cannot span `n` rows.
+        InvalidValueError: If `n` is outside 1 to `MAX_REPEAT`, or the head's stretch cannot span
+            `n` rows.
     """
     if not 1 <= n <= MAX_REPEAT:
         msg = f"the row count must be between 1 and {MAX_REPEAT}, got {n}"
-        raise ValueError(msg)
+        raise InvalidValueError(msg)
     box = body_box(row)
     step = box.width if axis == "x" else box.height
     rows = tuple(translate(row, *_offset(axis, (k - 1) * step)) for k in range(1, n + 1))

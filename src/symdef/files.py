@@ -5,7 +5,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Any
 
-from symdef.errors import LibraryError
+from symdef.errors import InvalidValueError, LibraryError
 from symdef.lint.registry import rule_finding
 from symdef.load import (
     is_file_stem,
@@ -147,10 +147,10 @@ def _check_names(library: Library, package: str) -> None:
     for number in library.symbols:
         if not is_file_stem(number):
             msg = f"symbol number {number!r} cannot be used as a file name"
-            raise ValueError(msg)
+            raise InvalidValueError(msg)
     if not package_folder(library.standard, package):
         msg = f"the standard {library.standard!r} has no letter or digit to make a package name of"
-        raise ValueError(msg)
+        raise InvalidValueError(msg)
 
 
 def write_build(library: Library, root: Path) -> tuple[Path, ...]:
@@ -172,8 +172,8 @@ def write_build(library: Library, root: Path) -> tuple[Path, ...]:
         of their `/`-separated relative paths.
 
     Raises:
-        ValueError: If a symbol number is not a file stem (`is_file_stem`) or the standard has no
-            letter or digit to make a package name of; nothing is written.
+        InvalidValueError: If a symbol number is not a file stem (`is_file_stem`) or the standard
+            has no letter or digit to make a package name of; nothing is written.
         OSError: If a path cannot be written; files already written stay.
     """
     package = package_key(root)
@@ -203,8 +203,8 @@ def stale_build(library: Library, root: Path) -> tuple[Path, ...]:
         their `/`-separated relative paths.
 
     Raises:
-        ValueError: If a symbol number is not a file stem (`is_file_stem`) or the standard has no
-            letter or digit to make a package name of.
+        InvalidValueError: If a symbol number is not a file stem (`is_file_stem`) or the standard
+            has no letter or digit to make a package name of.
         OSError: If a file cannot be read; it is not treated as stale.
     """
     package = package_key(root)

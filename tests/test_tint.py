@@ -16,6 +16,7 @@ from symdef import (
     to_fragment_mm,
     to_svg,
 )
+from symdef.errors import InvalidValueError
 from symdef.load import symbol_from_data, validate
 from symdef.serialize import symbol_to_data
 
@@ -91,16 +92,16 @@ def test_a_hand_built_tinted_circle_takes_the_colour_and_none_without_one():
 @pytest.mark.parametrize("colour", ['red;"onload=', "url(#x)", "", "#12", "#ggg", "#abcd"])
 def test_a_bad_colour_is_refused(colour):
     symbol = tinted()
-    with pytest.raises(ValueError, match="tint must be"):
+    with pytest.raises(InvalidValueError, match="tint must be"):
         to_fragment(symbol, tint=colour)
-    with pytest.raises(ValueError, match="tint must be"):
+    with pytest.raises(InvalidValueError, match="tint must be"):
         to_svg(symbol, tint=colour)
-    with pytest.raises(ValueError, match="tint must be"):
+    with pytest.raises(InvalidValueError, match="tint must be"):
         to_mm(symbol, colour)
 
 
 def test_a_bad_colour_is_refused_even_with_no_tinted_element():
-    with pytest.raises(ValueError, match="tint must be"):
+    with pytest.raises(InvalidValueError, match="tint must be"):
         to_fragment(sym(), tint="url(#x)")
 
 
