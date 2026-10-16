@@ -417,10 +417,12 @@ cap_height = 700
 ascent = 800
 descent = 200
 default_advance = 500      # for a character not listed below
-thick_factor = 1.1         # optional: advances times this for Weight.THICK
-[font.advances]
+[font.advances.normal]     # one advance table per weight, each its own glyph by glyph
 A = 600
 i = 300
+[font.advances.thick]
+A = 660
+i = 340
 ```
 
 With no `[font]`, `Library.font` is `None` and a text measures 0.6 em per character and a capital
