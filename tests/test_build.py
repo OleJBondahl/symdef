@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 import symdef
+import symdef.authoring
 from symdef.errors import InvalidValueError
 from symdef.files import load_library, stale_build, write_build
 from symdef.geometry import Direction, Line, Point, Text
@@ -339,8 +340,9 @@ class TestOddText:
 
 
 def test_the_package_exports_the_build_functions():
-    assert symdef.write_build is write_build
-    assert symdef.stale_build is stale_build
+    assert symdef.authoring.write_build is write_build
+    assert symdef.authoring.stale_build is stale_build
+    assert "write_build" not in symdef.__all__
 
 
 class TestPackageKey:

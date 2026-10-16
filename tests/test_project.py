@@ -5,7 +5,7 @@ import sys
 
 import pytest
 
-import symdef
+from symdef import authoring
 from symdef.cli import main
 from symdef.errors import LibraryError
 
@@ -40,12 +40,12 @@ class TestTheThreeVerbsInAnEmptyFolder:
         assert "library.toml" in capsys.readouterr().out
 
     def test_the_python_functions_do_the_same(self, tmp_path):
-        assert len(symdef.init(tmp_path)) == 3
-        assert len(symdef.build(tmp_path)) == 5
-        assert symdef.check(tmp_path) == ()
+        assert len(authoring.init(tmp_path)) == 3
+        assert len(authoring.build(tmp_path)) == 5
+        assert authoring.check(tmp_path) == ()
 
     def test_init_writes_lf_line_ends_and_the_schema_line(self, tmp_path):
-        symdef.init(tmp_path)
+        authoring.init(tmp_path)
         assert (tmp_path / ".gitattributes").read_bytes() == b"* text=auto eol=lf\n"
         assert (tmp_path / "library.toml").read_text().startswith("#:schema https://")
         assert b"\r" not in (tmp_path / SYMBOL).read_bytes()
@@ -71,17 +71,17 @@ class TestTheThreeVerbsInAnEmptyFolder:
 
 class TestBuild:
     def test_a_broken_symbol_fails_and_writes_nothing(self, tmp_path, capsys):
-        symdef.init(tmp_path)
+        authoring.init(tmp_path)
         edit(tmp_path, SYMBOL, "[0, -2], dir", "[0, -1.5], dir")
         assert run("build", tmp_path) == 1
         assert "port-off-wiring-grid" in capsys.readouterr().out
         assert not (tmp_path / "build").exists()
 
     def test_the_python_function_raises_with_the_findings(self, tmp_path):
-        symdef.init(tmp_path)
+        authoring.init(tmp_path)
         edit(tmp_path, SYMBOL, "[0, -2], dir", "[0, -1.5], dir")
         with pytest.raises(LibraryError) as raised:
-            symdef.build(tmp_path)
+            authoring.build(tmp_path)
         assert "port-off-wiring-grid" in rules(raised.value.findings)
 
 
@@ -90,19 +90,19 @@ class TestCheck:
         edit(built, SYMBOL, 'name = "Resistor"', 'name = "Resistor 2"')
         assert run("check", built) == 1
         assert "stale-build" in capsys.readouterr().out
-        assert "stale-build" in rules(symdef.check(built))
+        assert "stale-build" in rules(authoring.check(built))
 
     def test_a_missing_bundle_is_stale_not_a_crash(self, built):
         (built / "src" / "mysymbols" / "bundle.json").unlink()
-        assert rules(symdef.check(built)) == {"stale-build"}
+        assert rules(authoring.check(built)) == {"stale-build"}
 
     def test_a_symbol_that_does_not_lint_fails(self, built):
         edit(built, SYMBOL, "[0, -2], dir", "[0, -1.5], dir")
-        assert "port-off-wiring-grid" in rules(symdef.check(built))
+        assert "port-off-wiring-grid" in rules(authoring.check(built))
 
     def test_a_file_that_does_not_load_returns_its_findings(self, built):
         edit(built, SYMBOL, 'kind = "impedance"', 'kind = "pipe"')
-        assert "schema" in rules(symdef.check(built))
+        assert "schema" in rules(authoring.check(built))
 
     def test_a_symbol_that_fails_only_when_repeated(self, built):
         # Wider than the default pole pitch of 4: fine alone, overflowing when repeated (gate 3).
@@ -114,21 +114,21 @@ class TestCheck:
         )
         edit(built, SYMBOL, "at = [0.75, -1.5]", "at = [3.25, -1.5]")
         edit(built, SYMBOL, "at = [0.75, 1.5]", "at = [3.25, 1.5]")
-        found = symdef.check(built)
+        found = authoring.check(built)
         assert any("repeated 3 times" in f.message for f in found)
 
     def test_a_corrupt_bundle_is_reported(self, built):
         (built / "src" / "mysymbols" / "bundle.json").write_text("{", encoding="utf-8")
-        assert "schema" in rules(symdef.check(built))
+        assert "schema" in rules(authoring.check(built))
 
     def test_a_bundle_that_differs_from_the_source_is_reported(self, built):
         path = built / "src" / "mysymbols" / "bundle.json"
         path.write_text(path.read_text(encoding="utf-8").replace('"Resistor"', '"Resister"'))
-        found = symdef.check(built)
+        found = authoring.check(built)
         assert {"bundle-differs", "stale-build"} <= rules(found)
 
     def test_a_bundle_with_other_numbers_is_reported(self, built):
         (built / SYMBOL).rename(built / "symbols" / "other.toml")
         edit(built, "symbols/other.toml", 'number = "resistor"', 'number = "other"')
-        found = symdef.check(built)
+        found = authoring.check(built)
         assert any(f.rule == "bundle-differs" and "numbers" in f.message for f in found)

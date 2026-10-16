@@ -1388,3 +1388,18 @@ unchanged, so every golden is byte-identical; `to_fragment_mm` is listed in the 
 removal in 0.13, once its callers use the placed call.
 Why: SB12: the renderer places a symbol with no unit conversion of its own.
 Cost if wrong: additive; delete the module and the export to revert.
+
+## D84: two doors, `symdef` for consumers and `symdef.authoring` for authors
+
+Decided: `symdef.authoring` holds nine names: `build`, `check`, `init`, `lint`, `write_build`,
+`stale_build`, `RULES`, `finding_key` and `LibraryConfig`. They leave `symdef.__all__`; the two
+`__all__` sets are disjoint and `from symdef import build` raises `ImportError`. The rule: a name
+goes to the author door when no consumer-side call takes or returns it. Fransys's import census
+(2026-10-16) found no consumer import of these nine. `LibraryError` stays on the consumer door:
+`load_library` and `load_bundle` raise it. `Finding` and `Severity` stay there too, since they ride
+on `LibraryError.findings`; so does `Status`, a `Symbol` field a consumer building one sets. The
+`symdef` CLI imports from `symdef.project`, unchanged. `symdef.authoring` only re-exports, so the
+purity gate needs no entry for it.
+Why: a consumer's surface is what it draws with; the authoring verbs are noise there and a second
+reason for a major bump when one changes.
+Cost if wrong: breaking for an author who imports from `symdef`: change the import path.

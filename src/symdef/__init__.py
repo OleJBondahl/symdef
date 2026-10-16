@@ -9,7 +9,7 @@ from symdef.errors import (
     UnknownNameError,
     UnknownSymbolError,
 )
-from symdef.files import load_bundle, load_library, stale_build, write_build
+from symdef.files import load_bundle, load_library
 from symdef.font import FontMetrics, text_width
 from symdef.geometry import (
     Arc,
@@ -29,14 +29,12 @@ from symdef.geometry import (
 from symdef.gridmeasure import Measure, measure
 from symdef.gridtypes import GridBox, GridPoint, GridPort
 from symdef.leads import leads
-from symdef.lint import RULES, finding_key, lint
 from symdef.model import (
     Allow,
     Anchor,
     Centre,
     Finding,
     Library,
-    LibraryConfig,
     Node,
     Path,
     Port,
@@ -52,7 +50,6 @@ from symdef.model import (
     nodes_of,
 )
 from symdef.orient import orient, orient_box, orient_direction, orient_point, translate
-from symdef.project import build, check, init
 from symdef.repeat import pole_pitch, pole_port, repeat
 from symdef.slottext import TextPlacement, slot_text
 from symdef.stretch import stretch
@@ -76,7 +73,6 @@ __all__ = [
     "DEFAULT_MODULE_MM",
     "GRID_DIVISION",
     "LIBRARY_VERSION",
-    "RULES",
     "Allow",
     "Anchor",
     "Arc",
@@ -94,7 +90,6 @@ __all__ = [
     "GridPort",
     "InvalidValueError",
     "Library",
-    "LibraryConfig",
     "LibraryError",
     "Line",
     "Measure",
@@ -121,15 +116,10 @@ __all__ = [
     "Weight",
     "WireStyle",
     "body_box",
-    "build",
     "ceil_divisions",
-    "check",
-    "finding_key",
     "from_divisions",
-    "init",
     "keepout_box",
     "leads",
-    "lint",
     "load_bundle",
     "load_library",
     "measure",
@@ -146,7 +136,6 @@ __all__ = [
     "slot_text",
     "slots_box",
     "snap",
-    "stale_build",
     "stretch",
     "table",
     "text_width",
@@ -157,5 +146,4 @@ __all__ = [
     "to_svg",
     "translate",
     "wire",
-    "write_build",
 ]

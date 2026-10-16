@@ -7,7 +7,7 @@ import pytest
 from jsonschema import Draft202012Validator
 from roundtrip import round_trips
 
-from symdef import lint
+from symdef.authoring import lint
 from symdef.errors import InvalidValueError
 from symdef.geometry import Arc, Line, Point, Polyline, Style, Weight
 from symdef.load import parse_config, parse_toml, symbol_from_data, validate
