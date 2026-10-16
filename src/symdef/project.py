@@ -26,7 +26,7 @@ def init(root: Path) -> tuple[Path, ...]:
     targets = {root / relative: text for relative, text in starter_files().items()}
     for target in targets:
         if target.exists():
-            msg = f"{target} exists; init writes into an empty folder: remove it or pick another folder"
+            msg = f"{target} exists; init writes into an empty folder: remove it or use another"
             raise InvalidValueError(msg)
     for target, text in targets.items():
         target.parent.mkdir(parents=True, exist_ok=True)
