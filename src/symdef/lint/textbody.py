@@ -1,6 +1,6 @@
 """`text-outside-body`: a fixed text anchored in the body must lie wholly inside it (D90)."""
 
-from symdef.boxes import element_box
+from symdef.boxes import element_box, elements_box
 from symdef.font import FontMetrics
 from symdef.geometry import Box, Point, Text
 from symdef.model import Finding, Severity, Symbol
@@ -10,10 +10,8 @@ RULE = "text-outside-body"
 
 def _shapes_box(symbol: Symbol, font: FontMetrics | None) -> Box | None:
     """Return the box of the symbol's drawn shapes (every element but a text), or None if none."""
-    boxes = [element_box(e, font) for e in symbol.elements if not isinstance(e, Text)]
-    if not boxes:
-        return None
-    return Box.union(*boxes)
+    shapes = tuple(e for e in symbol.elements if not isinstance(e, Text))
+    return elements_box(shapes, font) if shapes else None
 
 
 def _anchored_in(at: Point, body: Box) -> bool:
