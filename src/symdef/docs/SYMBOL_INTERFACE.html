@@ -31,7 +31,7 @@
 
 <h1>Symbol interface design guide</h1>
 <p class="meta">Binding spec for the <code>symdef</code> toolkit and the data repos built on it.
-Agreed with the repo owner on 2026-09-19; amended 2026-10-07 for 0.5.0, 2026-10-13 for 0.6.0, 2026-10-15 for 0.7.0, 2026-10-15 for 0.8.0, 2026-10-16 for 0.9.0 and 2026-10-16 for 0.10.0 (see the change list).</p>
+Agreed with the repo owner on 2026-09-19; amended 2026-10-07 for 0.5.0, 2026-10-13 for 0.6.0, 2026-10-15 for 0.7.0, 2026-10-15 for 0.8.0, 2026-10-16 for 0.9.0 and 2026-10-16 for 0.10.0 and 2026-10-16 for 0.10.1 (see the change list).</p>
 
 <div class="note">
 <strong>This guide is the only design document.</strong> It changes only through a designer-approved spec,
@@ -41,6 +41,7 @@ with a dated entry in the change list below and in <code>docs/DECISIONS.md</code
 <h2 id="changes">Change list</h2>
 <table>
 <tr><th>Date</th><th>Version</th><th>Change</th></tr>
+<tr><td>2026-10-16</td><td>0.10.1</td><td>A non-<code>C</code> slot keeps its SS17 position when its box spans a cut: the position moves by the shares of the cuts it lies beyond and the box grows, and only a <code>C</code> slot sits at the middle of its stretched box (D72).</td></tr>
 <tr><td>2026-10-16</td><td>0.10.0</td><td>A symbol may carry several <code>[[stretch]]</code> cuts per axis, each with a <code>weight</code> (default 1) that sets its share of the growth; slots follow the cuts, so a slot box across a cut grows by that cut's share; slot side <code>C</code> centres the box and the text on <code>at</code>; a line or polyline may say <code>between = true</code>, and <code>table()</code> draws it in rows 1 to n-1 only (D67 to D71). The rule count stays 35.</td></tr>
 <tr><td>2026-10-16</td><td>0.9.0</td><td><code>to_fragment</code> and <code>to_fragment_mm</code> take <code>texts</code>, the string to draw in each slot, and <code>required_slots</code>, the slots that must have one; a slot may say <code>turn = true</code> to read bottom-up. symdef never measures, shrinks or wraps a string (D63 to D66). The rule count stays 35.</td></tr>
 <tr><td>2026-10-15</td><td>0.8.0</td><td><code>leads(symbol, ports)</code> drops the bound leads of the ports the caller leaves unwired; <code>style = "dash_dot"</code> draws a dash-dot line, and <code>to_fragment_mm</code> takes its four lengths in <code>dash_dot_mm</code>; <code>to_fragment</code> and <code>to_fragment_mm</code> take <code>muted</code>, the colour of a symbol drawn as not installed (D59 to D62). The rule count stays 35.</td></tr>
