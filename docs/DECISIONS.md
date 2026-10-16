@@ -1287,3 +1287,15 @@ MR orientation, then clockwise quarter turns) and re-bounds them, about the symb
 `body_box(orient(s, o))`; a test asserts it on a non-square symbol.
 Why: SYMBOL-BOUNDARY SB4: a caller turns a box once, in symdef, not by its own copy of the maths.
 Cost if wrong: additive; remove `orient_box` and the two exports.
+
+## D77: small accessors, and `nodes_of` public (SB5, SB10)
+
+Decided: `Box.union(*boxes)` (a static method; one box gives itself, none raises `ValueError`),
+`slots_box(symbol)` (the union of the slots' reserved boxes without the body; the origin box when
+there are no slots), `pole_pitch(symbol)` (the effective pitch: the symbol's own, else the default
+4 that `repeat` already uses, imported from one constant) and `pole_port(k, port_id)` (the id a
+port takes in pole `k`, `"<k>.<port_id>"`; `repeat` now builds every pole id through it). All four
+and `nodes_of` (every node, the declared ones then one per unlisted port) join `__all__`, each with a
+docstring and a test.
+Why: SYMBOL-BOUNDARY SB5 and SB10: the caller reads these facts from symdef, not a copy.
+Cost if wrong: additive; `repeat`'s output is byte-identical (the tests of D0 to D72 stay green).

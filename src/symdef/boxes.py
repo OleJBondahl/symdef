@@ -81,6 +81,15 @@ def body_box(symbol: Symbol, font: FontMetrics | None = None) -> Box:
     return _bounding(tuple(p for e in symbol.elements for p in _extent_points(e, font)))
 
 
+def slots_box(symbol: Symbol) -> Box:
+    """Return the union of the boxes the slots reserve, without the body.
+
+    A symbol without slots has the box (0, 0) to (0, 0).
+    """
+    boxes = tuple(_reserved_box(slot) for slot in symbol.slots)
+    return Box.union(*boxes) if boxes else _bounding(())
+
+
 def _reserved_box(slot: Slot) -> Box:
     """Return the box a slot reserves; `slot_box` documents its placement."""
     x, y = slot.position.x, slot.position.y
