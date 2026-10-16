@@ -1493,3 +1493,17 @@ Two call sites run it: `load_library` (and so `symdef build`) with the library f
 Why: designer ruling 2026-10-16 (b), spec SETTINGS ST4 amendment 2. `text-too-large` compared height with 1 M and read
 no font, so a consumer font could never fail the build.
 Cost if wrong: additive; the free function can move into the lint registry later.
+
+
+## D91: `measure(attach=)`, a coil's contact-table room is measured by symdef
+
+Decided: `measure(symbol, orientation, library, texts=None, text_height=None, attach=None)` takes `attach`, a map of
+slot id to a `Symbol`. The attached symbol's `keepout_box` is placed with its origin at the turned slot's point and
+united with the slot's box (`slot_box`, with its text when given). The result is `Measure.slots[slot_id]`, and so part
+of `Measure.keepout`. As with a slot's box, only the point is turned with the view, never the attached box. A key of
+`attach` that is not a slot id of the symbol raises `UnknownNameError` naming the key and the slot ids, as `texts`
+does. An empty or absent `attach` returns exactly what `measure` returned before. The caller builds the attached symbol
+with `table(row, n, "y")`, and tiers as `table(that, tiers, "y")`.
+Why: designer ruling 2026-10-16 (SYMDEF-LAYER Part D Q1 a). The room for a coil's contact table is a drawn size, and
+symdef owns drawn sizes (owner 2026-10-16), so the Fransys layer only copies fields.
+Cost if wrong: additive; a new keyword with a default.

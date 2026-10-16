@@ -2,6 +2,10 @@
 
 What changed in the public surface of each release: a name added, removed or moved, and a type that widened. Every change to `surface.toml` has a line here. The reasons are in [the decisions](DECISIONS.md).
 
+## 0.14.0
+
+- Added: `measure(..., attach={slot_id: Symbol})`. The attached symbol's keep-out box is placed with its origin at the turned slot's point and united with that slot's box; it is in `Measure.slots[slot_id]` and `Measure.keepout`. A key that is not a slot id raises `UnknownNameError`. Without `attach` the result is unchanged (D91).
+
 ## 0.13.0
 
 - Added: `measure_font(regular, bold)` returning `FontMetrics`: it measures a regular and a bold TTF, given as bytes, into one advance table per `Weight`, the cap height, ascent and descent. `fonttools` is now a runtime dependency (D87).
