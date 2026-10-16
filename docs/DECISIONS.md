@@ -1521,3 +1521,15 @@ Why: designer ruling 2026-10-16. Typst resolves a font by its typographic family
 "DejaVu Sans Condensed" for the house face (ID 16 is "DejaVu Sans", ID 17 "Condensed"), and Typst does not resolve it.
 A family read from the bytes cannot disagree with the face that is drawn and measured.
 Cost if wrong: additive; a new field with a default.
+
+## D93: `[font]` heights beside `files`
+
+Decided: `[font]` with `files` takes `heights`, a table of names to capital heights in mm, each above zero, beside `name`
+and `files`. `LibraryConfig.font_heights` holds them between the parse and the read; `files.py` puts them on the measured
+`FontMetrics.heights`. symdef does not interpret the names (D73). `family` beside `files` stays refused (D92). `heights`
+and `files` without `name` is still "missing required key 'name'". Any other key beside `files` is refused with a message
+that names the key and the fix: "`K` is not a key of the files form (`name`, `files`, `heights`); remove it, or drop
+`files` and give the measured tables". The bundle needed no change: `heights` already round-trips.
+Why: designer ruling 2026-10-16 (SYMDEF-0.16). The consumer's text sizes are not in the font bytes; the files form could not
+carry them, so a files-form library had no heights.
+Cost if wrong: additive; a key that was refused is accepted. The reworded error is the only changed text.

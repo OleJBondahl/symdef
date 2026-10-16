@@ -454,13 +454,15 @@ without a grid gives the output it always gave. `Grid(module_mm, divisions_per_m
 ## A consumer's font, grid and line widths
 
 `[font]` may name the font files instead of listing metrics; `symdef build` measures them into the
-bundle. `files` are paths relative to `library.toml`. `[lines]` gives each weight a width in
+bundle. `files` are paths relative to `library.toml`. No TTF holds the text sizes, so `heights`,
+the capital heights in millimetres by name, are written beside `files`. `[lines]` gives each weight a width in
 millimetres, and a `[[wire]]` weight needs one.
 
 ```toml
 [font]
 name = "My Sans"
 files = { regular = "fonts/MySans.ttf", bold = "fonts/MySans-Bold.ttf" }
+heights = { smallest = 1.8, body = 2.5, heading = 3.5, large = 5.0 }
 
 [lines]
 normal = 0.25

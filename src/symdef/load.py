@@ -624,20 +624,28 @@ def font_from_data(data: Mapping[str, Any]) -> FontMetrics:
 
 
 _FONT_FILES = _table(
-    {"name": _string, "files": _table({"regular": _string, "bold": _string}, ("regular", "bold"))},
+    {
+        "name": _string,
+        "files": _table({"regular": _string, "bold": _string}, ("regular", "bold")),
+        "heights": _map_of(_positive),
+    },
     required=("name", "files"),
 )
 
 
 def _font_table(value: object, location: str) -> list[Finding]:
-    """Check a library's `[font]`: the literal tables, or `name` and `files`, never both."""
+    """Check `[font]`: the literal tables, or `name`, `files` and `heights`, not both."""
     if not isinstance(value, dict) or "files" not in value:
         return _FONT(value, location)
     if "family" in value:
         message = "`family` comes from the font file; remove it beside `files`"
         return [_finding(location, message)]
-    if set(value) - {"name", "files"}:
-        message = "give either the measured tables or `name` and `files`, not both"
+    extra = [key for key in value if key not in ("name", "files", "heights")]
+    if extra:
+        message = (
+            f"`{extra[0]}` is not a key of the files form (`name`, `files`, `heights`); "
+            "remove it, or drop `files` and give the measured tables"
+        )
         return [_finding(location, message)]
     return _FONT_FILES(value, location)
 
@@ -647,12 +655,16 @@ def _literal_font(data: Mapping[str, Any]) -> bool:
     return "font" in data and "files" not in data["font"]
 
 
-def _font_files(data: Mapping[str, Any]) -> tuple[tuple[str, str] | None, str]:
-    """Return the `files` paths and the name of a checked config's `[font]`, or None and ''."""
+def _font_files(data: Mapping[str, Any]) -> tuple[tuple[str, str] | None, str, dict[str, float]]:
+    """Return the files form's paths, name and heights of a checked `[font]`, or None, '', {}."""
     font = data.get("font", {})
     if "files" not in font:
-        return None, ""
-    return (font["files"]["regular"], font["files"]["bold"]), font["name"]
+        return None, "", {}
+    return (
+        (font["files"]["regular"], font["files"]["bold"]),
+        font["name"],
+        dict(font.get("heights", {})),
+    )
 
 
 def _module_mm(value: object, location: str) -> list[Finding]:
@@ -830,8 +842,9 @@ def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
     (`name`, `units_per_em`, `cap_height`, `ascent`, `descent`, `default_advance` and
     `[font.advances.normal]` and `[font.advances.thick]`, each one number per character, and
     `[font.heights]`, a capital height in millimetres by name) is the font text is measured with.
-    Instead of the measured tables, `[font]` may hold `name` and `files = { regular, bold }`, two
-    TTF paths relative to the folder of `library.toml` (D87); `files.py` measures them.
+    Instead of the measured tables, `[font]` may hold `name`, `files = { regular, bold }`, two
+    TTF paths relative to the folder of `library.toml` (D87), and `heights`; `files.py` measures
+    the files and puts `heights` on the metrics (D93).
     The optional `[grid]` table (`module_mm`, `divisions_per_module`, a power of two, and the wire
     pitches `wire_pitch` and `wire_pitch_fine` in divisions) is the drawing grid; without it the
     grid is 2.5 mm, 8 divisions and pitches 8 and 4. The optional `[lines]` table gives the stroke
