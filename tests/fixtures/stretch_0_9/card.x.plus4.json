@@ -1,0 +1,235 @@
+{
+  "anchors": [],
+  "body_box": [
+    [
+      0,
+      0
+    ],
+    [
+      36,
+      10
+    ]
+  ],
+  "elements": [
+    {
+      "closed": true,
+      "fill": "none",
+      "polyline": [
+        [
+          0,
+          0
+        ],
+        [
+          36,
+          0
+        ],
+        [
+          36,
+          8
+        ],
+        [
+          0,
+          8
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          4,
+          8
+        ],
+        [
+          4,
+          10
+        ]
+      ],
+      "port": "1",
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          12,
+          8
+        ],
+        [
+          12,
+          10
+        ]
+      ],
+      "port": "2",
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          24,
+          8
+        ],
+        [
+          24,
+          10
+        ]
+      ],
+      "port": "3",
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          32,
+          8
+        ],
+        [
+          32,
+          10
+        ]
+      ],
+      "port": "4",
+      "style": "solid",
+      "weight": "normal"
+    }
+  ],
+  "keepout_box": [
+    [
+      0,
+      0
+    ],
+    [
+      36,
+      13
+    ]
+  ],
+  "kind": "symbol",
+  "name": "card",
+  "nodes": [
+    {
+      "ports": [
+        "1"
+      ]
+    },
+    {
+      "ports": [
+        "2"
+      ]
+    },
+    {
+      "ports": [
+        "3"
+      ]
+    },
+    {
+      "ports": [
+        "4"
+      ]
+    }
+  ],
+  "paths": [],
+  "ports": [
+    {
+      "at": [
+        4,
+        10
+      ],
+      "description": "",
+      "dir": "S",
+      "id": "1"
+    },
+    {
+      "at": [
+        12,
+        10
+      ],
+      "description": "",
+      "dir": "S",
+      "id": "2"
+    },
+    {
+      "at": [
+        24,
+        10
+      ],
+      "description": "",
+      "dir": "S",
+      "id": "3"
+    },
+    {
+      "at": [
+        32,
+        10
+      ],
+      "description": "",
+      "dir": "S",
+      "id": "4"
+    }
+  ],
+  "reference": {
+    "number": "1",
+    "standard": "X"
+  },
+  "schema": 1,
+  "slots": {
+    "marking.1": {
+      "at": [
+        4,
+        12
+      ],
+      "box": [
+        3,
+        1
+      ],
+      "side": "S"
+    },
+    "marking.2": {
+      "at": [
+        12,
+        12
+      ],
+      "box": [
+        3,
+        1
+      ],
+      "side": "S"
+    },
+    "marking.3": {
+      "at": [
+        24,
+        12
+      ],
+      "box": [
+        3,
+        1
+      ],
+      "side": "S"
+    },
+    "marking.4": {
+      "at": [
+        32,
+        12
+      ],
+      "box": [
+        3,
+        1
+      ],
+      "side": "S"
+    },
+    "tag": {
+      "at": [
+        2,
+        2
+      ],
+      "box": [
+        4,
+        1
+      ],
+      "side": "E"
+    }
+  },
+  "status": "unverified"
+}
