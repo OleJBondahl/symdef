@@ -6,6 +6,7 @@ What changed in the public surface of each release: a name added, removed or mov
 
 - Removed from `symdef`, now on `symdef.authoring`: `build`, `check`, `init`, `lint`, `write_build`, `stale_build`, `RULES`, `finding_key`, `LibraryConfig` (D84).
 - Added: `SymdefError`, the base of every error symdef raises, with `InvalidValueError`, `UnknownNameError`, `UnknownSymbolError` and `LibraryError` under it. None subclasses `ValueError`, `KeyError` or `OSError`, so an `except` on a builtin no longer catches them (D80).
+- Renamed: `GraphicalSymbolsError` is now `SymdefError`; the old name is removed, with no alias (D80).
 - Added: `GridPoint`, `GridBox` (with `GridBox.union`) and `GridPort`, whose coordinates are whole grid divisions (D81).
 - Added: `measure(symbol, orientation, library, texts=None, text_height=None)` returning `Measure`: body, keepout, slots and ports in whole divisions, already turned (D82).
 - Changed: `FontMetrics.advances` is one table per `Weight` (`[font.advances.normal]` and `[font.advances.thick]` in `library.toml`); `thick_factor` is removed, and the bundle's `font.advances` has a `normal` and a `thick` table (D82).
