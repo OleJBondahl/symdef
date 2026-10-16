@@ -50,7 +50,16 @@ from symdef.stretch import stretch
 from symdef.svg import to_fragment, to_svg
 from symdef.svg_mm import to_fragment_mm
 from symdef.table import table
-from symdef.units import DEFAULT_MODULE_MM, GRID_DIVISION, Grid, on_grid, snap
+from symdef.units import (
+    DEFAULT_MODULE_MM,
+    GRID_DIVISION,
+    Grid,
+    ceil_divisions,
+    from_divisions,
+    on_grid,
+    snap,
+    to_divisions,
+)
 from symdef.wire import wire
 
 __all__ = [
@@ -97,8 +106,10 @@ __all__ = [
     "WireStyle",
     "body_box",
     "build",
+    "ceil_divisions",
     "check",
     "finding_key",
+    "from_divisions",
     "init",
     "keepout_box",
     "leads",
@@ -115,6 +126,7 @@ __all__ = [
     "stretch",
     "table",
     "text_width",
+    "to_divisions",
     "to_fragment",
     "to_fragment_mm",
     "to_svg",

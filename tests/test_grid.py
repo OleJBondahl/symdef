@@ -1,6 +1,7 @@
 """The library's grid: `[grid]` in `library.toml`, the bundle key and the lint rule (D73)."""
 
 import json
+import re
 
 import pytest
 from test_font import CONFIG
@@ -12,7 +13,7 @@ from symdef.load import library_from_bundle, parse_config, validate_bundle
 from symdef.model import Library, Reference, Status, Symbol, SymbolKind
 from symdef.project import _lint_findings
 from symdef.serialize import bundle_to_data, to_json
-from symdef.units import DEFAULT_GRID, Grid
+from symdef.units import DEFAULT_GRID, Grid, to_divisions
 
 COARSE = Grid(module_mm=5, divisions_per_module=4)
 
@@ -90,3 +91,11 @@ def test_the_project_lints_with_the_librarys_grid():
     plain = Library("S", "S", "", {"1": symbol(0.125)})
     assert any(f.rule == "off-drawing-grid" for f in _lint_findings(coarse))
     assert not any(f.rule == "off-drawing-grid" for f in _lint_findings(plain))
+
+
+def test_to_divisions_follows_the_librarys_divisions_per_module():
+    parsed, _ = config("[grid]\nmodule_mm = 5\ndivisions_per_module = 4\n")
+    assert to_divisions(parsed.grid, 0.75) == 3
+    assert to_divisions(DEFAULT_GRID, 0.75) == 6
+    with pytest.raises(ValueError, match=re.escape(repr(0.125))):
+        to_divisions(parsed.grid, 0.125)
