@@ -30,6 +30,7 @@ from symdef.geometry import (
 from symdef.model import (
     Allow,
     Anchor,
+    Centre,
     Finding,
     Library,
     LibraryConfig,
@@ -198,6 +199,7 @@ def _map_of(item: _Check) -> _Check:
 _POINT = _array(_number, 2)
 _BOX = _array(_POINT, 2)
 _DIRECTION = _enum("N", "E", "S", "W")
+_SLOT_SIDE = _enum("N", "E", "S", "W", "C")
 _WEIGHT = _enum("normal", "thick")
 _STYLE = _enum("solid", "dashed", "dash_dot")
 _FILL = _enum("none", "solid")
@@ -229,7 +231,7 @@ _PATH = _table(
 )
 _ANCHOR = _table({"id": _string, "at": _POINT, "dir": _DIRECTION}, required=("id", "at", "dir"))
 _SLOT = _table(
-    {"at": _POINT, "side": _DIRECTION, "box": _array(_number, 2), "turn": _boolean},
+    {"at": _POINT, "side": _SLOT_SIDE, "box": _array(_number, 2), "turn": _boolean},
     required=("at", "side", "box"),
 )
 _PART = _table(
@@ -491,7 +493,7 @@ def symbol_from_data(data: Mapping[str, Any]) -> Symbol:
             Slot(
                 key,
                 _point(s["at"]),
-                Direction[s["side"]],
+                Centre.C if s["side"] == "C" else Direction[s["side"]],
                 (s["box"][0], s["box"][1]),
                 s.get("turn", False),
             )

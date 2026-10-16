@@ -15,7 +15,7 @@ from symdef.geometry import (
     arc_point,
     arc_sweep,
 )
-from symdef.model import Slot, Symbol
+from symdef.model import Centre, Slot, Symbol
 
 _AXIS_ANGLES = (0, 90, 180, 270)
 _FULL_TURN = 360
@@ -83,7 +83,8 @@ def slot_box(slot: Slot) -> Box:
     """Return the box a slot reserves: it grows from the slot point towards its side.
 
     E and W grow horizontally and are vertically centred; N grows up and S grows down and both
-    are horizontally centred. The box is never rotated; only the point and side are.
+    are horizontally centred; C is centred on the point both ways. The box is never rotated; only
+    the point and side are.
     """
     x, y = slot.position.x, slot.position.y
     w, h = slot.box
@@ -96,6 +97,8 @@ def slot_box(slot: Slot) -> Box:
             return Box(Point(x - w / 2, y - h), Point(x + w / 2, y))
         case Direction.S:
             return Box(Point(x - w / 2, y), Point(x + w / 2, y + h))
+        case Centre.C:
+            return Box(Point(x - w / 2, y - h / 2), Point(x + w / 2, y + h / 2))
 
 
 def keepout_box(symbol: Symbol) -> Box:

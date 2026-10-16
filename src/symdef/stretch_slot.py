@@ -6,17 +6,18 @@ from typing import Literal
 
 from symdef.boxes import slot_box
 from symdef.geometry import Direction, Point
-from symdef.model import Slot
+from symdef.model import Centre, Slot, SlotSide
 
 type Axis = Literal["x", "y"]
 type Role = Literal["lo", "hi", "mid"]
 
 # Where the slot position stands on the box along (x, y): low edge, high edge or middle.
-_ROLES: dict[Direction, tuple[Role, Role]] = {
+_ROLES: dict[SlotSide, tuple[Role, Role]] = {
     Direction.E: ("lo", "mid"),
     Direction.W: ("hi", "mid"),
     Direction.N: ("mid", "hi"),
     Direction.S: ("mid", "lo"),
+    Centre.C: ("mid", "mid"),
 }
 
 

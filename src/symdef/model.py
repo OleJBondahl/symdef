@@ -93,13 +93,27 @@ class Anchor:
     direction: Direction
 
 
+class Centre(Enum):
+    """The slot side `C`: the text centres on the slot point, along and across its reading line.
+
+    It is not a `Direction`: a slot side says where text sits, a port side says where a wire
+    leaves, and keeping `C` out of `Direction` means a port can never be `C`.
+    """
+
+    C = "C"
+
+
+type SlotSide = Direction | Centre
+
+
 @dataclass(frozen=True, slots=True)
 class Slot:
     """Room reserved for text the consumer draws; `box` is (width, height).
 
     Attributes:
         position: The point the box grows from, in module units.
-        side: The direction the box grows towards from `position`; see `slot_box`.
+        side: The direction the box grows towards from `position`, or `Centre.C` for a box centred
+            on it; see `slot_box`.
         box: Width and height in module units, never rotated: the footprint as drawn.
         turn: True when a string in the slot is drawn turned, reading bottom-up, along the height
             of `box`. It is fixed to the page: `orient` never changes it.
@@ -107,7 +121,7 @@ class Slot:
 
     id: str
     position: Point
-    side: Direction
+    side: SlotSide
     box: tuple[float, float]
     turn: bool = False
 
