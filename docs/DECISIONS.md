@@ -1264,3 +1264,16 @@ rule and is unchanged. `to_fragment_mm` keeps its `module_mm` keyword; a caller 
 `library.grid.module_mm`.
 Why: SYMBOL-BOUNDARY amendment 1 (SB0): one settings file, frozen in the loaded library.
 Cost if wrong: both tables are optional; revert `Grid`, the two keys and the `grid` argument.
+
+## D75: grid divisions are helpers that take the grid (SB3)
+
+Decided: `to_divisions(grid, v) -> int`, `from_divisions(grid, n) -> float` and
+`ceil_divisions(grid, v) -> int` in `symdef.units`, exported. The grid comes first, as SB0 rules;
+there is no public `DIVISIONS_PER_MODULE` constant, a caller reads `grid.divisions_per_module`.
+`to_divisions` raises `ValueError` naming the value (`repr`) when `v` is not a whole number of
+divisions, and for NaN or infinity. `ceil_divisions` is the one round-up rule: it counts a value
+within 1e-9 divisions above a multiple as that multiple, so float noise from a measured extent
+adds no division. `GRID_DIVISION` and `snap` stay unchanged.
+Why: SYMBOL-BOUNDARY SB3, with the amendment that the grid is library data.
+Cost if wrong: additive. Move the tolerance by editing `_DIVISION_TOLERANCE`; remove the three
+functions to revert.
