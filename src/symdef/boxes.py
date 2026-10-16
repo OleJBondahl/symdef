@@ -98,9 +98,17 @@ def slots_box(symbol: Symbol) -> Box:
 
 def _reserved_box(slot: Slot) -> Box:
     """Return the box a slot reserves; `slot_box` documents its placement."""
-    x, y = slot.position.x, slot.position.y
-    w, h = slot.box
-    match slot.side:
+    return side_box(slot.position, slot.side, *slot.box)
+
+
+def side_box(point: Point, side: Direction | Centre, w: float, h: float) -> Box:
+    """Return a `w` by `h` box grown from `point` towards `side`, as a slot reserves it.
+
+    E grows right and W left, both centred on y; N grows up and S down, both centred on x; C is
+    centred both ways. The box is never rotated.
+    """
+    x, y = point.x, point.y
+    match side:
         case Direction.E:
             return Box(Point(x, y - h / 2), Point(x + w, y + h / 2))
         case Direction.W:
