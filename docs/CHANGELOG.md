@@ -2,6 +2,10 @@
 
 What changed in the public surface of each release: a name added, removed or moved, and a type that widened. Every change to `surface.toml` has a line here. The reasons are in [the decisions](DECISIONS.md).
 
+## 0.15.0
+
+- Added: `FontMetrics.family`, the family name a renderer resolves the font by. `measure_font` reads it from the regular face's typographic family (name ID 16), else its family (ID 1); `FontMetrics.name` stays ID 1. The literal `[font]` form takes an optional `family`, default `name`; `family` beside `files` is a load error, since the file gives it. The bundle's `font` object carries `family` (D92).
+
 ## 0.14.0
 
 - Added: `measure(..., attach={slot_id: Symbol})`. The attached symbol's keep-out box is placed at the turned slot's point and side, as a slot's reserved box is (never rotated), and united with that slot's box; it is in `Measure.slots[slot_id]` and `Measure.keepout`. A key that is not a slot id raises `UnknownNameError`. Without `attach` the result is unchanged (D91).
