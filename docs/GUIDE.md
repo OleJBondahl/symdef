@@ -31,8 +31,8 @@ spec was silent, the choice is a numbered entry in [DECISIONS.md](DECISIONS.md) 
   `pole_pitch`. The result is an ordinary symbol with ports such as `1.in` and `3.out` (D16).
   Spec section 7.
 
-Units are modules (1 M = `DEFAULT_MODULE_MM`, 2.5 mm) on a drawing grid of `GRID_DIVISION` (0.125) M;
-wires run on a 1 M grid. The wiring contract is linted in all 8 orientations (`Orientation`).
+Units are modules (1 M = `DEFAULT_MODULE_MM`, 2.5 mm) on a drawing grid of `GRID_DIVISION` (0.125) M,
+which `[grid]` in `library.toml` may change (see Measuring text and the grid); wires run on a 1 M grid. The wiring contract is linted in all 8 orientations (`Orientation`).
 
 ## Layout of a symbol set
 
@@ -215,7 +215,7 @@ group = to_fragment(breaker)
 whose viewBox is in module units. `annotate=True` adds the keep-out box, port labels, anchors,
 slots and wire lanes; `texts` maps slot ids to sample text. `to_fragment(symbol)` returns a
 placeable `<g>` fragment instead of a document (D39). Both are total: any input renders (D32).
-`body_box`, `keepout_box` and `slot_box` give the boxes, and `on_grid` and `snap` the grid.
+`body_box`, `keepout_box` and `slot_box` give the boxes (`slots_box` the slots without the body), and `on_grid(v, tol, grid)` and `snap(v, grid)` the grid (the default grid when none is given).
 
 `to_fragment_mm` (D52) returns the same fragment with every size in millimetres and no scale
 transform. Coordinates and radii are multiplied by `module_mm`. Stroke widths come from
@@ -397,6 +397,54 @@ try:
 except ValueError as error:
     assert "marking.1" in str(error)
 ```
+
+## Measuring text and the grid
+
+A library may declare its font and its grid in `library.toml`; both are optional and frozen in the
+loaded `Library` (`Library.font`, `Library.grid`).
+
+```toml
+[grid]
+module_mm = 2.5            # above zero
+divisions_per_module = 8   # a power of two
+
+[font]
+name = "Planted"           # a label, it changes no measure
+units_per_em = 1000
+cap_height = 700
+ascent = 800
+descent = 200
+default_advance = 500      # for a character not listed below
+thick_factor = 1.1         # optional: advances times this for Weight.THICK
+[font.advances]
+A = 600
+i = 300
+```
+
+With no `[font]`, `Library.font` is `None` and a text measures 0.6 em per character and a capital
+0.72 em tall, as before. `text_width(font, text, height, weight=Weight.NORMAL)` is the width of a
+string; `body_box(symbol, font)`, `keepout_box(symbol, font)` and `slot_box(slot, text, height,
+font)` measure with it. `slot_text(slot, text, height, font)` returns a `TextPlacement(point, anchor,
+turned)`: where the string sits for the slot's side.
+
+With no `[grid]` the grid is `DEFAULT_GRID` (2.5 mm, 8 divisions). `to_divisions(grid, v)` returns
+the whole divisions of an on-grid value and raises `ValueError` naming an off-grid one;
+`from_divisions(grid, n)` is the reverse; `ceil_divisions(grid, v)` rounds a measured extent up to
+whole divisions, ignoring float noise of 1e-9. `lint` takes the grid to check against. `snap(v, grid)`
+and `on_grid(v, tol, grid)` take it as a trailing argument; with none they use `DEFAULT_GRID`, so a call
+without a grid gives the output it always gave. `Grid(module_mm, divisions_per_module)` raises
+`ValueError` for a module not above zero or divisions not a power of two, naming the value and the fix.
+
+## Turning and small accessors
+
+`orient_point`, `orient_direction` and `orient_box(box, orientation)` turn a point, a direction and
+a box about the symbol's origin as `orient` does: mirror x first, then clockwise quarter turns.
+`Box.union(*boxes)` joins boxes, `pole_pitch(symbol)` is the spacing `repeat` uses (the default
+included), `pole_port(k, port_id)` is a port's id in pole `k`, and `nodes_of(symbol)` lists every
+node, the declared ones then one per unlisted port.
+
+`load_library` and `load_bundle` return a library whose `symbols` mapping is read-only: assigning
+into it raises `TypeError`.
 
 ## Consuming
 

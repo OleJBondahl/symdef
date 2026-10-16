@@ -1,4 +1,4 @@
-"""Slot text drawn by `to_fragment` and `to_fragment_mm` (SS15)."""
+"""Slot text drawn by `to_fragment` and `to_fragment_mm` (D63)."""
 
 import re
 import xml.etree.ElementTree as ET

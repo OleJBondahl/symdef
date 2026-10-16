@@ -15,10 +15,20 @@ _MARKING = "marking."
 MAX_REPEAT = 64
 
 
+def pole_pitch(symbol: Symbol) -> float:
+    """Return the spacing between poles in module units: the symbol's `pole_pitch`, else 4."""
+    return symbol.pole_pitch or _DEFAULT_PITCH
+
+
+def pole_port(k: int, port_id: str) -> str:
+    """Return the id port `port_id` takes in pole `k` (counted from 1) of a repeated symbol."""
+    return f"{k}.{port_id}"
+
+
 def pole_elements(elements: tuple[Element, ...], k: int) -> tuple[Element, ...]:
     """Return pole `k`'s elements, a bound lead's `port` prefixed `<k>.` to match its port."""
     return tuple(
-        replace(e, port=f"{k}.{e.port}") if isinstance(e, Line) and e.port is not None else e
+        replace(e, port=pole_port(k, e.port)) if isinstance(e, Line) and e.port is not None else e
         for e in elements
     )
 
@@ -37,13 +47,13 @@ def _pole_slots(slots: tuple[Slot, ...], k: int) -> tuple[Slot, ...]:
 def pole_parts(pole: Symbol, k: int) -> tuple[tuple[Port, ...], tuple[Node, ...], tuple[Path, ...]]:
     """Return the ports, nodes and paths of pole `k` with every port id prefixed by `<k>.`."""
     return (
-        tuple(replace(p, id=f"{k}.{p.id}") for p in pole.ports),
-        tuple(replace(n, ports=tuple(f"{k}.{p}" for p in n.ports)) for n in nodes_of(pole)),
+        tuple(replace(p, id=pole_port(k, p.id)) for p in pole.ports),
+        tuple(replace(n, ports=tuple(pole_port(k, p) for p in n.ports)) for n in nodes_of(pole)),
         tuple(
             replace(
                 p,
-                from_port=f"{k}.{p.from_port}",
-                to_port=f"{k}.{p.to_port}",
+                from_port=pole_port(k, p.from_port),
+                to_port=pole_port(k, p.to_port),
                 through=p.through and k == 1,
             )
             for p in pole.paths
@@ -79,7 +89,7 @@ def repeat(symbol: Symbol, n: int) -> Symbol:
     if not any(p.through for p in symbol.paths):
         msg = "the symbol has no through path to repeat"
         raise ValueError(msg)
-    pitch = symbol.pole_pitch or _DEFAULT_PITCH
+    pitch = pole_pitch(symbol)
     poles = tuple(translate(symbol, (k - 1) * pitch, 0) for k in range(1, n + 1))
     parts = tuple(pole_parts(pole, k) for k, pole in enumerate(poles, start=1))
     link = next((a for a in symbol.anchors if a.id == _LINK), None)

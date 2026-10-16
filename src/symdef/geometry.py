@@ -108,6 +108,17 @@ class Box:
         """Midpoint of the rectangle."""
         return Point((self.min.x + self.max.x) / 2, (self.min.y + self.max.y) / 2)
 
+    @staticmethod
+    def union(*boxes: Box) -> Box:
+        """Return the smallest box holding all `boxes`; one box gives itself, none raises."""
+        if not boxes:
+            msg = "union needs at least one box"
+            raise ValueError(msg)
+        return Box(
+            Point(min(b.min.x for b in boxes), min(b.min.y for b in boxes)),
+            Point(max(b.max.x for b in boxes), max(b.max.y for b in boxes)),
+        )
+
 
 @dataclass(frozen=True, slots=True)
 class Line:

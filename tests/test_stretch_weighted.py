@@ -1,4 +1,4 @@
-"""Several weighted cuts per axis (SS16) and slots that follow them (SS17)."""
+"""Several weighted cuts per axis (D67) and slots that follow them (D69)."""
 
 from dataclasses import replace
 
@@ -110,7 +110,7 @@ def test_a_weight_that_is_not_a_number_is_a_schema_finding():
     assert [f.location for f in validate(data)] == ["/stretch/0/weight"]
 
 
-# SS17: slots follow the cuts.
+# D69: slots follow the cuts.
 
 
 def test_a_slot_box_across_a_cut_grows_by_the_cuts_share():

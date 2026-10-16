@@ -12,8 +12,10 @@ import re
 import tomllib
 from collections.abc import Callable, Mapping
 from dataclasses import replace
+from types import MappingProxyType
 from typing import Any
 
+from symdef.font import FontMetrics
 from symdef.geometry import (
     Arc,
     Circle,
@@ -47,6 +49,7 @@ from symdef.model import (
     Vocabulary,
     WireStyle,
 )
+from symdef.units import DEFAULT_GRID, Grid, divisions_error, module_error
 
 # Every number in a file is finite with an absolute value of at most this (1e6 M is 2.5 km).
 _LIMIT = 1_000_000
@@ -568,12 +571,77 @@ def _wires_from_data(entries: list[dict[str, str]]) -> tuple[WireStyle, ...]:
     )
 
 
+def _advances(value: object, location: str) -> list[Finding]:
+    """Check the `advances` table: a single character for each key, a number above zero for it."""
+    found = _map_of(_positive)(value, location)
+    if isinstance(value, dict):
+        found += [
+            _finding(_child(location, key), "must be a single character")
+            for key in value
+            if not (isinstance(key, str) and len(key) == 1)
+        ]
+    return found
+
+
+_FONT_FIELDS = ("units_per_em", "cap_height", "ascent", "descent", "default_advance")
+_FONT = _table(
+    {
+        **dict.fromkeys(_FONT_FIELDS, _positive),
+        "thick_factor": _positive,
+        "advances": _advances,
+        "name": _string,
+    },
+    required=(*_FONT_FIELDS, "advances", "name"),
+)
+
+
+def font_from_data(data: Mapping[str, Any]) -> FontMetrics:
+    """Build the font metrics of a checked `[font]` table or a bundle's `font` object."""
+    return FontMetrics(
+        data["name"],
+        data["units_per_em"],
+        data["cap_height"],
+        data["ascent"],
+        data["descent"],
+        dict(data["advances"]),
+        data["default_advance"],
+        data.get("thick_factor", 1.0),
+    )
+
+
+def _module_mm(value: object, location: str) -> list[Finding]:
+    """Check `module_mm` by the rule `Grid` itself applies, once it is a number."""
+    found = _number(value, location)
+    message = None if found else module_error(value)
+    return found or ([_finding(location, message)] if message else [])
+
+
+def _divisions(value: object, location: str) -> list[Finding]:
+    """Check `divisions_per_module` by the rule `Grid` itself applies, once it is an integer."""
+    found = _integer(value, location)
+    message = None if found else divisions_error(int(value))  # ty: ignore[invalid-argument-type] - _integer proved a whole number
+    return found or ([_finding(location, message)] if message else [])
+
+
+_GRID = _table(
+    {"module_mm": _module_mm, "divisions_per_module": _divisions},
+    required=("module_mm", "divisions_per_module"),
+)
+
+
+def grid_from_data(data: Mapping[str, Any]) -> Grid:
+    """Build the grid of a checked `[grid]` table or a bundle's `grid` object."""
+    return Grid(data["module_mm"], int(data["divisions_per_module"]))
+
+
 _BUNDLE = _table(
     {
         "schema": _schema_version,
         "standard": _string,
         "symbols": _map_of(_bundle_symbol),
         "wires": _wires,
+        "font": _FONT,
+        "grid": _GRID,
     },
     required=("schema", "standard", "symbols"),
 )
@@ -630,8 +698,10 @@ def library_from_bundle(data: Mapping[str, Any]) -> Library:
         data["standard"],
         data["standard"],
         "",
-        symbols,
+        MappingProxyType(symbols),
         wires=_wires_from_data(data.get("wires", [])),
+        font=font_from_data(data["font"]) if "font" in data else None,
+        grid=grid_from_data(data["grid"]) if "grid" in data else DEFAULT_GRID,
     )
 
 
@@ -641,9 +711,15 @@ _RULES = _table({"required_slots": _array(_string)})
 
 
 def _tables_problems(data: Mapping[str, Any]) -> list[Finding]:
-    """Check the optional `[vocabulary]`, `[rules]` and `[[wire]]` parts of `library.toml`."""
+    """Check the optional `[vocabulary]`, `[rules]`, `[[wire]]` `[font]` and `[grid]`."""
     found: list[Finding] = []
-    for key, check in (("vocabulary", _VOCABULARY), ("rules", _RULES), ("wire", _wires)):
+    for key, check in (
+        ("vocabulary", _VOCABULARY),
+        ("rules", _RULES),
+        ("wire", _wires),
+        ("font", _FONT),
+        ("grid", _GRID),
+    ):
         if key in data:
             found += check(data[key], _child("", key))
     return found
@@ -655,7 +731,11 @@ def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
     An optional `package` names the data package's folder under `src/` (D45). The optional
     tables `[vocabulary]` (`path_kinds`, `potentials`, `links`) and `[rules]` (`required_slots`)
     hold lists of strings; an absent list is empty. The `[[wire]]` tables (`id`, `weight`,
-    `style`) give the wire styles `wire` draws; an absent list is empty.
+    `style`) give the wire styles `wire` draws; an absent list is empty. The optional `[font]` table
+    (`name`, `units_per_em`, `cap_height`, `ascent`, `descent`, `default_advance`, optional
+    `thick_factor` and a `[font.advances]` table of one number per character) is the font text is
+    measured with. The optional `[grid]` table (`module_mm`, `divisions_per_module`, a power of
+    two) is the drawing grid; without it the grid is 2.5 mm and 8 divisions.
 
     Args:
         text: The file's TOML text.
@@ -699,4 +779,6 @@ def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
         words,
         required,
         _wires_from_data(data.get("wire", [])),
+        font_from_data(data["font"]) if "font" in data else None,
+        grid_from_data(data["grid"]) if "grid" in data else DEFAULT_GRID,
     ), ()

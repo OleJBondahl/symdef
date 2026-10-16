@@ -1,4 +1,4 @@
-"""A slot under `stretch`: its position moves by the shares of the cuts it lies beyond (SS17)."""
+"""A slot under `stretch`: its position moves by the shares of the cuts it lies beyond (D69)."""
 
 from collections.abc import Callable
 from dataclasses import replace
@@ -22,7 +22,7 @@ def _place(
     """Return the moved position coordinate and the stretched box size along the axis.
 
     A box across a cut grows by the difference of its edges' shifts. The position moves by its
-    own shift, as in 0.9.0; only a `C` slot sits at the middle of its moved edges (SS18).
+    own shift, as in 0.9.0; only a `C` slot sits at the middle of its moved edges (D68).
     """
     low, high = edges
     low_shift, high_shift = shift(low), shift(high)
