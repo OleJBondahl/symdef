@@ -1277,3 +1277,13 @@ adds no division. `GRID_DIVISION` and `snap` stay unchanged.
 Why: SYMBOL-BOUNDARY SB3, with the amendment that the grid is library data.
 Cost if wrong: additive. Move the tolerance by editing `_DIVISION_TOLERANCE`; remove the three
 functions to revert.
+
+## D76: turning helpers are public; `orient_box` turns a box about the origin (SB4)
+
+Decided: `orient_point` and `orient_direction` join `__all__`, and `orient_box(box, orientation)
+-> Box` is new in `symdef.orient`. It turns the box's two corners as points (mirror x first for an
+MR orientation, then clockwise quarter turns) and re-bounds them, about the symbol's origin, as
+`orient` does. For any symbol and all eight orientations `orient_box(body_box(s), o)` equals
+`body_box(orient(s, o))`; a test asserts it on a non-square symbol.
+Why: SYMBOL-BOUNDARY SB4: a caller turns a box once, in symdef, not by its own copy of the maths.
+Cost if wrong: additive; remove `orient_box` and the two exports.
