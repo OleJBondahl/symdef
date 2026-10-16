@@ -107,6 +107,7 @@ def test_to_divisions_follows_the_librarys_divisions_per_module():
         ((2.5, 3), "divisions_per_module 3"),
         ((2.5, 0), "divisions_per_module 0"),
         ((2.5, True), "divisions_per_module True"),
+        (("2.5", 8), "module_mm .2.5. is not a number"),
         ((0, 8), "module_mm 0"),
         ((-1.0, 8), "module_mm -1.0"),
         ((float("nan"), 8), "module_mm nan"),
