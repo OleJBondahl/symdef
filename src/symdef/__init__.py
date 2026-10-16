@@ -58,6 +58,7 @@ from symdef.slottext import TextPlacement, slot_text
 from symdef.stretch import stretch
 from symdef.svg import to_fragment, to_svg
 from symdef.svg_mm import to_fragment_mm
+from symdef.svg_placed import to_placed_fragment
 from symdef.table import table
 from symdef.units import (
     DEFAULT_MODULE_MM,
@@ -152,6 +153,7 @@ __all__ = [
     "to_divisions",
     "to_fragment",
     "to_fragment_mm",
+    "to_placed_fragment",
     "to_svg",
     "translate",
     "wire",
