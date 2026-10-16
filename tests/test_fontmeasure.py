@@ -195,6 +195,7 @@ class TestFamily:
 
 
 HEIGHTS = "heights = { smallest = 1.8, body = 2.5, heading = 3.5, large = 5.0 }\n"
+LITERAL_H = "smallest = 1.8\nbody = 2.5\nheading = 3.5\nlarge = 5.0\n"
 
 
 class TestHeights:
@@ -223,3 +224,42 @@ class TestHeights:
         text = HEAD + literal_toml() + "\n[font.heights]\nbody = 0\n"
         _, findings = parse_config(text)
         assert [f.location for f in findings] == ["/font/heights/body"]
+
+    def test_the_files_form_carries_the_heights_on_the_font(self, tmp_path):
+        root = library(tmp_path, FILES + HEIGHTS)
+        font = load_library(root).font
+        assert font is not None
+        assert dict(font.heights) == {"smallest": 1.8, "body": 2.5, "heading": 3.5, "large": 5.0}
+        assert font.name == "DejaVu Sans Condensed"
+        assert dict(font.advances[Weight.NORMAL]) == EXPECTED["advances"]["normal"]
+
+    def test_a_files_form_without_heights_has_none_and_no_bundle_key(self, tmp_path):
+        root = library(tmp_path, FILES)
+        loaded = load_library(root)
+        assert loaded.font is not None
+        assert dict(loaded.font.heights) == {}
+        write_build(loaded, root)
+        assert "heights" not in json.loads((root / BUNDLE).read_text())["font"]
+
+    def test_the_bundle_reads_the_heights_back(self, tmp_path):
+        root = library(tmp_path, FILES + HEIGHTS)
+        write_build(load_library(root), root)
+        font = json.loads((root / BUNDLE).read_text())["font"]
+        assert font["heights"] == {"smallest": 1.8, "body": 2.5, "heading": 3.5, "large": 5.0}
+        read = load_library(root).font
+        assert read is not None
+        assert dict(read.heights) == font["heights"]
+
+    def test_files_and_literal_forms_with_heights_build_the_same_bundle(self, tmp_path):
+        files = library(tmp_path / "files", FILES + HEIGHTS)
+        literal = library(tmp_path / "literal", literal_toml() + "\n[font.heights]\n" + LITERAL_H)
+        write_build(load_library(files), files)
+        write_build(load_library(literal), literal)
+        assert (files / BUNDLE).read_bytes() == (literal / BUNDLE).read_bytes()
+
+    def test_with_settings_keeps_the_heights_of_a_files_form_font(self, tmp_path):
+        base = load_library(library(tmp_path, FILES + HEIGHTS))
+        again = base.with_settings(font=(REGULAR, BOLD))
+        assert again.font is not None
+        assert base.font is not None
+        assert dict(again.font.heights) == dict(base.font.heights) != {}
