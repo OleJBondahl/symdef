@@ -640,8 +640,12 @@ def _font_table(value: object, location: str) -> list[Finding]:
     if "family" in value:
         message = "`family` comes from the font file; remove it beside `files`"
         return [_finding(location, message)]
-    if set(value) - {"name", "files", "heights"}:
-        message = "give either the measured tables or `name` and `files`, not both"
+    extra = [key for key in value if key not in ("name", "files", "heights")]
+    if extra:
+        message = (
+            f"`{extra[0]}` is not a key of the files form (`name`, `files`, `heights`); "
+            "remove it, or drop `files` and give the measured tables"
+        )
         return [_finding(location, message)]
     return _FONT_FILES(value, location)
 

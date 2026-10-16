@@ -1,6 +1,7 @@
 """`measure_font` against an independent oracle, and the `[font]` files form (D87)."""
 
 import json
+import re
 import shutil
 from io import BytesIO
 from pathlib import Path
@@ -140,6 +141,10 @@ class TestFilesForm:
         assert loaded.font.default_advance == EXPECTED["default_advance"]
 
 
+MIXED = (
+    "`{}` is not a key of the files form (`name`, `files`, `heights`); "
+    "remove it, or drop `files` and give the measured tables"
+)
 HEAD = "standard = 'S'\ntitle = 'T'\nnumber_pattern = '^S$'\n"
 
 
@@ -160,9 +165,23 @@ class TestConfig:
     def test_the_two_forms_cannot_be_mixed(self):
         text = HEAD + FILES + "units_per_em = 2048\n"
         _, findings = parse_config(text)
-        assert [f.message for f in findings] == [
-            "give either the measured tables or `name` and `files`, not both"
-        ]
+        assert [f.message for f in findings] == [MIXED.format("units_per_em")]
+
+    def test_the_first_offending_key_is_the_one_named(self):
+        _, findings = parse_config(HEAD + FILES + "ascent = 1\nunits_per_em = 2048\n")
+        assert [f.message for f in findings] == [MIXED.format("ascent")]
+
+    def test_a_measured_table_beside_files_names_the_table(self):
+        _, findings = parse_config(HEAD + FILES + "[font.advances.normal]\n")
+        assert [f.message for f in findings] == [MIXED.format("advances")]
+
+    @pytest.mark.parametrize(
+        "text", [FILES + "units_per_em = 2048\n", FILES + 'family = "X"\n', FILES + "[font.x]\n"]
+    )
+    def test_every_refusal_names_a_key_and_a_fix(self, text):
+        (finding,) = parse_config(HEAD + text)[1]
+        assert re.search(r"`\w+`", finding.message)
+        assert re.search(r"\b(remove|drop|add)\b", finding.message)
 
     def test_files_need_both_faces(self):
         _, findings = parse_config(HEAD + FILES.replace(', bold = "b.ttf"', ""))
@@ -269,3 +288,8 @@ class TestHeights:
         assert [f.message for f in findings] == [
             "`family` comes from the font file; remove it beside `files`"
         ]
+
+    def test_heights_and_files_without_a_name_is_still_the_missing_key(self):
+        text = FILES.replace('name = "DejaVu Sans Condensed"\n', "") + HEIGHTS
+        _, findings = parse_config(HEAD + text)
+        assert [f.message for f in findings] == ["missing required key 'name'"]
