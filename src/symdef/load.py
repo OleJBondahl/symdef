@@ -115,6 +115,14 @@ def _integer(value: object, location: str) -> list[Finding]:
     return []
 
 
+def _positive(value: object, location: str) -> list[Finding]:
+    """Check for a number within the limit that is above zero."""
+    found = _number(value, location)
+    if not found and value <= 0:  # ty: ignore[unsupported-operator] - _number proved a number
+        return [_finding(location, "must be above zero")]
+    return found
+
+
 def _boolean(value: object, location: str) -> list[Finding]:
     """Check for a boolean."""
     return [] if isinstance(value, bool) else [_finding(location, "must be true or false")]
@@ -239,7 +247,9 @@ _PART = _table(
     required=("as", "use"),
 )
 _ALLOW = _table({"rule": _string, "reason": _string}, required=("rule", "reason"))
-_STRETCH = _table({"axis": _enum("x", "y"), "at": _number}, required=("axis", "at"))
+_STRETCH = _table(
+    {"axis": _enum("x", "y"), "at": _number, "weight": _positive}, required=("axis", "at")
+)
 
 _POLYLINE = _table(
     {
@@ -477,7 +487,9 @@ def symbol_from_data(data: Mapping[str, Any]) -> Symbol:
         ),
         pole_pitch=int(data["pole_pitch"]) if "pole_pitch" in data else None,
         lint_allow=tuple(Allow(a["rule"], a["reason"]) for a in data.get("lint_allow", ())),
-        stretch=tuple(Stretch(s["axis"], s["at"]) for s in data.get("stretch", ())),
+        stretch=tuple(
+            Stretch(s["axis"], s["at"], s.get("weight", 1)) for s in data.get("stretch", ())
+        ),
     )
 
 

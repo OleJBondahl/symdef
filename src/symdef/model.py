@@ -119,10 +119,12 @@ class Stretch:
     Attributes:
         axis: The axis the symbol grows along.
         at: The cut's coordinate on that axis, in module units.
+        weight: The cut's share of the growth against the other cuts on its axis; positive.
     """
 
     axis: Literal["x", "y"]
     at: float
+    weight: float = 1
 
 
 @dataclass(frozen=True, slots=True)
@@ -152,7 +154,7 @@ class Symbol:
         reference: Where the standard defines it.
         elements: The drawing, in module units.
         pole_pitch: Spacing between poles for `repeat`, in module units; None means 4.
-        stretch: Cut lines for `stretch`, at most one per axis.
+        stretch: Cut lines for `stretch`, one or more per axis.
         lint_allow: Lint exemptions the symbol claims.
     """
 

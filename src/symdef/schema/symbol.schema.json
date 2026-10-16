@@ -166,7 +166,11 @@
       "additionalProperties": false,
       "properties": {
         "axis": { "enum": ["x", "y"] },
-        "at": { "$ref": "#/$defs/number" }
+        "at": { "$ref": "#/$defs/number" },
+        "weight": {
+          "description": "The cut's share of the growth against the other cuts on its axis; above zero, 1 when absent.",
+          "allOf": [{ "$ref": "#/$defs/number" }, { "exclusiveMinimum": 0 }]
+        }
       }
     },
     "allow": {
