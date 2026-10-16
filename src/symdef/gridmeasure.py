@@ -60,37 +60,28 @@ def measure(
     symbol: Symbol,
     orientation: Orientation,
     library: Library,
-    *,
-    module_mm: float,
     texts: Mapping[str, str] | None = None,
-    text_height_mm: float | None = None,
+    text_height: float | None = None,
 ) -> Measure:
     """Return the symbol turned to `orientation`, measured in divisions of `library.grid`.
 
     The symbol is oriented first. Extents (the body and every slot box) round outward, so a
     caller never rounds; ports are positions and must sit on the grid. Text is measured with
     `library.font`: the body's own text, and a slot's string when `texts` has one for its id
-    (at `text_height_mm`, turned into module units by `module_mm`, the sheet's scale). The symbol's
-    own extents and ports do not depend on `module_mm`; a text's do, since its height is fixed in
-    millimetres. A slot with no string is its reserved box.
+    (at `text_height`). A slot with no string is its reserved box.
 
     Raises:
-        InvalidValueError: If `module_mm` is not positive, `texts` is given without
-            `text_height_mm`, or a port is off the grid.
+        InvalidValueError: If `texts` is given without `text_height`, or a port is off the grid.
         UnknownNameError: If a key of `texts` is not a slot id of the symbol.
     """
-    if not module_mm > 0:
-        msg = f"module_mm is {module_mm!r}; it must be a positive number of millimetres"
+    if texts and text_height is None:
+        msg = "texts needs text_height to measure a string; pass text_height="
         raise InvalidValueError(msg)
-    if texts and text_height_mm is None:
-        msg = "texts needs text_height_mm to measure a string; pass text_height_mm="
-        raise InvalidValueError(msg)
-    height = None if text_height_mm is None else text_height_mm / module_mm
     check_texts(symbol, texts)
     turned = orient(symbol, orientation)
     body = _extent(library, body_box(turned, library.font))
     slots = {
-        s.id: _extent(library, slot_box(s, (texts or {}).get(s.id), height, library.font))
+        s.id: _extent(library, slot_box(s, (texts or {}).get(s.id), text_height, library.font))
         for s in turned.slots
     }
     ports = {

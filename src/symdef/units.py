@@ -10,6 +10,17 @@ GRID_DIVISION: float = 0.125
 DEFAULT_DIVISIONS_PER_MODULE: int = 8
 
 
+def module_error(value: object) -> str | None:
+    """Return why `value` is not a usable `module_mm`, or None; `Grid` and the loader share it."""
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        return f"module_mm {value!r} is not a number; give a number of millimetres above zero"
+    if not math.isfinite(value) or value <= 0:
+        return (
+            f"module_mm {value!r} is not above zero; give a finite number of millimetres above zero"
+        )
+    return None
+
+
 def divisions_error(value: object) -> str | None:
     """Return why `value` is not a usable `divisions_per_module`, or None."""
     if isinstance(value, bool) or not isinstance(value, int) or value < 1 or value & (value - 1):
@@ -22,21 +33,20 @@ def divisions_error(value: object) -> str | None:
 
 @dataclass(frozen=True, slots=True)
 class Grid:
-    """The drawing grid of a library: how many divisions make one module.
-
-    The size of a module in millimetres is the sheet's, never the library's; a call that needs
-    millimetres takes `module_mm` as an argument.
+    """The drawing grid of a library: the size of the module and how many divisions it has.
 
     Attributes:
+        module_mm: One module in millimetres.
         divisions_per_module: How many grid divisions make one module; a power of two, so a
             division is exact in floating point.
     """
 
+    module_mm: float = DEFAULT_MODULE_MM
     divisions_per_module: int = DEFAULT_DIVISIONS_PER_MODULE
 
     def __post_init__(self) -> None:
-        """Raise `InvalidValueError` naming the value and fix, for unusable divisions."""
-        error = divisions_error(self.divisions_per_module)
+        """Raise `InvalidValueError` naming the value and fix, for a bad module or divisions."""
+        error = module_error(self.module_mm) or divisions_error(self.divisions_per_module)
         if error:
             raise InvalidValueError(error)
 

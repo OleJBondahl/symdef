@@ -16,7 +16,7 @@ from symdef.project import _lint_findings
 from symdef.serialize import bundle_to_data, to_json
 from symdef.units import DEFAULT_GRID, Grid, on_grid, snap, to_divisions
 
-COARSE = Grid(divisions_per_module=4)
+COARSE = Grid(module_mm=5, divisions_per_module=4)
 
 
 def symbol(x):
@@ -30,7 +30,7 @@ def symbol(x):
 
 
 def test_the_default_grid_is_todays():
-    assert Grid(8) == DEFAULT_GRID
+    assert Grid(2.5, 8) == DEFAULT_GRID
     assert DEFAULT_GRID.division == 0.125
     assert COARSE.division == 0.25
 
@@ -41,7 +41,7 @@ def config(table):
 
 
 def test_library_toml_declares_the_grid():
-    parsed, findings = config("[grid]\ndivisions_per_module = 4\n")
+    parsed, findings = config("[grid]\nmodule_mm = 5\ndivisions_per_module = 4\n")
     assert findings == []
     assert parsed.grid == COARSE
 
@@ -53,19 +53,14 @@ def test_library_toml_without_a_grid_has_the_default():
 
 @pytest.mark.parametrize("divisions", [0, 3, -4, 2.5])
 def test_divisions_must_be_a_power_of_two(divisions):
-    _, findings = config(f"[grid]\ndivisions_per_module = {divisions}\n")
+    _, findings = config(f"[grid]\nmodule_mm = 5\ndivisions_per_module = {divisions}\n")
     assert findings
     assert all(m.startswith("must be") or "power of two" in m for m in findings)
 
 
-def test_a_grid_needs_its_key_and_no_others_not_even_module_mm():
-    """The module's size is the sheet's (D81): a library that still declares it is told so."""
+def test_a_grid_needs_both_keys_and_no_others():
     _, findings = config("[grid]\nmodule_mm = 5\nextra = 1\n")
-    assert findings == [
-        "missing required key 'divisions_per_module'",
-        "unknown key 'extra'",
-        "unknown key 'module_mm'",
-    ]
+    assert findings == ["missing required key 'divisions_per_module'", "unknown key 'extra'"]
 
 
 def library(grid):
@@ -74,7 +69,7 @@ def library(grid):
 
 def test_a_bundle_round_trips_a_non_default_grid():
     data = json.loads(to_json(bundle_to_data(library(COARSE))))
-    assert data["grid"] == {"divisions_per_module": 4}
+    assert data["grid"] == {"module_mm": 5, "divisions_per_module": 4}
     assert validate_bundle(data) == ()
     assert library_from_bundle(data).grid == COARSE
 
@@ -100,7 +95,7 @@ def test_the_project_lints_with_the_librarys_grid():
 
 
 def test_to_divisions_follows_the_librarys_divisions_per_module():
-    parsed, _ = config("[grid]\ndivisions_per_module = 4\n")
+    parsed, _ = config("[grid]\nmodule_mm = 5\ndivisions_per_module = 4\n")
     assert to_divisions(parsed.grid, 0.75) == 3
     assert to_divisions(DEFAULT_GRID, 0.75) == 6
     with pytest.raises(InvalidValueError, match=re.escape(repr(0.125))):
@@ -108,21 +103,25 @@ def test_to_divisions_follows_the_librarys_divisions_per_module():
 
 
 @pytest.mark.parametrize(
-    ("divisions", "named"),
+    ("args", "named"),
     [
-        (3, "divisions_per_module 3"),
-        (0, "divisions_per_module 0"),
-        (True, "divisions_per_module True"),
+        ((2.5, 3), "divisions_per_module 3"),
+        ((2.5, 0), "divisions_per_module 0"),
+        ((2.5, True), "divisions_per_module True"),
+        (("2.5", 8), "module_mm .2.5. is not a number"),
+        ((0, 8), "module_mm 0"),
+        ((-1.0, 8), "module_mm -1.0"),
+        ((float("nan"), 8), "module_mm nan"),
     ],
 )
-def test_a_grid_built_by_hand_is_checked(divisions, named):
+def test_a_grid_built_by_hand_is_checked(args, named):
     with pytest.raises(InvalidValueError, match=named):
-        Grid(divisions)
+        Grid(*args)
 
 
 def test_the_error_names_the_fix():
     with pytest.raises(InvalidValueError, match="use 1, 2, 4, 8"):
-        Grid(6)
+        Grid(2.5, 6)
 
 
 def test_snap_and_on_grid_follow_the_given_grid():
