@@ -10,7 +10,7 @@ from roundtrip import round_trips
 from symdef.boxes import slot_box
 from symdef.geometry import Arc, Circle, Direction, Line, Point, Text
 from symdef.load import parse_toml, symbol_from_data, validate
-from symdef.model import Anchor, Reference, Slot, Status, Stretch, Symbol, SymbolKind
+from symdef.model import Anchor, Centre, Reference, Slot, Status, Stretch, Symbol, SymbolKind
 from symdef.serialize import symbol_to_data
 from symdef.stretch import stretch
 
@@ -129,11 +129,24 @@ def test_a_slot_box_across_two_weighted_cuts_grows_by_both_shares():
 
 
 @pytest.mark.parametrize("side", [N, S])
-def test_a_centred_side_slot_across_a_cut_stays_at_the_middle_of_its_new_box(side):
+def test_a_side_slot_across_a_cut_keeps_its_ss17_position_and_grows_its_box(side):
     out = stretch(base(slots=(Slot("s", Point(4, 3), side, (4, 2)),)), "x", 20).slots[0]
-    box = slot_box(out)
-    assert (box.min.x, box.max.x) == (2, 6 + 2)  # x 2..6 across the first cut (share 2)
-    assert out.position.x == 5
+    assert out.position.x == 4  # not beyond the cut at 4, so it does not move
+    assert out.box == (4 + 2, 2)
+
+
+@pytest.mark.parametrize("side", [W, E])
+def test_a_w_or_e_slot_across_a_y_cut_moves_by_the_cut_shares_not_to_the_box_centre(side):
+    tall = base(
+        slots=(Slot("s", Point(0, 6), side, (3, 4)), Slot("c", Point(1, 6), Centre.C, (3, 4))),
+        cuts=(Stretch("y", 5),),  # both boxes span y 4..8 across the cut; positions lie beyond it
+    )
+    tall = replace(tall, elements=(Line(Point(0, 0), Point(0, 12)),))
+    s, c = stretch(tall, "y", 20).slots  # grown by 8
+    assert s.position.y == 6 + 8  # the cut share, as in 0.9.0
+    assert s.box == (3, 4 + 8)
+    assert c.position.y == 6 + 4  # a C slot sits at its stretched box centre
+    assert c.box == (3, 4 + 8)
 
 
 def test_a_turned_slot_grows_along_its_authored_box():
@@ -168,7 +181,7 @@ COORD = st.integers(0, 40).map(float)
     cuts=st.lists(
         st.tuples(COORD, st.integers(1, 9)), min_size=1, max_size=3, unique_by=lambda c: c[0]
     ),
-    side=st.sampled_from([E, W, N, S]),
+    side=st.sampled_from([E, W, Centre.C]),  # N and S are centred on x: see the test above
     at=COORD,
     size=st.tuples(st.integers(1, 20), st.integers(1, 20)).map(
         lambda t: (float(t[0]), float(t[1]))

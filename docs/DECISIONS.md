@@ -1201,3 +1201,14 @@ are not part of this change.
 Why: the spec is the one design document and must describe what the code does.
 Cost if wrong: revert the files; tests read only the code blocks and the rule table.
 
+## D72. A non-C slot keeps its SS17 position (0.10.1)
+
+Decided: `stretch_slot` moves the `position` of every slot but `C` by its own shift, the shares of
+the cuts it lies beyond, as in 0.9.0, and grows `box` by the difference of its edges' shifts. Only a
+`C` slot is placed at the middle of its moved edges (SS18). So a W, E, N or S box across a cut
+grows while its position stays where 0.9.0 put it; `slot_box` of such a result is centred on the
+position on the centred axis and is no longer the moved corners there. 0.10.0 re-centred every
+side, which moved the text of `marking.<port>` slots across a cut.
+Why: designer spec SS17 (position moves with the cuts it lies beyond) and SS18 (only `C` is centred);
+found by a byte check against 0.9.0.
+Cost if wrong: a non-`C` slot across a cut sits at its box centre again; revert `_place`.
