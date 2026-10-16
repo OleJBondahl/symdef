@@ -6,7 +6,8 @@ What changed in the public surface of each release: a name added, removed or mov
 
 - Added: `measure_font(regular, bold)` returning `FontMetrics`: it measures a regular and a bold TTF, given as bytes, into one advance table per `Weight`, the cap height, ascent and descent. `fonttools` is now a runtime dependency (D87).
 - Added: `[font]` in `library.toml` may give `name` and `files` (`regular`, `bold`) instead of the metrics; `symdef build` measures the files, relative to `library.toml`, into the bundle. The literal form is unchanged (D87).
-- Added: `Library.with_settings(module_mm=None, font=None, heights=None, lines=None)`, a validated replace. `font` is the two TTFs as bytes; `Grid` and `FontMetrics` run their own checks, then the rule `text-too-large` runs over every symbol and a hit raises `InvalidValueError` (D88).
+- Added: `Library.with_settings(module_mm=None, font=None, heights=None, lines=None)`, a validated replace. `font` is the two TTFs as bytes; `Grid` and `FontMetrics` run their own checks, then the check `text-outside-body` runs over every symbol and a hit raises `InvalidValueError` (D88, D90).
+- Added: the check `text-outside-body` (D90), which measures a fixed text inside its symbol's body with the library font and is run by `Library.with_settings` in place of `text-too-large`.
 - Added: `[lines]` in `library.toml` (`normal`, `thick`: millimetres) and `Library.lines`, a read-only map from `Weight` to millimetres; the bundle carries it when not empty. A wire weight with no width is a load error (D89).
 
 ## 0.12.0
