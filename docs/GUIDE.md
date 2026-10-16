@@ -484,12 +484,16 @@ assert custom.grid.module_mm == 2.0 and custom.font.name == "DejaVu Sans Condens
 
 ## Measuring in whole divisions, and drawing where it was measured
 
-`measure(symbol, orientation, library, texts=None, text_height=None)` returns a `Measure`: the body
+`measure(symbol, orientation, library, texts=None, text_height=None, attach=None)` returns a `Measure`: the body
 box, keepout box, slot boxes and ports of the symbol turned to `orientation`, as `GridBox` and
 `GridPort` values in whole divisions of `library.grid`. Boxes round outward; a port off the grid
 raises `InvalidValueError`. `to_placed_fragment(symbol, orientation, at, library, ...)` draws the
 turned symbol inside one `translate` read from a `GridPoint`, so the caller converts nothing.
 `to_fragment_mm` is listed for removal in 0.13.
+
+`attach={slot_id: symbol}` makes room for a symbol drawn at a slot, such as a contact table beside a
+coil: its keep-out box is placed at the turned slot's point and joins `slots[slot_id]` and `keepout`.
+A key that is not a slot id raises `UnknownNameError`. Build the symbol with `table(row, n, "y")`.
 
 ```python
 from symdef import GridPoint, Orientation, measure, to_placed_fragment
@@ -499,6 +503,20 @@ measured = measure(contact, Orientation.R90, library)
 assert measured.body.max.x > measured.body.min.x
 fragment = to_placed_fragment(contact, Orientation.R90, GridPoint(16, 8), library)
 assert "translate(" in fragment
+```
+
+```python
+from dataclasses import replace
+
+from symdef import Direction, Line, Point, Slot, table
+
+row = Symbol("row", SymbolKind.SYMBOL, Status.UNVERIFIED, Reference("K", "1"), (Line(Point(0, 0), Point(2, 1)),))
+coil = replace(row, name="coil", elements=(Line(Point(0, 0), Point(4, 0)),),
+               slots=(Slot("table", Point(4, 1), Direction.S, (1, 1)),))
+plain = measure(coil, Orientation.R0, library)
+with_table = measure(coil, Orientation.R0, library, attach={"table": table(row, 3, "y")})
+assert with_table.slots["table"].max.y > plain.slots["table"].max.y
+assert with_table.keepout.max.y == with_table.slots["table"].max.y
 ```
 
 Every error symdef raises derives from `SymdefError` (`InvalidValueError`, `UnknownNameError`,
