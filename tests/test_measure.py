@@ -15,7 +15,9 @@ from symdef.model import Library, Port, Reference, Slot, Status, Symbol, SymbolK
 from symdef.orient import Orientation, orient
 from symdef.units import Grid
 
-HEIGHT = 2  # with FONT "ABiAB" is 5.0 wide
+HEIGHT = 2  # modules; with FONT "ABiAB" is 5.0 wide
+MM = 2.5  # the sheet scale of these tests
+HEIGHT_MM = HEIGHT * MM
 
 
 def build(*elements, slots=(), ports=()):
@@ -65,7 +67,7 @@ def grid_box(box, n):
 def test_measure_is_orient_then_the_boxes_divided_and_rounded_up(orientation):
     texts = {"tag": "ABiAB"}
     turned = orient(WIDE, orientation)
-    result = measure(WIDE, orientation, EIGHT, texts, HEIGHT)
+    result = measure(WIDE, orientation, EIGHT, module_mm=MM, texts=texts, text_height_mm=HEIGHT_MM)
     slot = turned.slots[0]
     assert result.body == grid_box(body_box(turned, FONT), 8)
     assert result.slots == {"tag": grid_box(slot_box(slot, "ABiAB", HEIGHT, FONT), 8)}
@@ -77,8 +79,10 @@ def test_measure_is_orient_then_the_boxes_divided_and_rounded_up(orientation):
 
 
 def test_the_text_widens_the_slot_beyond_the_reserved_box():
-    plain = measure(WIDE, Orientation.R0, EIGHT)
-    texted = measure(WIDE, Orientation.R0, EIGHT, {"tag": "ABiAB"}, HEIGHT)
+    plain = measure(WIDE, Orientation.R0, EIGHT, module_mm=MM)
+    texted = measure(
+        WIDE, Orientation.R0, EIGHT, module_mm=MM, texts={"tag": "ABiAB"}, text_height_mm=HEIGHT_MM
+    )
     assert (
         texted.slots["tag"].width == 43
     )  # 5.3 modules of text from the slot point, max rounded up
@@ -87,8 +91,8 @@ def test_the_text_widens_the_slot_beyond_the_reserved_box():
 
 @pytest.mark.parametrize("orientation", list(Orientation))
 def test_four_divisions_per_module_halves_every_value(orientation):
-    fine = measure(QUARTERS, orientation, EIGHT)
-    coarse = measure(QUARTERS, orientation, FOUR)
+    fine = measure(QUARTERS, orientation, EIGHT, module_mm=MM)
+    coarse = measure(QUARTERS, orientation, FOUR, module_mm=MM)
 
     def half(box):
         return GridBox(
@@ -105,40 +109,61 @@ def test_four_divisions_per_module_halves_every_value(orientation):
 
 def test_a_negative_min_rounds_outward_not_toward_zero():
     off = build(Line(Point(-0.3, -0.3), Point(0.3, 0.3)))
-    assert measure(off, Orientation.R0, EIGHT).body == GridBox(GridPoint(-3, -3), GridPoint(3, 3))
+    assert measure(off, Orientation.R0, EIGHT, module_mm=MM).body == GridBox(
+        GridPoint(-3, -3), GridPoint(3, 3)
+    )
 
 
 def test_a_port_off_the_grid_raises_naming_the_value():
     off = replace(WIDE, ports=(Port("a", Point(0.3, 2), Direction.S),))
     with pytest.raises(InvalidValueError, match=r"port 'a'.*0\.3"):
-        measure(off, Orientation.R0, EIGHT)
+        measure(off, Orientation.R0, EIGHT, module_mm=MM)
 
 
 def test_with_no_texts_a_slot_is_its_reserved_box():
-    result = measure(WIDE, Orientation.R0, EIGHT)
+    result = measure(WIDE, Orientation.R0, EIGHT, module_mm=MM)
     assert result.slots["tag"] == grid_box(slot_box(WIDE.slots[0]), 8)
     assert result.keepout == grid_box(keepout_box(WIDE, FONT), 8)
 
 
 def test_texts_need_a_height_and_a_slot_to_name():
-    with pytest.raises(InvalidValueError, match="text_height"):
-        measure(WIDE, Orientation.R0, EIGHT, {"tag": "A"})
+    with pytest.raises(InvalidValueError, match="text_height_mm"):
+        measure(WIDE, Orientation.R0, EIGHT, module_mm=MM, texts={"tag": "A"})
     with pytest.raises(UnknownNameError, match="nope"):
-        measure(WIDE, Orientation.R0, EIGHT, {"nope": "A"}, HEIGHT)
+        measure(
+            WIDE, Orientation.R0, EIGHT, module_mm=MM, texts={"nope": "A"}, text_height_mm=HEIGHT_MM
+        )
 
 
 def test_a_bold_text_is_measured_with_the_bold_table():
     regular = build(Text("AB", Point(0, 0), 2, Weight.NORMAL))
     bold = build(Text("AB", Point(0, 0), 2, Weight.THICK))
-    narrow = measure(regular, Orientation.R0, EIGHT).body
-    wide = measure(bold, Orientation.R0, EIGHT).body
+    narrow = measure(regular, Orientation.R0, EIGHT, module_mm=MM).body
+    wide = measure(bold, Orientation.R0, EIGHT, module_mm=MM).body
     assert (narrow.width, wide.width) == (up(2.4, 8), up(2.74, 8))
 
 
 def test_the_value_is_read_only_and_a_library_with_no_font_still_measures():
-    result = measure(WIDE, Orientation.R0, replace(EIGHT, font=None))
+    result = measure(WIDE, Orientation.R0, replace(EIGHT, font=None), module_mm=MM)
     assert isinstance(result, Measure)
     with pytest.raises(TypeError):
         result.slots["x"] = result.body  # ty: ignore[invalid-assignment]  # frozen on purpose
     with pytest.raises(TypeError):
         result.ports["x"] = None  # ty: ignore[invalid-assignment]  # frozen on purpose
+
+
+def test_module_mm_scales_a_text_but_not_the_body_or_ports():
+    """A text has a fixed height in mm, so a bigger module makes it fewer divisions wide."""
+    texts = {"tag": "ABiAB"}
+    small = measure(WIDE, Orientation.R0, EIGHT, module_mm=2.5, texts=texts, text_height_mm=5.0)
+    large = measure(WIDE, Orientation.R0, EIGHT, module_mm=5.0, texts=texts, text_height_mm=5.0)
+    assert small.ports == large.ports
+    assert small.body.max.y == large.body.max.y
+    assert large.slots["tag"].width < small.slots["tag"].width
+    assert abs(large.slots["tag"].width - small.slots["tag"].width / 2) <= 8  # the 1.5 reserved
+
+
+def test_module_mm_must_be_positive():
+    for bad in (0, -2.5):
+        with pytest.raises(InvalidValueError, match="module_mm"):
+            measure(WIDE, Orientation.R0, EIGHT, module_mm=bad)

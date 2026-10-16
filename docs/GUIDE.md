@@ -407,7 +407,6 @@ loaded `Library` (`Library.font`, `Library.grid`).
 
 ```toml
 [grid]
-module_mm = 2.5            # above zero
 divisions_per_module = 8   # a power of two
 
 [font]
@@ -436,8 +435,10 @@ the whole divisions of an on-grid value and raises `InvalidValueError` naming an
 `from_divisions(grid, n)` is the reverse; `ceil_divisions(grid, v)` rounds a measured extent up to
 whole divisions, ignoring float noise of 1e-9. `lint` takes the grid to check against. `snap(v, grid)`
 and `on_grid(v, tol, grid)` take it as a trailing argument; with none they use `DEFAULT_GRID`, so a call
-without a grid gives the output it always gave. `Grid(module_mm, divisions_per_module)` raises
-`InvalidValueError` for a module not above zero or divisions not a power of two, naming the value and the fix.
+without a grid gives the output it always gave. `Grid(divisions_per_module)` raises
+`InvalidValueError` for divisions that are not a power of two, naming the value and the fix. The size of a
+module in millimetres is the sheet's, so `[grid]` and `Grid` do not hold it; `measure`, `to_placed_fragment`
+and the other mm calls take `module_mm`.
 
 ## Turning and small accessors
 

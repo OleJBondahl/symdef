@@ -49,7 +49,7 @@ from symdef.model import (
     Vocabulary,
     WireStyle,
 )
-from symdef.units import DEFAULT_GRID, Grid, divisions_error, module_error
+from symdef.units import DEFAULT_GRID, Grid, divisions_error
 
 # Every number in a file is finite with an absolute value of at most this (1e6 M is 2.5 km).
 _LIMIT = 1_000_000
@@ -610,13 +610,6 @@ def font_from_data(data: Mapping[str, Any]) -> FontMetrics:
     )
 
 
-def _module_mm(value: object, location: str) -> list[Finding]:
-    """Check `module_mm` by the rule `Grid` itself applies, once it is a number."""
-    found = _number(value, location)
-    message = None if found else module_error(value)
-    return found or ([_finding(location, message)] if message else [])
-
-
 def _divisions(value: object, location: str) -> list[Finding]:
     """Check `divisions_per_module` by the rule `Grid` itself applies, once it is an integer."""
     found = _integer(value, location)
@@ -624,15 +617,12 @@ def _divisions(value: object, location: str) -> list[Finding]:
     return found or ([_finding(location, message)] if message else [])
 
 
-_GRID = _table(
-    {"module_mm": _module_mm, "divisions_per_module": _divisions},
-    required=("module_mm", "divisions_per_module"),
-)
+_GRID = _table({"divisions_per_module": _divisions}, required=("divisions_per_module",))
 
 
 def grid_from_data(data: Mapping[str, Any]) -> Grid:
     """Build the grid of a checked `[grid]` table or a bundle's `grid` object."""
-    return Grid(data["module_mm"], int(data["divisions_per_module"]))
+    return Grid(int(data["divisions_per_module"]))
 
 
 _BUNDLE = _table(
@@ -735,9 +725,8 @@ def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
     `style`) give the wire styles `wire` draws; an absent list is empty. The optional `[font]` table
     (`name`, `units_per_em`, `cap_height`, `ascent`, `descent`, `default_advance` and
     `[font.advances.normal]` and `[font.advances.thick]`, each one number per character) is the
-    font text is measured with. The optional `[grid]` table (`module_mm`,
-    `divisions_per_module`, a power of
-    two) is the drawing grid; without it the grid is 2.5 mm and 8 divisions.
+    font text is measured with. The optional `[grid]` table (`divisions_per_module`, a
+    power of two) is the drawing grid; without it the grid is 8 divisions.
 
     Args:
         text: The file's TOML text.

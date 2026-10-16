@@ -198,7 +198,7 @@ def bundle_to_data(library: Library) -> dict[str, Any]:
 
     A library with wire styles adds the `wires` array; one with a font adds the `font` object
     (the font's fields and an `advances` object); a grid other than the default adds the `grid`
-    object (`module_mm`, `divisions_per_module`); one with none of these has none of the keys.
+    object (`divisions_per_module`); one with none of these has none of the keys.
     """
     data: dict[str, Any] = {
         "schema": _SCHEMA_VERSION,
@@ -215,10 +215,7 @@ def bundle_to_data(library: Library) -> dict[str, Any]:
     if library.font is not None:
         data["font"] = _font(library.font)
     if library.grid != DEFAULT_GRID:
-        data["grid"] = {
-            "module_mm": library.grid.module_mm,
-            "divisions_per_module": library.grid.divisions_per_module,
-        }
+        data["grid"] = {"divisions_per_module": library.grid.divisions_per_module}
     return data
 
 
