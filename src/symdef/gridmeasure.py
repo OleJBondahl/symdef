@@ -4,9 +4,9 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
 
-from symdef.boxes import body_box, keepout_box, slot_box
+from symdef.boxes import body_box, keepout_box, side_box, slot_box
 from symdef.errors import InvalidValueError
-from symdef.geometry import Box, Direction, Point
+from symdef.geometry import Box, Direction
 from symdef.gridtypes import GridBox, GridPoint, GridPort
 from symdef.model import Library, Slot, Symbol
 from symdef.orient import Orientation, orient
@@ -68,8 +68,9 @@ def _slot_with_attached(
     if not attach or slot.id not in attach:
         return box
     inner = keepout_box(attach[slot.id], library.font)
-    x, y = slot.position.x, slot.position.y
-    placed = Box(Point(x + inner.min.x, y + inner.min.y), Point(x + inner.max.x, y + inner.max.y))
+    placed = side_box(
+        slot.position, slot.side, inner.max.x - inner.min.x, inner.max.y - inner.min.y
+    )
     return Box.union(box, placed)
 
 
@@ -88,9 +89,9 @@ def measure(  # noqa: PLR0913 - the ruled signature: symbol, view, library and t
     caller never rounds; ports are positions and must sit on the grid. Text is measured with
     `library.font`: the body's own text, and a slot's string when `texts` has one for its id
     (at `text_height`). A slot with no string is its reserved box. A symbol in `attach` under a
-    slot id has its keep-out box placed with its origin at the turned slot's point and united
-    with that slot's box, so `slots[id]` and `keepout` hold it. The attached symbol is not
-    turned, as a slot's box is not.
+    slot id has its keep-out box placed at the turned slot's point and side, as a slot's reserved
+    box is, and united with that slot's box, so `slots[id]` and `keepout` hold it. The attached
+    box is never rotated, as a slot's box is not.
 
     Raises:
         InvalidValueError: If `texts` is given without `text_height`, or a port is off the grid.

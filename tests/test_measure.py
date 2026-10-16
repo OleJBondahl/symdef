@@ -153,35 +153,50 @@ COIL = build(
 ROW = build(Line(Point(0, 0), Point(2, 1)))
 
 
-def _expected_attached(orientation, attached):
-    """The turned slot box united with the attached keep-out at the turned slot's point."""
-    slot = orient(COIL, orientation).slots[0]
-    inner = keepout_box(attached)
-    x, y = slot.position.x, slot.position.y
-    moved = (x + inner.min.x, y + inner.min.y, x + inner.max.x, y + inner.max.y)
-    reserved = slot_box(slot)
-    return GridBox(
-        GridPoint(-up(-min(reserved.min.x, moved[0]), 8), -up(-min(reserved.min.y, moved[1]), 8)),
-        GridPoint(up(max(reserved.max.x, moved[2]), 8), up(max(reserved.max.y, moved[3]), 8)),
-    )
+# The attached 2 x 2 keep-out hangs on the turned slot's side, as a slot's reserved box does.
+# Slot point and turned side per view, from orient(COIL): R0 (4, 1) S; R90 (-1, 4) W;
+# R180 (-4, -1) N; R270 (1, -4) E. Boxes are by hand in 1/8 divisions.
+ATTACHED_SLOT_BOX = {
+    Orientation.R0: GridBox(GridPoint(24, 8), GridPoint(40, 24)),  # S: x 3..5, y 1..3
+    Orientation.R90: GridBox(GridPoint(-24, 24), GridPoint(-8, 40)),  # W: x -3..-1, y 3..5
+    Orientation.R180: GridBox(GridPoint(-40, -24), GridPoint(-24, -8)),  # N: x -5..-3, y -3..-1
+    Orientation.R270: GridBox(GridPoint(8, -40), GridPoint(24, -24)),  # E: x 1..3, y -5..-3
+}
 
 
-@pytest.mark.parametrize("attached", [table(ROW, 2, "y"), table(table(ROW, 2, "y"), 3, "y")])
-@pytest.mark.parametrize("orientation", list(Orientation))
-def test_an_attached_table_grows_the_slot_box_turned_with_the_view(orientation, attached):
-    result = measure(COIL, orientation, EIGHT, attach={"table": attached})
-    assert result.slots["table"] == _expected_attached(orientation, attached)
+@pytest.mark.parametrize("orientation", list(ATTACHED_SLOT_BOX))
+def test_an_attached_table_hangs_on_the_turned_slots_side(orientation):
+    result = measure(COIL, orientation, EIGHT, attach={"table": table(ROW, 2, "y")})
+    assert result.slots["table"] == ATTACHED_SLOT_BOX[orientation]
     assert result.keepout == GridBox.union(result.body, *result.slots.values())
 
 
-def test_attached_box_values_at_r0():
-    two = measure(COIL, Orientation.R0, EIGHT, attach={"table": table(ROW, 2, "y")})
-    assert two.slots["table"] == GridBox(GridPoint(28, 8), GridPoint(48, 24))
+def test_a_taller_attached_table_grows_away_from_the_point():
     three = measure(
         COIL, Orientation.R0, EIGHT, attach={"table": table(table(ROW, 2, "y"), 3, "y")}
     )
-    assert three.slots["table"] == GridBox(GridPoint(28, 8), GridPoint(48, 56))
-    assert two.keepout.max == GridPoint(48, 24)
+    assert three.slots["table"] == GridBox(GridPoint(24, 8), GridPoint(40, 56))
+    assert three.keepout.max == GridPoint(40, 56)
+
+
+EDGE = build(
+    Line(Point(0, 0), Point(4, 0)),
+    Line(Point(0, 0), Point(0, 2)),
+    slots=(Slot("table", Point(2, 2), Direction.S, (1, 1)),),
+)
+
+
+def _overlap(a, b):
+    return min(a.max.x, b.max.x) > max(a.min.x, b.min.x) and min(a.max.y, b.max.y) > max(
+        a.min.y, b.min.y
+    )
+
+
+@pytest.mark.parametrize("orientation", list(Orientation))
+def test_the_attached_table_sits_outside_the_body(orientation):
+    result = measure(EDGE, orientation, EIGHT, attach={"table": table(ROW, 2, "y")})
+    assert result.slots["table"].max.x - result.slots["table"].min.x >= 16
+    assert not _overlap(result.slots["table"], result.body)
 
 
 def test_no_attach_changes_nothing():
