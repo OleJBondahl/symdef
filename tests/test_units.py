@@ -35,7 +35,7 @@ def test_on_grid():
     assert on_grid(0.3, tol=0.1)
 
 
-COARSE = Grid(divisions_per_module=4)
+COARSE = Grid(module_mm=5, divisions_per_module=4)
 
 
 @pytest.mark.parametrize("grid", [DEFAULT_GRID, COARSE])
