@@ -2,7 +2,13 @@
 
 from symdef._version import LIBRARY_VERSION
 from symdef.boxes import body_box, keepout_box, slot_box, slots_box
-from symdef.errors import GraphicalSymbolsError, LibraryError, UnknownSymbolError
+from symdef.errors import (
+    InvalidValueError,
+    LibraryError,
+    SymdefError,
+    UnknownNameError,
+    UnknownSymbolError,
+)
 from symdef.files import load_bundle, load_library, stale_build, write_build
 from symdef.font import FontMetrics, text_width
 from symdef.geometry import (
@@ -79,8 +85,8 @@ __all__ = [
     "Fill",
     "Finding",
     "FontMetrics",
-    "GraphicalSymbolsError",
     "Grid",
+    "InvalidValueError",
     "Library",
     "LibraryConfig",
     "LibraryError",
@@ -99,8 +105,10 @@ __all__ = [
     "Style",
     "Symbol",
     "SymbolKind",
+    "SymdefError",
     "Text",
     "TextPlacement",
+    "UnknownNameError",
     "UnknownSymbolError",
     "Vocabulary",
     "Weight",

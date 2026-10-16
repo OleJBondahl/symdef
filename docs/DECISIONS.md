@@ -1322,3 +1322,21 @@ mappings (`MappingProxyType`). This replaces D75's "`snap` stays unchanged".
 Why: a library's grid is data, so every grid function must read it; a grid that is built by hand
 must not be able to hold an inexact division; frozen records hold no mutable contents.
 Cost if wrong: additive for callers; drop the trailing argument to revert.
+
+## D80: symdef raises its own errors
+
+Decided: the base error is `SymdefError` (renamed from `GraphicalSymbolsError`, no alias). Under it
+sit `InvalidValueError` (a bad argument or malformed data; replaces every `ValueError` raised by
+symdef), `UnknownNameError` (a name not in the set it was looked up in; replaces every `KeyError`),
+`UnknownSymbolError` and `LibraryError`. They are plain subclasses: none inherits the builtin it
+replaces, so `except ValueError` no longer catches symdef. A message gives the cause, the value
+and the valid values or the fix. No `FileError`: symdef raises no `OSError` itself, the reads and
+writes of `files` let pathlib's own propagate and the docstrings say so; `project.init` keeps its
+`FileExistsError`, the operating system's own word for an existing folder. `to_fragment_mm`
+raises `UnknownNameError` (not a bare dict `KeyError`) for a weight missing from `weights_mm`.
+`tests/test_errors.py` walks the package with `ast` and fails on any `raise ValueError`,
+`KeyError` or `OSError`. The loader's own `except ValueError` clauses around standard-library
+parsers stay.
+Why: one base to catch, named causes, and a clean break while there are no other callers to keep.
+Cost if wrong: a consumer that caught the builtins must catch `SymdefError` or the subclass; add a
+second base to a class to revert one.

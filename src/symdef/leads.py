@@ -3,6 +3,7 @@
 from collections.abc import Iterable
 from dataclasses import replace
 
+from symdef.errors import UnknownNameError
 from symdef.geometry import Line
 from symdef.model import Symbol
 
@@ -15,12 +16,15 @@ def leads(symbol: Symbol, ports: Iterable[str]) -> Symbol:
     `table` or `repeat`.
 
     Raises:
-        KeyError: A listed id is not a port of the symbol; the key names it.
+        UnknownNameError: A listed id is not a port of the symbol; the key names it.
     """
     wired = frozenset(ports)
     known = {port.id for port in symbol.ports}
     for name in sorted(wired - known):
-        raise KeyError(name)
+        msg = (
+            f"{name!r} is not a port of the symbol; its ports are {sorted(known)}; list only those"
+        )
+        raise UnknownNameError(msg)
     kept = tuple(
         e for e in symbol.elements if not (isinstance(e, Line) and e.port not in (None, *wired))
     )

@@ -228,7 +228,7 @@ millimetres. Use it when a drawing must show each size exactly as given. `to_svg
 A symbol whose size is decided at placement time carries a cut line, `[[stretch]]` with `axis`
 (`x` or `y`) and `at` (D53). `stretch(symbol, axis, length, offsets=None)` moves every point
 beyond a cut: element points, ports, anchors and slot corners. A line or polyline across a cut gets
-longer; a circle, arc or text across any cut raises `ValueError`, and the lint rule `stretch-cut`
+longer; a circle, arc or text across any cut raises `InvalidValueError`, and the lint rule `stretch-cut`
 reports it first (D55). `offsets`
 puts named ports, with their leads and `marking.<port>` slots, at coordinates along the axis. The
 result is an ordinary symbol without that axis's stretch, so `orient` and `to_fragment` come
@@ -292,7 +292,7 @@ assert body_box(cores).width == 128  # the head spans the four rows
 
 A symbol set declares wire styles in `library.toml` as `[[wire]]` with `id`, `weight` (`normal` or
 `thick`) and `style` (`solid` or `dashed`). `wire(library, style_id, points)` returns an
-element-kind symbol of one open polyline in that style; an unknown id raises `KeyError`. The
+element-kind symbol of one open polyline in that style; an unknown id raises `UnknownNameError`. The
 resolved bundle carries the styles, so a library read with `load_bundle` can draw wires (D56).
 
 ```python
@@ -320,7 +320,7 @@ assert 'fill="#cfe8ff"' in to_fragment(tinted, tint="#cfe8ff")
 
 A symbol's leads are the lines bound to a port with `port = "..."`. `leads(symbol, ports)` keeps
 the leads of the ports you name and drops the rest, so an unwired port draws no stub. An id the
-symbol does not hold raises `KeyError`; after `table` or `repeat` the ids carry their prefix
+symbol does not hold raises `UnknownNameError`; after `table` or `repeat` the ids carry their prefix
 (`1.a`). The toolkit knows no net: you decide which ports are wired (D59).
 
 ```python
@@ -332,7 +332,7 @@ assert [e.port for e in wired.elements if isinstance(e, Line) and e.port] == ["1
 
 A line, polyline or arc may say `style = "dash_dot"`. `to_fragment` draws it with a dash of 1 M,
 a gap of 0.25 M, a dot of 0.0625 M and a gap of 0.25 M; `to_fragment_mm` takes the four lengths
-in millimetres as `dash_dot_mm` and raises `ValueError` when a dash-dot element is drawn
+in millimetres as `dash_dot_mm` and raises `InvalidValueError` when a dash-dot element is drawn
 without it (D60).
 
 `to_fragment(symbol, muted="#888")` and `to_fragment_mm(..., muted="#888")` draw a symbol as not
@@ -386,15 +386,17 @@ elements = [
 for each slot, by slot id, after the symbol's elements. The slot's `side` sets the alignment
 and a slot with `turn = true` reads bottom-up. A slot side is where text sits, and a port side is where a wire leaves. Keeping `C` out of `Direction` means a port can never be `C`. The side `C` centres the string on the slot point, and its box is centred on it too (D68). symdef never measures, shrinks or wraps a string:
 `to_fragment_mm` draws at your `font_mm`, and `to_fragment` sizes to the box. An empty string draws
-nothing; an id that is no slot raises `KeyError`. `required_slots` (the entries `lint` takes)
-makes a missing string a `ValueError`, and the check runs only when `texts` is given (D63 to D65).
+nothing; an id that is no slot raises `UnknownNameError`. `required_slots` (the entries `lint` takes)
+makes a missing string an `InvalidValueError`, and the check runs only when `texts` is given (D63 to D65).
 
 ```python
+from symdef import InvalidValueError
+
 tagged = to_fragment(card, texts={"tag": "-A1", "marking.1": "1"})
 assert tagged.count("<text") == 2
 try:
     to_fragment(card, texts={"tag": "-A1"}, required_slots=("tag", "marking.<port>"))
-except ValueError as error:
+except InvalidValueError as error:
     assert "marking.1" in str(error)
 ```
 
@@ -428,12 +430,12 @@ font)` measure with it. `slot_text(slot, text, height, font)` returns a `TextPla
 turned)`: where the string sits for the slot's side.
 
 With no `[grid]` the grid is `DEFAULT_GRID` (2.5 mm, 8 divisions). `to_divisions(grid, v)` returns
-the whole divisions of an on-grid value and raises `ValueError` naming an off-grid one;
+the whole divisions of an on-grid value and raises `InvalidValueError` naming an off-grid one;
 `from_divisions(grid, n)` is the reverse; `ceil_divisions(grid, v)` rounds a measured extent up to
 whole divisions, ignoring float noise of 1e-9. `lint` takes the grid to check against. `snap(v, grid)`
 and `on_grid(v, tol, grid)` take it as a trailing argument; with none they use `DEFAULT_GRID`, so a call
 without a grid gives the output it always gave. `Grid(module_mm, divisions_per_module)` raises
-`ValueError` for a module not above zero or divisions not a power of two, naming the value and the fix.
+`InvalidValueError` for a module not above zero or divisions not a power of two, naming the value and the fix.
 
 ## Turning and small accessors
 

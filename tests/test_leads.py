@@ -4,6 +4,7 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
+from symdef.errors import UnknownNameError
 from symdef.geometry import Direction, Line, Point, Text
 from symdef.leads import leads
 from symdef.model import Port, Reference, Status, Symbol, SymbolKind
@@ -51,7 +52,7 @@ def test_a_table_row_is_named_by_its_prefixed_id():
 
 
 def test_an_unknown_id_raises_key_error_naming_it():
-    with pytest.raises(KeyError, match="nope"):
+    with pytest.raises(UnknownNameError, match="nope"):
         leads(device(), ("a", "nope"))
 
 

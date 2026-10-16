@@ -8,6 +8,7 @@ from jsonschema import Draft202012Validator
 from roundtrip import round_trips
 
 from symdef import lint
+from symdef.errors import InvalidValueError
 from symdef.geometry import Arc, Line, Point, Polyline, Style, Weight
 from symdef.load import parse_config, parse_toml, symbol_from_data, validate
 from symdef.model import Library, LibraryConfig, Reference, Status, Symbol, SymbolKind, WireStyle
@@ -94,7 +95,7 @@ def test_millimetres_draw_the_callers_four_numbers():
 
 
 def test_millimetres_without_the_keyword_raise_naming_it():
-    with pytest.raises(ValueError, match="dash_dot_mm"):
+    with pytest.raises(InvalidValueError, match="dash_dot_mm"):
         mm(three())
 
 

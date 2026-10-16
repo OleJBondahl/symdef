@@ -3,6 +3,8 @@
 import math
 from dataclasses import dataclass
 
+from symdef.errors import InvalidValueError
+
 DEFAULT_MODULE_MM: float = 2.5
 GRID_DIVISION: float = 0.125
 DEFAULT_DIVISIONS_PER_MODULE: int = 8
@@ -43,10 +45,10 @@ class Grid:
     divisions_per_module: int = DEFAULT_DIVISIONS_PER_MODULE
 
     def __post_init__(self) -> None:
-        """Raise `ValueError`, naming the value and the fix, for an unusable module or divisions."""
+        """Raise `InvalidValueError` naming the value and fix, for a bad module or divisions."""
         error = module_error(self.module_mm) or divisions_error(self.divisions_per_module)
         if error:
-            raise ValueError(error)
+            raise InvalidValueError(error)
 
     @property
     def division(self) -> float:
@@ -85,7 +87,7 @@ def to_divisions(grid: Grid, v: float) -> int:
     n = v * grid.divisions_per_module
     if not math.isfinite(n) or abs(n - round(n)) > _DIVISION_TOLERANCE:
         msg = f"{v!r} is not on the grid of {grid.divisions_per_module} divisions per module"
-        raise ValueError(msg)
+        raise InvalidValueError(msg)
     return round(n)
 
 
