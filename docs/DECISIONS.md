@@ -1331,11 +1331,12 @@ symdef), `UnknownNameError` (a name not in the set it was looked up in; replaces
 `UnknownSymbolError` and `LibraryError`. They are plain subclasses: none inherits the builtin it
 replaces, so `except ValueError` no longer catches symdef. A message gives the cause, the value
 and the valid values or the fix. No `FileError`: symdef raises no `OSError` itself, the reads and
-writes of `files` let pathlib's own propagate and the docstrings say so; `project.init` keeps its
-`FileExistsError`, the operating system's own word for an existing folder. `to_fragment_mm`
+writes of `files` let pathlib's own propagate and the docstrings say so; `project.init` raises
+`InvalidValueError` for an existing file (review round 1; it first kept `FileExistsError`). The
+`OSError` that `write_build` and `stale_build` let propagate (disk errors) is a documented exception. `to_fragment_mm`
 raises `UnknownNameError` (not a bare dict `KeyError`) for a weight missing from `weights_mm`.
-`tests/test_errors.py` walks the package with `ast` and fails on any `raise ValueError`,
-`KeyError` or `OSError`. The loader's own `except ValueError` clauses around standard-library
+`tests/test_errors.py` walks the package with `ast` and fails on a raise of any builtin
+exception class. The loader's own `except ValueError` clauses around standard-library
 parsers stay.
 Why: one base to catch, named causes, and a clean break while there are no other callers to keep.
 Cost if wrong: a consumer that caught the builtins must catch `SymdefError` or the subclass; add a

@@ -1,6 +1,7 @@
 """symdef's own errors: each class from a real call, and no builtin raise left in the package."""
 
 import ast
+import builtins
 from pathlib import Path
 
 import pytest
@@ -101,14 +102,20 @@ def test_svg_mm_raises_the_domain_errors():
         )
 
 
+BUILTIN_ERRORS = frozenset(
+    name
+    for name, obj in vars(builtins).items()
+    if isinstance(obj, type) and issubclass(obj, BaseException)
+)
+
+
 def raise_sites(source: str) -> list[str]:
-    """Return the builtin errors a source raises by name (ValueError, KeyError, OSError)."""
-    banned = {"ValueError", "KeyError", "OSError"}
+    """Return the builtin exception classes a source raises by name."""
     found = []
     for node in ast.walk(ast.parse(source)):
         if isinstance(node, ast.Raise) and node.exc is not None:
             call = node.exc.func if isinstance(node.exc, ast.Call) else node.exc
-            if isinstance(call, ast.Name) and call.id in banned:
+            if isinstance(call, ast.Name) and call.id in BUILTIN_ERRORS:
                 found.append(f"{call.id}@{node.lineno}")
     return found
 
@@ -119,4 +126,11 @@ def test_no_module_raises_a_builtin_error():
 
 
 def test_the_gate_can_fail():
-    assert raise_sites("raise ValueError('x')\nraise KeyError\n") == ["ValueError@1", "KeyError@2"]
+    assert raise_sites(
+        "raise ValueError('x')\nraise KeyError\nraise FileExistsError('y')\nraise TypeError\n"
+    ) == [
+        "ValueError@1",
+        "KeyError@2",
+        "FileExistsError@3",
+        "TypeError@4",
+    ]

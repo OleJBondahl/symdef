@@ -5,7 +5,7 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
-from symdef.errors import LibraryError
+from symdef.errors import InvalidValueError, LibraryError
 from symdef.model import Finding
 from symdef.project import build, check, init
 
@@ -22,7 +22,7 @@ def _report(findings: Sequence[Finding]) -> None:
 def _init(root: Path) -> int:
     try:
         written = init(root)
-    except FileExistsError as error:
+    except InvalidValueError as error:
         sys.stderr.write(f"symdef: {error}\n")
         return 1
     sys.stdout.write("".join(f"wrote {p}\n" for p in written))
