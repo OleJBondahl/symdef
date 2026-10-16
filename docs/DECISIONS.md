@@ -1465,10 +1465,7 @@ replaced library. `font` is the pair of TTF bytes, measured by `measure_font`; t
 height or width must be a number above zero, a wire weight needs a width, and then the rule
 `text-outside-body` runs over every symbol of the result (D90, which replaced `text-too-large` here) and a hit raises
 `InvalidValueError` naming the symbol. The logic is the free function `symdef.settings.with_settings`; the method delegates
-through a deferred import because `settings` imports `model`. Concern, recorded as the spec says:
-`text-too-large` compares a text's `height` with 1 M and reads neither the font nor the grid, so a
-replaced font cannot raise it today. The run is a guard on what the library holds; the designer
-rules whether the rule should measure with the font.
+through a deferred import because `settings` imports `model`. The concern that `text-too-large` reads no font was ruled in D90: `text-outside-body` measures with the font.
 Why: spec SETTINGS ST4.
 Cost if wrong: additive; the font-aware rule would be a lint-rule change in a later release.
 
