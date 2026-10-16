@@ -289,6 +289,25 @@ class Library:
         """Copy `lines` into a read-only mapping."""
         object.__setattr__(self, "lines", MappingProxyType(dict(self.lines)))
 
+    def with_settings(
+        self,
+        *,
+        module_mm: float | None = None,
+        font: tuple[bytes, bytes] | None = None,
+        heights: Mapping[str, float] | None = None,
+        lines: Mapping[Weight, float] | None = None,
+    ) -> Library:
+        """Return this library with a validated replace of its grid module, font, heights, lines.
+
+        See `symdef.settings.with_settings`; `font` is the bytes of a regular and a bold TTF.
+
+        Raises:
+            InvalidValueError: If a value is unusable or a symbol's text is too large afterwards.
+        """
+        from symdef.settings import with_settings  # deferred: settings imports this module
+
+        return with_settings(self, module_mm=module_mm, font=font, heights=heights, lines=lines)
+
     def get(self, number: str) -> Symbol:
         """Return the symbol with this reference number.
 
