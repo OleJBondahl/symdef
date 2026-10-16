@@ -17,6 +17,7 @@ from symdef.geometry import (
     arc_sweep,
 )
 from symdef.model import Centre, Slot, Symbol
+from symdef.slottext import text_box
 
 _AXIS_ANGLES = (0, 90, 180, 270)
 _FULL_TURN = 360
@@ -80,13 +81,8 @@ def body_box(symbol: Symbol, font: FontMetrics | None = None) -> Box:
     return _bounding(tuple(p for e in symbol.elements for p in _extent_points(e, font)))
 
 
-def slot_box(slot: Slot) -> Box:
-    """Return the box a slot reserves: it grows from the slot point towards its side.
-
-    E and W grow horizontally and are vertically centred; N grows up and S grows down and both
-    are horizontally centred; C is centred on the point both ways. The box is never rotated; only
-    the point and side are.
-    """
+def _reserved_box(slot: Slot) -> Box:
+    """Return the box a slot reserves; `slot_box` documents its placement."""
     x, y = slot.position.x, slot.position.y
     w, h = slot.box
     match slot.side:
@@ -100,6 +96,35 @@ def slot_box(slot: Slot) -> Box:
             return Box(Point(x - w / 2, y), Point(x + w / 2, y + h))
         case Centre.C:
             return Box(Point(x - w / 2, y - h / 2), Point(x + w / 2, y + h / 2))
+
+
+def slot_box(
+    slot: Slot,
+    text: str | None = None,
+    height: float | None = None,
+    font: FontMetrics | None = None,
+) -> Box:
+    """Return the box a slot reserves: it grows from the slot point towards its side.
+
+    E and W grow horizontally and are vertically centred; N grows up and S grows down and both
+    are horizontally centred; C is centred on the point both ways. The box is never rotated; only
+    the point and side are.
+
+    With a `text` the box also holds that string drawn at text height `height` (`slot_text`
+    places it, `font` measures it, 0.6 em per character with no font): the union of the reserved
+    box and the string's extent. Without a text it is the reserved box.
+
+    Raises:
+        ValueError: If a text is given without a height.
+    """
+    reserved = _reserved_box(slot)
+    if text is None:
+        return reserved
+    if height is None:
+        msg = "slot_box needs a height to measure a text"
+        raise ValueError(msg)
+    drawn = text_box(slot, text, height, font)
+    return _bounding((reserved.min, reserved.max, drawn.min, drawn.max))
 
 
 def keepout_box(symbol: Symbol, font: FontMetrics | None = None) -> Box:
