@@ -100,7 +100,7 @@ def measure(  # noqa: PLR0913 - the ruled signature: symbol, view, library and t
         msg = "texts needs text_height to measure a string; pass text_height="
         raise InvalidValueError(msg)
     check_texts(symbol, texts)
-    check_texts(symbol, attach)
+    check_texts(symbol, dict.fromkeys(attach or {}, ""))
     turned = orient(symbol, orientation)
     body = _extent(library, body_box(turned, library.font))
     slots = {
