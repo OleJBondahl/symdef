@@ -1,0 +1,169 @@
+{
+  "anchors": [
+    {
+      "at": [
+        2,
+        0
+      ],
+      "dir": "E",
+      "id": "link"
+    }
+  ],
+  "body_box": [
+    [
+      -2,
+      -3
+    ],
+    [
+      2,
+      3
+    ]
+  ],
+  "elements": [
+    {
+      "line": [
+        [
+          0,
+          -3
+        ],
+        [
+          0,
+          -1
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "closed": true,
+      "fill": "none",
+      "polyline": [
+        [
+          -2,
+          -1
+        ],
+        [
+          2,
+          -1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          -2,
+          1
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    }
+  ],
+  "keepout_box": [
+    [
+      -8.5,
+      -3
+    ],
+    [
+      2,
+      3
+    ]
+  ],
+  "kind": "symbol",
+  "name": "Operating device, general symbol; relay coil, general symbol",
+  "nodes": [
+    {
+      "ports": [
+        "1.in"
+      ]
+    },
+    {
+      "ports": [
+        "1.out"
+      ]
+    }
+  ],
+  "paths": [
+    {
+      "from": "1.in",
+      "kind": "impedance",
+      "through": true,
+      "to": "1.out"
+    }
+  ],
+  "ports": [
+    {
+      "at": [
+        0,
+        -3
+      ],
+      "description": "",
+      "dir": "N",
+      "id": "1.in"
+    },
+    {
+      "at": [
+        0,
+        3
+      ],
+      "description": "",
+      "dir": "S",
+      "id": "1.out"
+    }
+  ],
+  "reference": {
+    "number": "S00305",
+    "standard": "IEC 60617"
+  },
+  "schema": 1,
+  "slots": {
+    "1.tag": {
+      "at": [
+        -2.5,
+        0
+      ],
+      "box": [
+        6,
+        1
+      ],
+      "side": "W"
+    },
+    "marking.1.in": {
+      "at": [
+        0.25,
+        -2
+      ],
+      "box": [
+        1.5,
+        1
+      ],
+      "side": "E"
+    },
+    "marking.1.out": {
+      "at": [
+        0.25,
+        2
+      ],
+      "box": [
+        1.5,
+        1
+      ],
+      "side": "E"
+    }
+  },
+  "status": "unverified"
+}
