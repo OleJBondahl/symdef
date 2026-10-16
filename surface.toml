@@ -1,0 +1,8 @@
+# The API surface by name: each door and the sorted names in its `__all__`.
+# tests/test_surface.py fails on any difference; an order names the surface move.
+# Regenerate by hand, in a commit that adds a docs/CHANGELOG.md line:
+#   uv run python scripts/write_surface.py
+
+[modules]
+"symdef" = ["Allow", "Anchor", "Arc", "Box", "Centre", "Circle", "DEFAULT_MODULE_MM", "Direction", "Element", "Fill", "Finding", "FontMetrics", "GRID_DIVISION", "Grid", "GridBox", "GridPoint", "GridPort", "InvalidValueError", "LIBRARY_VERSION", "Library", "LibraryError", "Line", "Measure", "Node", "Orientation", "Path", "Point", "Polyline", "Port", "Reference", "Severity", "Slot", "Status", "Stretch", "Style", "Symbol", "SymbolKind", "SymdefError", "Text", "TextPlacement", "UnknownNameError", "UnknownSymbolError", "Vocabulary", "Weight", "WireStyle", "body_box", "ceil_divisions", "from_divisions", "keepout_box", "leads", "load_bundle", "load_library", "measure", "nodes_of", "on_grid", "orient", "orient_box", "orient_direction", "orient_point", "pole_pitch", "pole_port", "repeat", "slot_box", "slot_text", "slots_box", "snap", "stretch", "table", "text_width", "to_divisions", "to_fragment", "to_fragment_mm", "to_placed_fragment", "to_svg", "translate", "wire"]
+"symdef.authoring" = ["LibraryConfig", "RULES", "build", "check", "finding_key", "init", "lint", "stale_build", "write_build"]

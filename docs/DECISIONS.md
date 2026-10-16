@@ -1403,3 +1403,16 @@ purity gate needs no entry for it.
 Why: a consumer's surface is what it draws with; the authoring verbs are noise there and a second
 reason for a major bump when one changes.
 Cost if wrong: breaking for an author who imports from `symdef`: change the import path.
+
+## D85: a surface snapshot and a changelog
+
+Decided: `surface.toml` at the repo root lists, sorted, the `__all__` of `symdef` and
+`symdef.authoring`; `scripts/write_surface.py` writes it and `tests/test_surface.py` fails on any
+difference. `docs/CHANGELOG.md` has one section per version, newest first, with one line per name
+added, removed, moved or widened. `tests/test_changelog.py` requires a section for
+`LIBRARY_VERSION`, as the newest, with a line. The rule: a `surface.toml` diff comes with a
+changelog line in the same commit. The first entry is the retroactive `Slot.side` widening to
+`Direction | Centre`, in 0.10.0.
+Why: a consumer pins a version and needs to see what moved; the snapshot makes a silent move a
+red test.
+Cost if wrong: additive; delete the file, the script and the two tests to revert.

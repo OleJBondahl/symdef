@@ -1,0 +1,26 @@
+# Changelog
+
+What changed in the public surface of each release: a name added, removed or moved, and a type that widened. Every change to `surface.toml` has a line here. The reasons are in [the decisions](DECISIONS.md).
+
+## 0.12.0
+
+- Removed from `symdef`, now on `symdef.authoring`: `build`, `check`, `init`, `lint`, `write_build`, `stale_build`, `RULES`, `finding_key`, `LibraryConfig` (D84).
+- Added: `SymdefError`, the base of every error symdef raises, with `InvalidValueError`, `UnknownNameError`, `UnknownSymbolError` and `LibraryError` under it. None subclasses `ValueError`, `KeyError` or `OSError`, so an `except` on a builtin no longer catches them (D80).
+- Added: `GridPoint`, `GridBox` (with `GridBox.union`) and `GridPort`, whose coordinates are whole grid divisions (D81).
+- Added: `measure(symbol, orientation, library, texts=None, text_height=None)` returning `Measure`: body, keepout, slots and ports in whole divisions, already turned (D82).
+- Changed: `FontMetrics.advances` is one table per `Weight` (`[font.advances.normal]` and `[font.advances.thick]` in `library.toml`); `thick_factor` is removed, and the bundle's `font.advances` has a `normal` and a `thick` table (D82).
+- Added: `to_placed_fragment(symbol, orientation, at, library, ...)`, a fragment inside one `translate` read from a `GridPoint` (D83).
+- Deprecated: `to_fragment_mm` is listed for removal in 0.13, once its callers use `to_placed_fragment`.
+
+## 0.11.0
+
+- Added: `Library.font` and `Library.grid`, read from `[font]` and `[grid]` in `library.toml` and carried by the bundle; `FontMetrics`, `Grid`, `text_width`.
+- Added: `slot_text`, `TextPlacement`, `to_divisions`, `from_divisions`, `ceil_divisions`, `Box.union`, `slots_box`.
+- Widened: `body_box`, `keepout_box` and `slot_box` take `font=None` (`slot_box` also `text` and `height`), and `lint` takes `grid`; with none, output is as before.
+- Made public: `orient_box`, `orient_point`, `orient_direction`, `pole_pitch`, `pole_port`, `nodes_of`.
+- Changed: `load_library` and `load_bundle` return a `Library` whose `symbols` is read-only (D73 to D78).
+
+## 0.10.0
+
+- Widened: `Slot.side` is `Direction | Centre`; the centred side `C` puts the box and the text on `at` (retroactive; the type widened in this release, D67 to D71).
+- Added: several `[[stretch]]` cuts per axis, each with a `weight`; a line or polyline may say `between = true`.

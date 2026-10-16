@@ -22,7 +22,7 @@ def _stand_in(root: Path) -> Path:
     """A tiny repository: four one-line pages, the guide fixtures as the set, the real config."""
     (root / "docs" / "site").mkdir(parents=True)
     (root / "README.md").write_text("# Home\n\n[guide](docs/GUIDE.md) [x](AGENTS.md)\n")
-    for name in ("TUTORIAL", "GUIDE", "DECISIONS"):
+    for name in ("TUTORIAL", "GUIDE", "DECISIONS", "CHANGELOG"):
         (root / "docs" / f"{name}.md").write_text(f"# {name}\n\n[home](../README.md)\n")
     shutil.copytree(GUIDE_SET, root / "docs" / "tutorial-set")
     shutil.copy2(ROOT / "docs" / "site" / "mkdocs.yml", root / "docs" / "site" / "mkdocs.yml")
