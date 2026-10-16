@@ -146,8 +146,11 @@ Composite inheritance is D20; structural problems only the resolver sees are D17
 
 ## Linting
 
+`lint`, `RULES`, `finding_key`, `LibraryConfig`, `build`, `check`, `init`, `write_build` and `stale_build` are
+the author door: import them from `symdef.authoring`. `symdef` itself holds what a consumer uses (D84).
+
 ```python
-from symdef import lint
+from symdef.authoring import lint
 from symdef.lint import RULES
 
 assert len(RULES) == 35
@@ -170,7 +173,7 @@ as written; see C1 in DECISIONS.md.
 ## Building
 
 ```python
-from symdef import stale_build, write_build
+from symdef.authoring import stale_build, write_build
 
 write_build(library, root)
 assert stale_build(library, root) == ()

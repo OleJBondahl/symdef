@@ -6,7 +6,8 @@ from pathlib import Path
 import pytest
 
 import symdef
-from symdef import LibraryError, Vocabulary, lint, load_library
+from symdef import LibraryError, Vocabulary, load_library
+from symdef.authoring import lint
 from symdef.load import parse_config
 from symdef.vocabulary import vocabulary_findings
 

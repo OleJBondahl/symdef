@@ -9,8 +9,8 @@ from build_symbol import plain_symbol
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-import symdef
-from symdef import lint as exported_lint
+import symdef.authoring
+from symdef.authoring import lint as exported_lint
 from symdef.files import load_library
 from symdef.geometry import (
     Arc,
@@ -68,7 +68,7 @@ THIS_TASK = {
 class TestRegistration:
     def test_lint_is_the_packages_function(self):
         assert exported_lint is lint
-        assert symdef.__all__.count("lint") == 1
+        assert symdef.authoring.__all__.count("lint") == 1
 
     def test_the_guide_names_34_rules(self):
         assert len(RULE_IDS) == 35
