@@ -1,4 +1,4 @@
-"""Slot side `C` (SS18): the text centres on the slot point; the box is centred on it."""
+"""Slot side `C` (D68): the text centres on the slot point; the box is centred on it."""
 
 import xml.etree.ElementTree as ET
 from dataclasses import replace
