@@ -1353,3 +1353,12 @@ single characters to numbers above zero; the bundle's `font.advances` is an obje
 Why: a bold face is not a scaled regular face, so a factor mismeasures it.
 Cost if wrong: a library with a font must write a second table; a bundle written by 0.11 does not
 load (its `advances` is flat). Fonts were new in 0.11, so the break is free.
+
+## D81: `GridPoint`, `GridBox` and `GridPort` are their own types
+
+Decided: `symdef.gridtypes` holds three frozen slotted types whose coordinates are whole grid
+divisions: `GridPoint(x, y)`, `GridBox(min, max)` with `width`, `height` and `GridBox.union`
+(the shape of `Box.union`), and `GridPort(id, x, y, direction)`. A coordinate that is not an `int`
+(a `bool` too) raises `InvalidValueError`. They do not subclass `Point` or `Box`.
+Why: divisions are a second unit; a float-typed `Point` could carry either unit unnoticed.
+Cost if wrong: additive; drop the module to revert.
