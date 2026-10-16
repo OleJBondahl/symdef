@@ -9,6 +9,7 @@ from symdef.errors import InvalidValueError, LibraryError
 from symdef.font import FontMetrics
 from symdef.fontmeasure import measure_font
 from symdef.lint.registry import rule_finding
+from symdef.lint.textbody import text_outside_body
 from symdef.load import (
     is_file_stem,
     library_from_bundle,
@@ -110,7 +111,7 @@ def load_library(root: Path) -> Library:
     problems += font_problems + tuple(f for stem in sorted(per_file) for f in per_file[stem])
     if problems:
         raise LibraryError(problems)
-    return Library(
+    library = Library(
         config.standard,
         config.title,
         config.number_pattern,
@@ -122,6 +123,15 @@ def load_library(root: Path) -> Library:
         config.grid,
         config.lines,
     )
+    if font is not None:
+        overflow = tuple(
+            found
+            for symbol in library
+            for found in text_outside_body(symbol, font, config.grid.module_mm)
+        )
+        if overflow:
+            raise LibraryError(overflow)
+    return library
 
 
 def load_bundle(json_path: Path) -> Library:
