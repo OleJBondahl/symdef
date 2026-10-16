@@ -11,7 +11,6 @@ from symdef.geometry import (
     Arc,
     Box,
     Circle,
-    Direction,
     Element,
     Fill,
     Line,
@@ -23,8 +22,9 @@ from symdef.geometry import (
     arc_point,
     arc_sweep,
 )
-from symdef.model import Anchor, Centre, Port, Slot, Symbol
+from symdef.model import Anchor, Port, Slot, Symbol
 from symdef.required import required_ids
+from symdef.slottext import SIDE_ALIGN, TURNED_ALIGN
 from symdef.units import DEFAULT_MODULE_MM
 
 _HALF_TURN = 180
@@ -64,24 +64,6 @@ _TEXT_WIDTH = 0.6
 _SAMPLE_MAX_SIZE = 1.0
 _CAP_HEIGHT = 0.72
 _CAP_CENTRE = _CAP_HEIGHT / 2
-# Per slot side: the text anchor and the baseline below the slot point as a fraction of the cap
-# height. `to_fragment` and `to_fragment_mm` read this one table (SS15).
-SIDE_ALIGN = {
-    Direction.E: ("start", 0.5),
-    Direction.W: ("end", 0.5),
-    Direction.N: ("middle", 0.0),
-    Direction.S: ("middle", 1.0),
-    Centre.C: ("middle", 0.5),
-}
-# A turned slot reads bottom-up: N starts at the anchor, S ends there, E and W centre the text on
-# it. The second number is how far east of the slot point the baseline sits, in cap heights.
-TURNED_ALIGN = {
-    Direction.N: ("start", 0.5),
-    Direction.S: ("end", 0.5),
-    Direction.E: ("middle", 1.0),
-    Direction.W: ("middle", 0.0),
-    Centre.C: ("middle", 0.5),
-}
 _SAMPLE_ALIGN = {side: (anchor, f * _CAP_HEIGHT) for side, (anchor, f) in SIDE_ALIGN.items()}
 # What XML 1.0 cannot carry: most C0 controls, lone surrogates, U+FFFE and U+FFFF.
 _XML_ILLEGAL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\ud800-\udfff\U0000fffe\U0000ffff]")

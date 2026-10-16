@@ -1231,3 +1231,18 @@ library, never global state; kerning, ligatures and per-weight advance tables ar
 Why: SYMBOL-BOUNDARY SB1, "Font metrics are symdef library data."
 Cost if wrong: the keys are additive and optional; remove `font` from the two dataclasses, the
 loader and the bundle, and `font=None` from the three box functions.
+
+## D74. Slot text: `slot_text`, `slot_box` with a text, `TextPlacement` (0.11.0, SB2)
+
+Decided: the module `symdef.slottext` holds `SIDE_ALIGN` and `TURNED_ALIGN` (moved out of `svg`,
+which reads them from there) and `slot_text(slot, text, height, font) -> TextPlacement(point,
+anchor, turned)`. `point` is the baseline point: the slot point shifted by the table's number in
+cap heights (south for an upright slot, east for a turned one); `font` gives the cap height, and
+`None` gives 0.72 em. `text` does not move the point, since the anchor does the aligning; it is
+in the signature as the ruling gives it. `slot_box(slot, text=None, height=None, font=None)` with
+no text is the reserved box of 0.10.1; with a text it is the union of the reserved box and the
+string's extent (its measured width by one cap height, upright from the anchor, or turned
+bottom-up with the caps to the west of the point). A text without a height raises `ValueError`.
+Why: SYMBOL-BOUNDARY SB2.
+Cost if wrong: additive; the new parameters default to the old behaviour. Revert `slottext.py`
+and the three parameters.

@@ -86,7 +86,11 @@ SECTION_11_SIGNATURES = {
     "body_box": [*positional("symbol"), ("font", "POSITIONAL_OR_KEYWORD", "None")],
     "keepout_box": [*positional("symbol"), ("font", "POSITIONAL_OR_KEYWORD", "None")],
     "leads": positional("symbol", "ports"),
-    "slot_box": positional("slot"),
+    "slot_box": [
+        *positional("slot"),
+        *(("text", "POSITIONAL_OR_KEYWORD", "None"), ("height", "POSITIONAL_OR_KEYWORD", "None")),
+        ("font", "POSITIONAL_OR_KEYWORD", "None"),
+    ],
     "lint": [*positional("symbol"), ("required_slots", "POSITIONAL_OR_KEYWORD", "()")],
     "to_svg": [
         *positional("symbol"),

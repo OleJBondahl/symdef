@@ -45,6 +45,7 @@ from symdef.model import (
 from symdef.orient import orient, translate
 from symdef.project import build, check, init
 from symdef.repeat import repeat
+from symdef.slottext import TextPlacement, slot_text
 from symdef.stretch import stretch
 from symdef.svg import to_fragment, to_svg
 from symdef.svg_mm import to_fragment_mm
@@ -88,6 +89,7 @@ __all__ = [
     "Symbol",
     "SymbolKind",
     "Text",
+    "TextPlacement",
     "UnknownSymbolError",
     "Vocabulary",
     "Weight",
@@ -106,6 +108,7 @@ __all__ = [
     "orient",
     "repeat",
     "slot_box",
+    "slot_text",
     "snap",
     "stale_build",
     "stretch",
