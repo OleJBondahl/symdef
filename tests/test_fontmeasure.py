@@ -21,6 +21,7 @@ DATA = TESTS / "data" / "dejavu"
 REGULAR = (DATA / "DejaVuSansCondensed.ttf").read_bytes()
 BOLD = (DATA / "DejaVuSansCondensed-Bold.ttf").read_bytes()
 EXPECTED = json.loads((DATA / "expected.json").read_text(encoding="utf-8"))
+FAMILY = "DejaVu Sans"  # name ID 16 of the vendored face; ID 1 is the name
 BUNDLE = "src/iec60617/bundle.json"
 FILES = '[font]\nname = "DejaVu Sans Condensed"\nfiles = { regular = "r.ttf", bold = "b.ttf" }\n'
 
@@ -95,7 +96,8 @@ def literal_toml() -> str:
         + "".join(f"{json.dumps(c)} = {n}\n" for c, n in table.items())
         for weight, table in EXPECTED["advances"].items()
     )
-    return f"[font]\nname = {json.dumps(EXPECTED['name'])}\n{head}{tables}"
+    family = json.dumps(FAMILY)
+    return f"[font]\nname = {json.dumps(EXPECTED['name'])}\nfamily = {family}\n{head}{tables}"
 
 
 class TestFilesForm:
@@ -171,3 +173,22 @@ class TestConfig:
     def test_files_need_a_name(self):
         _, findings = parse_config(HEAD + FILES.replace('name = "DejaVu Sans Condensed"\n', ""))
         assert [f.message for f in findings] == ["missing required key 'name'"]
+
+
+class TestFamily:
+    def test_the_house_font_family_is_the_typographic_one(self):
+        metrics = measure_font(REGULAR, BOLD)
+        assert metrics.name == "DejaVu Sans Condensed"
+        assert metrics.family == FAMILY
+
+    def test_a_face_without_name_id_16_falls_back_to_id_1(self):
+        def drop_16(font):
+            font["name"].names = [n for n in font["name"].names if n.nameID != 16]
+
+        assert measure_font(changed(REGULAR, drop_16), BOLD).family == "DejaVu Sans Condensed"
+
+    def test_family_beside_files_is_refused(self):
+        _, findings = parse_config(HEAD + FILES + 'family = "DejaVu Sans"\n')
+        assert [f.message for f in findings] == [
+            "`family` comes from the font file; remove it beside `files`"
+        ]

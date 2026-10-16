@@ -76,8 +76,9 @@ def measure_font(regular: bytes, bold: bytes) -> FontMetrics:
         bold: The bytes of the bold `.ttf` file.
 
     Returns:
-        The metrics: named by the regular face, with the largest regular advance as the default
-        advance and no heights.
+        The metrics: named by the regular face (name ID 1) and with its typographic family (name ID
+        16, else ID 1) as `family`, with the largest regular advance as the default advance and no
+        heights.
 
     Raises:
         InvalidValueError: If either argument is not a TrueType font, the faces differ in units
@@ -88,8 +89,10 @@ def measure_font(regular: bytes, bold: bytes) -> FontMetrics:
         _bounds(font, "H", face)
         _bounds(font, "p", face)
     normal, thick = (_advances(faces[face]) for face in ("regular", "bold"))
+    names = cast("Any", faces["regular"]["name"])
     return FontMetrics(
-        name=cast("Any", faces["regular"]["name"]).getDebugName(1) or "",
+        name=names.getDebugName(1) or "",
+        family=names.getDebugName(16) or names.getDebugName(1) or "",
         units_per_em=_units(faces["regular"], faces["bold"]),
         cap_height=_bounds(faces["regular"], "H", "regular")[1],
         ascent=cast("Any", faces["regular"]["OS/2"]).sTypoAscender,

@@ -602,6 +602,7 @@ _FONT = _table(
         "advances": _ADVANCE_TABLES,
         "heights": _map_of(_positive),
         "name": _string,
+        "family": _string,
     },
     required=(*_FONT_FIELDS, "advances", "name"),
 )
@@ -618,6 +619,7 @@ def font_from_data(data: Mapping[str, Any]) -> FontMetrics:
         {Weight[key.upper()]: dict(table) for key, table in data["advances"].items()},
         data["default_advance"],
         data.get("heights", {}),
+        data.get("family", ""),
     )
 
 
@@ -631,6 +633,9 @@ def _font_table(value: object, location: str) -> list[Finding]:
     """Check a library's `[font]`: the literal tables, or `name` and `files`, never both."""
     if not isinstance(value, dict) or "files" not in value:
         return _FONT(value, location)
+    if "family" in value:
+        message = "`family` comes from the font file; remove it beside `files`"
+        return [_finding(location, message)]
     if set(value) - {"name", "files"}:
         message = "give either the measured tables or `name` and `files`, not both"
         return [_finding(location, message)]
