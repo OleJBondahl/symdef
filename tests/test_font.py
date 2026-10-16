@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from symdef.boxes import body_box, keepout_box
-from symdef.errors import InvalidValueError
+from symdef.errors import InvalidValueError, LibraryError
 from symdef.files import load_bundle, load_library
 from symdef.font import FontMetrics, cap_height, text_width
 from symdef.geometry import Box, Direction, Point, Text, Weight
@@ -178,6 +178,37 @@ def test_load_library_carries_the_font_into_the_library_and_its_bundle(tmp_path)
     bundle = tmp_path / "bundle.json"
     bundle.write_text(to_json(bundle_to_data(loaded)), encoding="utf-8")
     assert load_bundle(bundle).font == FONT
+
+
+OVERFLOWING = """schema = 1
+name = "Boxed"
+kind = "qualifier"
+status = "unverified"
+reference = { standard = "IEC 60617", number = "S99999" }
+anchors = [{ id = "link", at = [0, 0], dir = "E" }]
+elements = [
+  { line = [[0, 0], [2, 0]] },
+  { text = "BBBBBBBBBB", at = [1, 0], height = 1 },
+]
+"""
+
+
+def test_load_library_rejects_a_fixed_text_that_outgrows_its_body(tmp_path):
+    shutil.copytree(GUIDE, tmp_path / "lib")
+    toml = tmp_path / "lib" / "library.toml"
+    toml.write_text(
+        toml.read_text(encoding="utf-8") + "\n" + CONFIG.split("[font]")[1].join(["[font]", ""]),
+        encoding="utf-8",
+    )
+    load_library(tmp_path / "lib")
+    (tmp_path / "lib" / "symbols" / "S99999.toml").write_text(OVERFLOWING, encoding="utf-8")
+    with pytest.raises(LibraryError) as raised:
+        load_library(tmp_path / "lib")
+    (found,) = raised.value.findings
+    assert found.rule == "text-outside-body"
+    assert "symbol S99999" in found.message
+    assert "'BBBBBBBBBB'" in found.message
+    assert "mm; shorten the text" in found.message
 
 
 HEIGHTS = "\n[font.heights]\nsmallest = 1.8\nbody = 2.5\nheading_2 = 3.5\n"

@@ -11,6 +11,7 @@ from symdef.errors import (
 )
 from symdef.files import load_bundle, load_library
 from symdef.font import FontMetrics, text_width
+from symdef.fontmeasure import measure_font
 from symdef.geometry import (
     Arc,
     Box,
@@ -123,6 +124,7 @@ __all__ = [
     "load_bundle",
     "load_library",
     "measure",
+    "measure_font",
     "nodes_of",
     "on_grid",
     "orient",
