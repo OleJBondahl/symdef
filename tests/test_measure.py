@@ -13,6 +13,7 @@ from symdef.gridmeasure import Measure, measure
 from symdef.gridtypes import GridBox, GridPoint, GridPort
 from symdef.model import Library, Port, Reference, Slot, Status, Symbol, SymbolKind
 from symdef.orient import Orientation, orient
+from symdef.table import table
 from symdef.units import Grid
 
 HEIGHT = 2  # with FONT "ABiAB" is 5.0 wide
@@ -142,3 +143,67 @@ def test_the_value_is_read_only_and_a_library_with_no_font_still_measures():
         result.slots["x"] = result.body  # ty: ignore[invalid-assignment]  # frozen on purpose
     with pytest.raises(TypeError):
         result.ports["x"] = None  # ty: ignore[invalid-assignment]  # frozen on purpose
+
+
+COIL = build(
+    Line(Point(0, 0), Point(4, 0)),
+    Line(Point(0, 0), Point(0, 2)),
+    slots=(Slot("table", Point(4, 1), Direction.S, (1, 1)),),
+)
+ROW = build(Line(Point(0, 0), Point(2, 1)))
+
+
+# The attached 2 x 2 keep-out hangs on the turned slot's side, as a slot's reserved box does.
+# Slot point and turned side per view, from orient(COIL): R0 (4, 1) S; R90 (-1, 4) W;
+# R180 (-4, -1) N; R270 (1, -4) E. Boxes are by hand in 1/8 divisions.
+ATTACHED_SLOT_BOX = {
+    Orientation.R0: GridBox(GridPoint(24, 8), GridPoint(40, 24)),  # S: x 3..5, y 1..3
+    Orientation.R90: GridBox(GridPoint(-24, 24), GridPoint(-8, 40)),  # W: x -3..-1, y 3..5
+    Orientation.R180: GridBox(GridPoint(-40, -24), GridPoint(-24, -8)),  # N: x -5..-3, y -3..-1
+    Orientation.R270: GridBox(GridPoint(8, -40), GridPoint(24, -24)),  # E: x 1..3, y -5..-3
+}
+
+
+@pytest.mark.parametrize("orientation", list(ATTACHED_SLOT_BOX))
+def test_an_attached_table_hangs_on_the_turned_slots_side(orientation):
+    result = measure(COIL, orientation, EIGHT, attach={"table": table(ROW, 2, "y")})
+    assert result.slots["table"] == ATTACHED_SLOT_BOX[orientation]
+    assert result.keepout == GridBox.union(result.body, *result.slots.values())
+
+
+def test_a_taller_attached_table_grows_away_from_the_point():
+    three = measure(
+        COIL, Orientation.R0, EIGHT, attach={"table": table(table(ROW, 2, "y"), 3, "y")}
+    )
+    assert three.slots["table"] == GridBox(GridPoint(24, 8), GridPoint(40, 56))
+    assert three.keepout.max == GridPoint(40, 56)
+
+
+EDGE = build(
+    Line(Point(0, 0), Point(4, 0)),
+    Line(Point(0, 0), Point(0, 2)),
+    slots=(Slot("table", Point(2, 2), Direction.S, (1, 1)),),
+)
+
+
+def _overlap(a, b):
+    return min(a.max.x, b.max.x) > max(a.min.x, b.min.x) and min(a.max.y, b.max.y) > max(
+        a.min.y, b.min.y
+    )
+
+
+@pytest.mark.parametrize("orientation", list(Orientation))
+def test_the_attached_table_sits_outside_the_body(orientation):
+    result = measure(EDGE, orientation, EIGHT, attach={"table": table(ROW, 2, "y")})
+    assert result.slots["table"].max.x - result.slots["table"].min.x >= 16
+    assert not _overlap(result.slots["table"], result.body)
+
+
+def test_no_attach_changes_nothing():
+    for orientation in Orientation:
+        assert measure(COIL, orientation, EIGHT, attach={}) == measure(COIL, orientation, EIGHT)
+
+
+def test_an_unknown_attach_key_names_the_key_and_the_slots():
+    with pytest.raises(UnknownNameError, match=r"nope.*table"):
+        measure(COIL, Orientation.R0, EIGHT, attach={"nope": ROW})
