@@ -951,6 +951,8 @@ Cost if wrong: the function is additive; remove it and its export.
 
 ## D53. stretch(): a cut line moves everything beyond it (SYMDEF-SLOTS SS1, SS7)
 
+Superseded in part by D67 (0.10.0): "at most one per axis" no longer holds; D69 changes how slots move.
+
 Decided: `Symbol.stretch` holds at most one `Stretch(axis, at)` per axis, written `[[stretch]]` in a
 file and `stretch` in the resolved JSON (written only when set, so existing bundles keep their
 bytes; the bundle schema version stays 1). `stretch(symbol, axis, length, offsets=None)` in the new
@@ -1133,3 +1135,69 @@ and two paragraphs on drawing, section 11 the two keywords. `docs/GUIDE.md` gain
 text". The rule count stays 35. The version bump, tag and release are not part of this change.
 Why: the spec is the one design document and must describe what the code does.
 Cost if wrong: revert the file; tests read only its code blocks and the rule table.
+
+## D67. Weighted cuts (SYMDEF-SLOTS SS16)
+
+Decided: `Stretch.weight: float = 1` (last field), the file key `weight` (a number above zero; the
+loader and the schema refuse zero and below), written by `serialize` only when not 1. An axis may
+carry several cuts. `stretch` sorts the axis's cuts by `at`, shares `length` minus the natural
+extent among them in proportion to their weights, and moves a coordinate by the sum of the shares
+of the cuts it lies strictly beyond. One cut takes `delta` itself, not `delta * w / w`, so a
+single-cut result is the 0.9.0 bytes. A line or polyline across a cut grows by that cut's share; a
+circle, arc or text across any cut raises `ValueError`; one wholly beyond some cuts moves by their
+shares. `offsets` is unchanged and runs after the shares. `stretch-cut` loses its "second stretch
+per axis" finding and gains "a second cut at the same `at`", so the rule count stays 35.
+Why: designer ruling SS16 and Q4, Q5. A title block needs a fixed edge and two growing spans.
+Cost if wrong: additive; a file without `weight` and with one cut per axis is unchanged.
+
+## D68. Slot side `C` (SYMDEF-SLOTS SS18)
+
+Decided: `C` is not a compass point. `Centre` (a one-member enum, `Centre.C`) and
+`SlotSide = Direction | Centre` are new in `model.py`; `Slot.side` is a `SlotSide`, so `Direction`,
+ports and anchors never see `C`. The loader takes `"C"` for a slot side only (its own enum), the
+schema has a `slot_side` definition, and `serialize` writes `"C"`. `slot_box` of a `C` slot is `[w, h]`
+centred on `position`, turned or not (`box` stays the footprint as drawn). Text aligns through the
+same two tables as the other sides: `C` is ("middle", 0.5), so the baseline sits half a capital
+below the point and the capital height is centred on it; a turned `C` is ("middle", 0.5) east, the
+glyphs centred across the reading line. `orient` leaves a `C` side as it is and moves the point.
+`repeat`, `table`, `stretch` and a composite's slot reference keep it (they copy with `replace`).
+Why: designer ruling Q1 to Q3. A slot side is where text sits and a port side is where a wire
+leaves; keeping `C` out of `Direction` means a port can never be `C`.
+Cost if wrong: remove the enum, the schema value and the table entries.
+Concern (spec): SS18 asks for a lint check that a `C` slot's `position` is its box's centre. With
+the box centred on `position` by definition (Q3) and `stretch` recomputing `position` as the new
+centre, no stored slot can fail it. No such check is in 0.10.0 pending the designer's ruling.
+
+## D69. Slots follow the cuts (SYMDEF-SLOTS SS17)
+
+Decided: `stretch` moves each corner of a slot's box and its `position` by the shares of the cuts
+they lie beyond (`stretch_slot.py`). A box across a cut grows by that cut's share, and the stored
+`position` and `box` are recomputed so `slot_box` of the result is exactly the moved corners: the
+side's own edge follows its corner, and the centred axis takes the middle of the moved corners. A box
+whose two edges move alike keeps its `box` and its position moves as in 0.9.0 (same bytes). A turned
+slot grows along its authored `box`. `slot_room` (the consumer's) reads the room from the stretched
+symbol and never the unstretched width.
+Why: designer ruling SS17; a slot that spans a cut must grow with the body.
+Cost if wrong: a symbol with a slot across a cut changes size; every other output is unchanged.
+
+## D70. `between` elements (SYMDEF-SLOTS SS19)
+
+Decided: `Line.between` and `Polyline.between` (last field, default false), the file key `between`
+on those two element tables only (a circle, arc or text with it is a schema finding), written by
+`serialize` only when true. `table(row, n, ...)` draws a `between` element of the row in rows 1 to
+n-1 and leaves it out of row n, so n = 1 draws none. The head is unaffected: a `between` element in a
+head is drawn as authored, and so is one on a lone symbol. `repeat` and `translate` keep the flag
+(`replace`). A table without a `between` element is byte-identical to 0.9.0.
+Why: designer ruling SS19; a strip has one tick fewer than it has cells.
+Cost if wrong: additive; remove the field, the key and `_row_elements`.
+
+## D71. The interface spec is amended in place for 0.10.0 (SYMDEF-SLOTS SS16 to SS19)
+
+Decided: `SYMBOL_INTERFACE.html` gets a change-list row (2026-10-16, 0.10.0), the `stretch` and
+element keys in section 4, side `C` in section 6, the stretch and table paragraphs in section 7, the
+`stretch-cut` row in section 9 and the types in section 11. `docs/GUIDE.md` gains "Weighted cuts,
+moving slots and ticks between rows". The rule count stays 35. The version bump, tag and release
+are not part of this change.
+Why: the spec is the one design document and must describe what the code does.
+Cost if wrong: revert the files; tests read only the code blocks and the rule table.
+
