@@ -29,7 +29,7 @@ uv add symdef
 
 or `pip install symdef`.
 
-Python 3.14 or later, with no runtime dependencies.
+Python 3.14 or later. The one runtime dependency is `fonttools`, which measures a font's TrueType files.
 
 The functions in `symdef.files`, `symdef.project` and `symdef.cli` read or write files, or
 print. Everything else is pure: the same input gives the same output, with no file I/O, clock,
