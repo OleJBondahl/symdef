@@ -1,7 +1,7 @@
 """Standard-agnostic core for graphical symbols."""
 
 from symdef._version import LIBRARY_VERSION
-from symdef.boxes import body_box, keepout_box, slot_box
+from symdef.boxes import body_box, keepout_box, slot_box, slots_box
 from symdef.errors import GraphicalSymbolsError, LibraryError, UnknownSymbolError
 from symdef.files import load_bundle, load_library, stale_build, write_build
 from symdef.font import FontMetrics, text_width
@@ -41,10 +41,11 @@ from symdef.model import (
     SymbolKind,
     Vocabulary,
     WireStyle,
+    nodes_of,
 )
 from symdef.orient import orient, orient_box, orient_direction, orient_point, translate
 from symdef.project import build, check, init
-from symdef.repeat import repeat
+from symdef.repeat import pole_pitch, pole_port, repeat
 from symdef.slottext import TextPlacement, slot_text
 from symdef.stretch import stretch
 from symdef.svg import to_fragment, to_svg
@@ -116,14 +117,18 @@ __all__ = [
     "lint",
     "load_bundle",
     "load_library",
+    "nodes_of",
     "on_grid",
     "orient",
     "orient_box",
     "orient_direction",
     "orient_point",
+    "pole_pitch",
+    "pole_port",
     "repeat",
     "slot_box",
     "slot_text",
+    "slots_box",
     "snap",
     "stale_build",
     "stretch",
