@@ -4,7 +4,7 @@ What changed in the public surface of each release: a name added, removed or mov
 
 ## 0.14.0
 
-- Added: `measure(..., attach={slot_id: Symbol})`. The attached symbol's keep-out box is placed with its origin at the turned slot's point and united with that slot's box; it is in `Measure.slots[slot_id]` and `Measure.keepout`. A key that is not a slot id raises `UnknownNameError`. Without `attach` the result is unchanged (D91).
+- Added: `measure(..., attach={slot_id: Symbol})`. The attached symbol's keep-out box is placed at the turned slot's point and side, as a slot's reserved box is (never rotated), and united with that slot's box; it is in `Measure.slots[slot_id]` and `Measure.keepout`. A key that is not a slot id raises `UnknownNameError`. Without `attach` the result is unchanged (D91).
 
 ## 0.13.0
 
