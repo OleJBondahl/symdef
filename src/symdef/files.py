@@ -98,6 +98,7 @@ def load_library(root: Path) -> Library:
         config.required_slots,
         config.wires,
         config.font,
+        config.grid,
     )
 
 

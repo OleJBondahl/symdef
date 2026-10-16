@@ -50,7 +50,7 @@ from symdef.stretch import stretch
 from symdef.svg import to_fragment, to_svg
 from symdef.svg_mm import to_fragment_mm
 from symdef.table import table
-from symdef.units import DEFAULT_MODULE_MM, GRID_DIVISION, on_grid, snap
+from symdef.units import DEFAULT_MODULE_MM, GRID_DIVISION, Grid, on_grid, snap
 from symdef.wire import wire
 
 __all__ = [
@@ -70,6 +70,7 @@ __all__ = [
     "Finding",
     "FontMetrics",
     "GraphicalSymbolsError",
+    "Grid",
     "Library",
     "LibraryConfig",
     "LibraryError",
