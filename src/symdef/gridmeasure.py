@@ -56,7 +56,7 @@ def _port(library: Library, port_id: str, x: float, y: float, direction: Directi
         raise InvalidValueError(msg) from error
 
 
-def measure(  # noqa: PLR0913 - the symbol, its turn, the library and the sheet scale are separate things
+def measure(
     symbol: Symbol,
     orientation: Orientation,
     library: Library,

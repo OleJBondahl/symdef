@@ -12,6 +12,7 @@ from symdef import (
     Library,
     Point,
     Port,
+    Weight,
     leads,
     repeat,
     stretch,
@@ -99,6 +100,7 @@ def test_svg_mm_raises_the_domain_errors():
             font_mm=1,
             cap_ratio=0.7,
         )
+    assert Weight.NORMAL
 
 
 def raise_sites(source: str) -> list[str]:
