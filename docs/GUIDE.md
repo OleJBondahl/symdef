@@ -143,6 +143,7 @@ composition and returns a `Library`. A `Library` has `standard`, `title`, `numbe
 problem it raises `LibraryError` listing all of them, by file (D21). The pure core never raises:
 problems are `Finding`s with the rule `schema` until `load_library` collects them (D3, D15).
 Composite inheritance is D20; structural problems only the resolver sees are D17.
+When the library has a font, `load_library` also runs `text-outside-body` over every symbol and raises `LibraryError` naming the symbol for a fixed text that leaves its body (D90).
 
 ## Linting
 
@@ -465,7 +466,7 @@ thick = 0.5
 
 `measure_font(regular, bold)` does the same on bytes, and `Library.with_settings` returns a library
 with a new module, font, text heights or line widths. It checks each value, then runs the check
-`text-outside-body` over every symbol (a fixed text anchored in the body must fit inside it, measured with the font) and raises `InvalidValueError` naming a hit. `fonts` below is the
+`text-outside-body` over every symbol (a fixed text anchored in the body must fit inside it, measured with the font) and raises `InvalidValueError` naming a hit, as `load_library` does for the library's own font. `fonts` below is the
 folder that holds the two files.
 
 ```python
