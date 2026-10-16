@@ -26,6 +26,7 @@ from symdef.geometry import (
     Text,
     Weight,
 )
+from symdef.gridmeasure import Measure, measure
 from symdef.gridtypes import GridBox, GridPoint, GridPort
 from symdef.leads import leads
 from symdef.lint import RULES, finding_key, lint
@@ -95,6 +96,7 @@ __all__ = [
     "LibraryConfig",
     "LibraryError",
     "Line",
+    "Measure",
     "Node",
     "Orientation",
     "Path",
@@ -129,6 +131,7 @@ __all__ = [
     "lint",
     "load_bundle",
     "load_library",
+    "measure",
     "nodes_of",
     "on_grid",
     "orient",

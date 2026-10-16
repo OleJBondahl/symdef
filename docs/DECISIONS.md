@@ -1362,3 +1362,18 @@ divisions: `GridPoint(x, y)`, `GridBox(min, max)` with `width`, `height` and `Gr
 (a `bool` too) raises `InvalidValueError`. They do not subclass `Point` or `Box`.
 Why: divisions are a second unit; a float-typed `Point` could carry either unit unnoticed.
 Cost if wrong: additive; drop the module to revert.
+
+`measure(symbol, orientation, library, texts=None, text_height=None) -> Measure` (module
+`symdef.gridmeasure`, so the function does not shadow its own module). It orients the symbol, then
+reads `body_box`, `slot_box` (with `library.font`) and the ports, and returns a frozen `Measure`:
+`body`, `keepout` (the body united with every slot box, text included) as `GridBox`; `slots` as id
+to `GridBox`; `ports` as id to `GridPort` with the direction after the turn; `slots` and `ports`
+are read-only. Choices: slot text comes from the optional `texts` (slot id to string) with
+`text_height`; a text given without a height raises `InvalidValueError` naming `text_height`, a
+key that is no slot raises `UnknownNameError`; a slot with no string is its reserved box. An
+extent rounds outward (`min = -ceil_divisions(-min)`, `max = ceil_divisions(max)`), so a body
+already on the grid is exact; a port is a position and goes through `to_divisions`, so an off-grid
+port raises naming the port and the value. A slot's text is measured in the normal weight; a body
+`Text` uses its own weight's table.
+Why: SB12: layout gets the data from symdef and converts nothing.
+Cost if wrong: additive; delete the module and the exports to revert.

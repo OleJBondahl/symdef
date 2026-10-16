@@ -1,0 +1,144 @@
+"""`measure`: a symbol in whole grid divisions, extents rounded outward, ports exact (D82)."""
+
+import math
+from dataclasses import replace
+
+import pytest
+from test_font import FONT
+
+from symdef.boxes import body_box, keepout_box, slot_box
+from symdef.errors import InvalidValueError, UnknownNameError
+from symdef.geometry import Direction, Line, Point, Text, Weight
+from symdef.gridmeasure import Measure, measure
+from symdef.gridtypes import GridBox, GridPoint, GridPort
+from symdef.model import Library, Port, Reference, Slot, Status, Symbol, SymbolKind
+from symdef.orient import Orientation, orient
+from symdef.units import Grid
+
+HEIGHT = 2  # with FONT "ABiAB" is 5.0 wide
+
+
+def build(*elements, slots=(), ports=()):
+    return Symbol(
+        "m",
+        SymbolKind.SYMBOL,
+        Status.UNVERIFIED,
+        Reference("X", "1"),
+        elements,
+        ports=ports,
+        slots=slots,
+    )
+
+
+# Wider than tall, text of an off-grid width, a text slot, and ports on whole modules.
+WIDE = build(
+    Line(Point(0, 0), Point(6, 0)),
+    Line(Point(0, 0), Point(0, 2)),
+    Text("Bi", Point(3, 1), 1),
+    slots=(Slot("tag", Point(6, 1), Direction.E, (1.5, 1)),),
+    ports=(Port("a", Point(0, 2), Direction.S), Port("b", Point(6, 0), Direction.E)),
+)
+# Every extent on the quarter module, no text: the grid 4 per module halves each value of grid 8.
+QUARTERS = build(
+    Line(Point(-0.75, -0.25), Point(2.25, 1.5)),
+    slots=(Slot("tag", Point(2.25, 0.5), Direction.E, (1.5, 0.5)),),
+    ports=(Port("a", Point(0, 1), Direction.S),),
+)
+EIGHT = Library("S", "S", "", {}, font=FONT, grid=Grid(divisions_per_module=8))
+FOUR = replace(EIGHT, grid=Grid(divisions_per_module=4))
+
+
+def up(v, n):
+    """Round `v` modules up to whole divisions, independent of symdef's own helper."""
+    return math.ceil(round(v * n, 6))
+
+
+def grid_box(box, n):
+    """Return a module-unit box as a GridBox with the min rounded down and the max up."""
+    return GridBox(
+        GridPoint(-up(-box.min.x, n), -up(-box.min.y, n)),
+        GridPoint(up(box.max.x, n), up(box.max.y, n)),
+    )
+
+
+@pytest.mark.parametrize("orientation", list(Orientation))
+def test_measure_is_orient_then_the_boxes_divided_and_rounded_up(orientation):
+    texts = {"tag": "ABiAB"}
+    turned = orient(WIDE, orientation)
+    result = measure(WIDE, orientation, EIGHT, texts, HEIGHT)
+    slot = turned.slots[0]
+    assert result.body == grid_box(body_box(turned, FONT), 8)
+    assert result.slots == {"tag": grid_box(slot_box(slot, "ABiAB", HEIGHT, FONT), 8)}
+    assert result.keepout == GridBox.union(result.body, *result.slots.values())
+    assert result.ports == {
+        p.id: GridPort(p.id, round(p.position.x * 8), round(p.position.y * 8), p.direction)
+        for p in turned.ports
+    }
+
+
+def test_the_text_widens_the_slot_beyond_the_reserved_box():
+    plain = measure(WIDE, Orientation.R0, EIGHT)
+    texted = measure(WIDE, Orientation.R0, EIGHT, {"tag": "ABiAB"}, HEIGHT)
+    assert (
+        texted.slots["tag"].width == 43
+    )  # 5.3 modules of text from the slot point, max rounded up
+    assert plain.slots["tag"].width == 12
+
+
+@pytest.mark.parametrize("orientation", list(Orientation))
+def test_four_divisions_per_module_halves_every_value(orientation):
+    fine = measure(QUARTERS, orientation, EIGHT)
+    coarse = measure(QUARTERS, orientation, FOUR)
+
+    def half(box):
+        return GridBox(
+            GridPoint(box.min.x // 2, box.min.y // 2), GridPoint(box.max.x // 2, box.max.y // 2)
+        )
+
+    assert half(fine.body) == coarse.body
+    assert half(fine.keepout) == coarse.keepout
+    assert {k: half(v) for k, v in fine.slots.items()} == coarse.slots
+    assert {k: (v.x // 2, v.y // 2) for k, v in fine.ports.items()} == {
+        k: (v.x, v.y) for k, v in coarse.ports.items()
+    }
+
+
+def test_a_negative_min_rounds_outward_not_toward_zero():
+    off = build(Line(Point(-0.3, -0.3), Point(0.3, 0.3)))
+    assert measure(off, Orientation.R0, EIGHT).body == GridBox(GridPoint(-3, -3), GridPoint(3, 3))
+
+
+def test_a_port_off_the_grid_raises_naming_the_value():
+    off = replace(WIDE, ports=(Port("a", Point(0.3, 2), Direction.S),))
+    with pytest.raises(InvalidValueError, match=r"port 'a'.*0\.3"):
+        measure(off, Orientation.R0, EIGHT)
+
+
+def test_with_no_texts_a_slot_is_its_reserved_box():
+    result = measure(WIDE, Orientation.R0, EIGHT)
+    assert result.slots["tag"] == grid_box(slot_box(WIDE.slots[0]), 8)
+    assert result.keepout == grid_box(keepout_box(WIDE, FONT), 8)
+
+
+def test_texts_need_a_height_and_a_slot_to_name():
+    with pytest.raises(InvalidValueError, match="text_height"):
+        measure(WIDE, Orientation.R0, EIGHT, {"tag": "A"})
+    with pytest.raises(UnknownNameError, match="nope"):
+        measure(WIDE, Orientation.R0, EIGHT, {"nope": "A"}, HEIGHT)
+
+
+def test_a_bold_text_is_measured_with_the_bold_table():
+    regular = build(Text("AB", Point(0, 0), 2, Weight.NORMAL))
+    bold = build(Text("AB", Point(0, 0), 2, Weight.THICK))
+    narrow = measure(regular, Orientation.R0, EIGHT).body
+    wide = measure(bold, Orientation.R0, EIGHT).body
+    assert (narrow.width, wide.width) == (up(2.4, 8), up(2.74, 8))
+
+
+def test_the_value_is_read_only_and_a_library_with_no_font_still_measures():
+    result = measure(WIDE, Orientation.R0, replace(EIGHT, font=None))
+    assert isinstance(result, Measure)
+    with pytest.raises(TypeError):
+        result.slots["x"] = result.body  # ty: ignore[invalid-assignment]  # frozen on purpose
+    with pytest.raises(TypeError):
+        result.ports["x"] = None  # ty: ignore[invalid-assignment]  # frozen on purpose
