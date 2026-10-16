@@ -447,6 +447,40 @@ and `on_grid(v, tol, grid)` take it as a trailing argument; with none they use `
 without a grid gives the output it always gave. `Grid(module_mm, divisions_per_module, wire_pitch=8, wire_pitch_fine=4)` raises
 `InvalidValueError` for a module not above zero, divisions not a power of two, or a pitch that is not a whole number above zero or a fine pitch that does not divide the standard one, naming the value and the fix. A port off the standard pitch is a load error (`port-off-wiring-grid`). `FontMetrics.heights` holds the `[font.heights]` names; symdef does not interpret them.
 
+## A consumer's font, grid and line widths
+
+`[font]` may name the font files instead of listing metrics; `symdef build` measures them into the
+bundle. `files` are paths relative to `library.toml`. `[lines]` gives each weight a width in
+millimetres, and a `[[wire]]` weight needs one.
+
+```toml
+[font]
+name = "My Sans"
+files = { regular = "fonts/MySans.ttf", bold = "fonts/MySans-Bold.ttf" }
+
+[lines]
+normal = 0.25
+thick = 0.5
+```
+
+`measure_font(regular, bold)` does the same on bytes, and `Library.with_settings` returns a library
+with a new module, font, text heights or line widths. It checks each value, then runs the lint rule
+`text-too-large` over every symbol and raises `InvalidValueError` naming a hit. `fonts` below is the
+folder that holds the two files.
+
+```python
+from symdef import Weight, load_library, measure_font
+
+regular = (fonts / "DejaVuSansCondensed.ttf").read_bytes()
+bold = (fonts / "DejaVuSansCondensed-Bold.ttf").read_bytes()
+metrics = measure_font(regular, bold)
+assert metrics.advances[Weight.NORMAL]["A"] == 1260
+
+library = load_library(root)
+custom = library.with_settings(module_mm=2.0, font=(regular, bold))
+assert custom.grid.module_mm == 2.0 and custom.font.name == "DejaVu Sans Condensed"
+```
+
 ## Measuring in whole divisions, and drawing where it was measured
 
 `measure(symbol, orientation, library, texts=None, text_height=None)` returns a `Measure`: the body
