@@ -6,6 +6,8 @@ from types import MappingProxyType
 from typing import Any
 
 from symdef.errors import InvalidValueError, LibraryError
+from symdef.font import FontMetrics
+from symdef.fontmeasure import measure_font
 from symdef.lint.registry import rule_finding
 from symdef.load import (
     is_file_stem,
@@ -41,6 +43,23 @@ def _read_config(path: Path) -> tuple[LibraryConfig | None, tuple[Finding, ...]]
         return None, found
     config, problems = parse_config(text)
     return config, _named(path.name, problems)
+
+
+def _read_font(root: Path, config: LibraryConfig) -> tuple[FontMetrics | None, tuple[Finding, ...]]:
+    """Measure the two TTF files of a `[font]` files form; one that fails is a `schema` finding."""
+    if config.font_files is None:
+        return config.font, ()
+    location = "/font/files"
+    faces: list[bytes] = []
+    for name in config.font_files:
+        try:
+            faces.append((root / name).read_bytes())
+        except OSError as error:
+            return None, _named("library.toml", (rule_finding("schema", str(error), location),))
+    try:
+        return replace(measure_font(*faces), name=config.font_name), ()
+    except InvalidValueError as error:
+        return None, _named("library.toml", (rule_finding("schema", str(error), location),))
 
 
 def _read_symbol(
@@ -84,10 +103,11 @@ def load_library(root: Path) -> Library:
             sources[path.stem] = data
     if config is None:
         raise LibraryError((*problems, *(f for stem in sorted(per_file) for f in per_file[stem])))
+    font, font_problems = _read_font(root, config)
     resolution = resolve_library(config, sources)
     for stem, found in resolution.findings.items():
         per_file[stem] = (*per_file[stem], *_named(f"{stem}.toml", found))
-    problems += tuple(f for stem in sorted(per_file) for f in per_file[stem])
+    problems += font_problems + tuple(f for stem in sorted(per_file) for f in per_file[stem])
     if problems:
         raise LibraryError(problems)
     return Library(
@@ -98,8 +118,9 @@ def load_library(root: Path) -> Library:
         config.vocabulary,
         config.required_slots,
         config.wires,
-        config.font,
+        font,
         config.grid,
+        config.lines,
     )
 
 

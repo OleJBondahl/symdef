@@ -3,6 +3,7 @@
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
 from enum import Enum
+from types import MappingProxyType
 from typing import Literal
 
 from symdef.errors import UnknownSymbolError
@@ -240,7 +241,9 @@ class LibraryConfig:
     `required_slots` is `[rules] required_slots`: slot ids every `kind = "symbol"` file carries,
     where `marking.<port>` stands for one slot per port. `wires` is the `[[wire]]` tables. `font` is
     the `[font]` table, or None when the library declares none; `grid` is the `[grid]` table,
-    or today's grid (2.5 mm, 8 divisions) when it declares none.
+    or today's grid (2.5 mm, 8 divisions) when it declares none. `lines` is the `[lines]` table.
+    `font_files` is the (regular, bold) paths of the `[font]` files form, relative to the folder
+    holding `library.toml`, and `font_name` its name; then `font` is None until the files are read.
     """
 
     standard: str
@@ -252,6 +255,13 @@ class LibraryConfig:
     wires: tuple[WireStyle, ...] = ()
     font: FontMetrics | None = None
     grid: Grid = DEFAULT_GRID
+    lines: Mapping[Weight, float] = MappingProxyType({})
+    font_files: tuple[str, str] | None = None
+    font_name: str = ""
+
+    def __post_init__(self) -> None:
+        """Copy `lines` into a read-only mapping."""
+        object.__setattr__(self, "lines", MappingProxyType(dict(self.lines)))
 
 
 @dataclass(frozen=True, slots=True)
@@ -260,7 +270,8 @@ class Library:
 
     Iterating yields the symbols sorted by reference number; `len` is their count. `font` is the
     metrics text is measured with, or None, which measures 0.6 em per character; `grid` is the
-    drawing grid.
+    drawing grid; `lines` is the stroke width in millimetres of each `Weight`, empty when the
+    library declares none.
     """
 
     standard: str
@@ -272,6 +283,11 @@ class Library:
     wires: tuple[WireStyle, ...] = ()
     font: FontMetrics | None = None
     grid: Grid = DEFAULT_GRID
+    lines: Mapping[Weight, float] = MappingProxyType({})
+
+    def __post_init__(self) -> None:
+        """Copy `lines` into a read-only mapping."""
+        object.__setattr__(self, "lines", MappingProxyType(dict(self.lines)))
 
     def get(self, number: str) -> Symbol:
         """Return the symbol with this reference number.
