@@ -1,6 +1,7 @@
 """`measure_font` against an independent oracle, and the `[font]` files form (D87)."""
 
 import json
+import re
 import shutil
 from io import BytesIO
 from pathlib import Path
@@ -140,6 +141,10 @@ class TestFilesForm:
         assert loaded.font.default_advance == EXPECTED["default_advance"]
 
 
+MIXED = (
+    "`{}` is not a key of the files form (`name`, `files`, `heights`); "
+    "remove it, or drop `files` and give the measured tables"
+)
 HEAD = "standard = 'S'\ntitle = 'T'\nnumber_pattern = '^S$'\n"
 
 
@@ -160,9 +165,23 @@ class TestConfig:
     def test_the_two_forms_cannot_be_mixed(self):
         text = HEAD + FILES + "units_per_em = 2048\n"
         _, findings = parse_config(text)
-        assert [f.message for f in findings] == [
-            "give either the measured tables or `name` and `files`, not both"
-        ]
+        assert [f.message for f in findings] == [MIXED.format("units_per_em")]
+
+    def test_the_first_offending_key_is_the_one_named(self):
+        _, findings = parse_config(HEAD + FILES + "ascent = 1\nunits_per_em = 2048\n")
+        assert [f.message for f in findings] == [MIXED.format("ascent")]
+
+    def test_a_measured_table_beside_files_names_the_table(self):
+        _, findings = parse_config(HEAD + FILES + "[font.advances.normal]\n")
+        assert [f.message for f in findings] == [MIXED.format("advances")]
+
+    @pytest.mark.parametrize(
+        "text", [FILES + "units_per_em = 2048\n", FILES + 'family = "X"\n', FILES + "[font.x]\n"]
+    )
+    def test_every_refusal_names_a_key_and_a_fix(self, text):
+        (finding,) = parse_config(HEAD + text)[1]
+        assert re.search(r"`\w+`", finding.message)
+        assert re.search(r"\b(remove|drop|add)\b", finding.message)
 
     def test_files_need_both_faces(self):
         _, findings = parse_config(HEAD + FILES.replace(', bold = "b.ttf"', ""))
@@ -192,3 +211,85 @@ class TestFamily:
         assert [f.message for f in findings] == [
             "`family` comes from the font file; remove it beside `files`"
         ]
+
+
+HEIGHTS = "heights = { smallest = 1.8, body = 2.5, heading = 3.5, large = 5.0 }\n"
+LITERAL_H = "smallest = 1.8\nbody = 2.5\nheading = 3.5\nlarge = 5.0\n"
+
+
+class TestHeights:
+    def test_heights_beside_files_parse_into_the_config(self):
+        config, findings = parse_config(HEAD + FILES + HEIGHTS)
+        assert findings == ()
+        assert config is not None
+        assert dict(config.font_heights) == {
+            "smallest": 1.8,
+            "body": 2.5,
+            "heading": 3.5,
+            "large": 5.0,
+        }
+
+    def test_no_heights_leaves_the_config_heights_empty(self):
+        config, _ = parse_config(HEAD + FILES)
+        assert config is not None
+        assert dict(config.font_heights) == {}
+
+    @pytest.mark.parametrize("bad", ["0", "-1", '"tall"'])
+    def test_a_bad_height_is_a_finding_at_its_name(self, bad):
+        _, findings = parse_config(HEAD + FILES + f"heights = {{ body = {bad} }}\n")
+        assert [f.location for f in findings] == ["/font/heights/body"]
+
+    def test_the_literal_form_locates_a_bad_height_the_same_way(self):
+        text = HEAD + literal_toml() + "\n[font.heights]\nbody = 0\n"
+        _, findings = parse_config(text)
+        assert [f.location for f in findings] == ["/font/heights/body"]
+
+    def test_the_files_form_carries_the_heights_on_the_font(self, tmp_path):
+        root = library(tmp_path, FILES + HEIGHTS)
+        font = load_library(root).font
+        assert font is not None
+        assert dict(font.heights) == {"smallest": 1.8, "body": 2.5, "heading": 3.5, "large": 5.0}
+        assert font.name == "DejaVu Sans Condensed"
+        assert dict(font.advances[Weight.NORMAL]) == EXPECTED["advances"]["normal"]
+
+    def test_a_files_form_without_heights_has_none_and_no_bundle_key(self, tmp_path):
+        root = library(tmp_path, FILES)
+        loaded = load_library(root)
+        assert loaded.font is not None
+        assert dict(loaded.font.heights) == {}
+        write_build(loaded, root)
+        assert "heights" not in json.loads((root / BUNDLE).read_text())["font"]
+
+    def test_the_bundle_reads_the_heights_back(self, tmp_path):
+        root = library(tmp_path, FILES + HEIGHTS)
+        write_build(load_library(root), root)
+        font = json.loads((root / BUNDLE).read_text())["font"]
+        assert font["heights"] == {"smallest": 1.8, "body": 2.5, "heading": 3.5, "large": 5.0}
+        read = load_library(root).font
+        assert read is not None
+        assert dict(read.heights) == font["heights"]
+
+    def test_files_and_literal_forms_with_heights_build_the_same_bundle(self, tmp_path):
+        files = library(tmp_path / "files", FILES + HEIGHTS)
+        literal = library(tmp_path / "literal", literal_toml() + "\n[font.heights]\n" + LITERAL_H)
+        write_build(load_library(files), files)
+        write_build(load_library(literal), literal)
+        assert (files / BUNDLE).read_bytes() == (literal / BUNDLE).read_bytes()
+
+    def test_with_settings_keeps_the_heights_of_a_files_form_font(self, tmp_path):
+        base = load_library(library(tmp_path, FILES + HEIGHTS))
+        again = base.with_settings(font=(REGULAR, BOLD))
+        assert again.font is not None
+        assert base.font is not None
+        assert dict(again.font.heights) == dict(base.font.heights) != {}
+
+    def test_family_beside_files_and_heights_is_the_only_finding(self):
+        _, findings = parse_config(HEAD + FILES + HEIGHTS + 'family = "DejaVu Sans"\n')
+        assert [f.message for f in findings] == [
+            "`family` comes from the font file; remove it beside `files`"
+        ]
+
+    def test_heights_and_files_without_a_name_is_still_the_missing_key(self):
+        text = FILES.replace('name = "DejaVu Sans Condensed"\n', "") + HEIGHTS
+        _, findings = parse_config(HEAD + text)
+        assert [f.message for f in findings] == ["missing required key 'name'"]

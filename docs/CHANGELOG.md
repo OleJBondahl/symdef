@@ -2,6 +2,12 @@
 
 What changed in the public surface of each release: a name added, removed or moved, and a type that widened. Every change to `surface.toml` has a line here. The reasons are in [the decisions](DECISIONS.md).
 
+## 0.16.0
+
+- Added: `[font]` with `files` takes `heights`, the capital heights in mm by name; `FontMetrics.heights` carries them (D93). `family` beside `files` stays refused.
+- Added: `LibraryConfig.font_heights`, the `heights` of the files form, beside `font_files` and `font_name`; `font` stays None until the files are read (D93).
+- Changed: the load error for a literal key beside `files` names the key and the fix.
+
 ## 0.15.0
 
 - Added: `FontMetrics.family`, the family name a renderer resolves the font by. `measure_font` reads it from the regular face's typographic family (name ID 16), else its family (ID 1); `FontMetrics.name` stays ID 1. The literal `[font]` form takes an optional `family`, default `name`; `family` beside `files` is a load error, since the file gives it. The bundle's `font` object carries `family` (D92).

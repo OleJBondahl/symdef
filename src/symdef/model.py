@@ -243,7 +243,8 @@ class LibraryConfig:
     the `[font]` table, or None when the library declares none; `grid` is the `[grid]` table,
     or today's grid (2.5 mm, 8 divisions) when it declares none. `lines` is the `[lines]` table.
     `font_files` is the (regular, bold) paths of the `[font]` files form, relative to the folder
-    holding `library.toml`, and `font_name` its name; then `font` is None until the files are read.
+    holding `library.toml`, `font_name` its name and `font_heights` its `heights`; then `font`
+    is None until the files are read.
     """
 
     standard: str
@@ -258,10 +259,12 @@ class LibraryConfig:
     lines: Mapping[Weight, float] = MappingProxyType({})
     font_files: tuple[str, str] | None = None
     font_name: str = ""
+    font_heights: Mapping[str, float] = MappingProxyType({})
 
     def __post_init__(self) -> None:
-        """Copy `lines` into a read-only mapping."""
+        """Copy `lines` and `font_heights` into read-only mappings."""
         object.__setattr__(self, "lines", MappingProxyType(dict(self.lines)))
+        object.__setattr__(self, "font_heights", MappingProxyType(dict(self.font_heights)))
 
 
 @dataclass(frozen=True, slots=True)
