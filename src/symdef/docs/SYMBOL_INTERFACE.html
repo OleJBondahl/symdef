@@ -31,7 +31,7 @@
 
 <h1>Symbol interface design guide</h1>
 <p class="meta">Binding spec for the <code>symdef</code> toolkit and the data repos built on it.
-Agreed with the repo owner on 2026-09-19; amended 2026-10-07 for 0.5.0, 2026-10-13 for 0.6.0, 2026-10-15 for 0.7.0, 2026-10-15 for 0.8.0, 2026-10-16 for 0.9.0 and 2026-10-16 for 0.10.0 and 2026-10-16 for 0.10.1 (see the change list).</p>
+Agreed with the repo owner on 2026-09-19; amended 2026-10-07 for 0.5.0, 2026-10-13 for 0.6.0, 2026-10-15 for 0.7.0, 2026-10-15 for 0.8.0, 2026-10-16 for 0.9.0 and 2026-10-16 for 0.10.0 and 2026-10-16 for 0.10.1 and 2026-10-16 for 0.11.0 (see the change list).</p>
 
 <div class="note">
 <strong>This guide is the only design document.</strong> It changes only through a designer-approved spec,
@@ -41,6 +41,7 @@ with a dated entry in the change list below and in <code>docs/DECISIONS.md</code
 <h2 id="changes">Change list</h2>
 <table>
 <tr><th>Date</th><th>Version</th><th>Change</th></tr>
+<tr><td>2026-10-16</td><td>0.11.0</td><td>A library declares <code>[grid]</code> (<code>module_mm</code>, <code>divisions_per_module</code>) and <code>[font]</code> (<code>name</code>, metrics and <code>advances</code>) in <code>library.toml</code>, and the bundle carries them: <code>Library.font</code> and <code>Library.grid</code>. New: <code>FontMetrics</code>, <code>text_width</code>, <code>Grid</code>, <code>slot_text</code>, <code>TextPlacement</code>, <code>to_divisions</code>, <code>from_divisions</code>, <code>ceil_divisions</code>, <code>orient_box</code>, <code>orient_point</code> and <code>orient_direction</code> (now public), <code>Box.union</code>, <code>slots_box</code>, <code>pole_pitch</code>, <code>pole_port</code> and <code>nodes_of</code> (now public). <code>body_box</code>, <code>keepout_box</code> and <code>slot_box</code> take <code>font=None</code> (<code>slot_box</code> also <code>text</code> and <code>height</code>), and <code>lint</code> takes <code>grid</code>; with none, output is byte-identical. <code>load_library</code> and <code>load_bundle</code> return read-only <code>symbols</code> (D73 to D78).</td></tr>
 <tr><td>2026-10-16</td><td>0.10.1</td><td>A non-<code>C</code> slot keeps its SS17 position when its box spans a cut: the position moves by the shares of the cuts it lies beyond and the box grows, and only a <code>C</code> slot sits at the middle of its stretched box (D72).</td></tr>
 <tr><td>2026-10-16</td><td>0.10.0</td><td>A symbol may carry several <code>[[stretch]]</code> cuts per axis, each with a <code>weight</code> (default 1) that sets its share of the growth; slots follow the cuts, so a slot box across a cut grows by that cut's share; slot side <code>C</code> centres the box and the text on <code>at</code>; a line or polyline may say <code>between = true</code>, and <code>table()</code> draws it in rows 1 to n-1 only (D67 to D71). The rule count stays 35.</td></tr>
 <tr><td>2026-10-16</td><td>0.9.0</td><td><code>to_fragment</code> and <code>to_fragment_mm</code> take <code>texts</code>, the string to draw in each slot, and <code>required_slots</code>, the slots that must have one; a slot may say <code>turn = true</code> to read bottom-up. symdef never measures, shrinks or wraps a string (D63 to D66). The rule count stays 35.</td></tr>
