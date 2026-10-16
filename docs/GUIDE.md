@@ -215,7 +215,7 @@ group = to_fragment(breaker)
 whose viewBox is in module units. `annotate=True` adds the keep-out box, port labels, anchors,
 slots and wire lanes; `texts` maps slot ids to sample text. `to_fragment(symbol)` returns a
 placeable `<g>` fragment instead of a document (D39). Both are total: any input renders (D32).
-`body_box`, `keepout_box` and `slot_box` give the boxes (`slots_box` the slots without the body), and `on_grid` and `snap` the grid.
+`body_box`, `keepout_box` and `slot_box` give the boxes (`slots_box` the slots without the body), and `on_grid(v, tol, grid)` and `snap(v, grid)` the grid (the default grid when none is given).
 
 `to_fragment_mm` (D52) returns the same fragment with every size in millimetres and no scale
 transform. Coordinates and radii are multiplied by `module_mm`. Stroke widths come from
@@ -430,7 +430,10 @@ turned)`: where the string sits for the slot's side.
 With no `[grid]` the grid is `DEFAULT_GRID` (2.5 mm, 8 divisions). `to_divisions(grid, v)` returns
 the whole divisions of an on-grid value and raises `ValueError` naming an off-grid one;
 `from_divisions(grid, n)` is the reverse; `ceil_divisions(grid, v)` rounds a measured extent up to
-whole divisions, ignoring float noise of 1e-9. `lint` takes the grid to check against.
+whole divisions, ignoring float noise of 1e-9. `lint` takes the grid to check against. `snap(v, grid)`
+and `on_grid(v, tol, grid)` take it as a trailing argument; with none they use `DEFAULT_GRID`, so a call
+without a grid gives the output it always gave. `Grid(module_mm, divisions_per_module)` raises
+`ValueError` for a module not above zero or divisions not a power of two, naming the value and the fix.
 
 ## Turning and small accessors
 

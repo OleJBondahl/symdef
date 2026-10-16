@@ -8,6 +8,27 @@ GRID_DIVISION: float = 0.125
 DEFAULT_DIVISIONS_PER_MODULE: int = 8
 
 
+def module_error(value: object) -> str | None:
+    """Return why `value` is not a usable `module_mm`, or None; `Grid` and the loader share it."""
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        return f"module_mm {value!r} is not a number; give a number of millimetres above zero"
+    if not math.isfinite(value) or value <= 0:
+        return (
+            f"module_mm {value!r} is not above zero; give a finite number of millimetres above zero"
+        )
+    return None
+
+
+def divisions_error(value: object) -> str | None:
+    """Return why `value` is not a usable `divisions_per_module`, or None."""
+    if isinstance(value, bool) or not isinstance(value, int) or value < 1 or value & (value - 1):
+        return (
+            f"divisions_per_module {value!r} is not a power of two; "
+            "use 1, 2, 4, 8, 16 and so on, so a division is exact in floating point"
+        )
+    return None
+
+
 @dataclass(frozen=True, slots=True)
 class Grid:
     """The drawing grid of a library: the size of the module and how many divisions it has.
@@ -21,6 +42,12 @@ class Grid:
     module_mm: float = DEFAULT_MODULE_MM
     divisions_per_module: int = DEFAULT_DIVISIONS_PER_MODULE
 
+    def __post_init__(self) -> None:
+        """Raise `ValueError`, naming the value and the fix, for an unusable module or divisions."""
+        error = module_error(self.module_mm) or divisions_error(self.divisions_per_module)
+        if error:
+            raise ValueError(error)
+
     @property
     def division(self) -> float:
         """One grid division in module units."""
@@ -30,14 +57,21 @@ class Grid:
 DEFAULT_GRID = Grid()
 
 
-def snap(v: float) -> float:
-    """Round a value in module units to the nearest grid division (`GRID_DIVISION`, 0.125 M)."""
-    return round(v / GRID_DIVISION) * GRID_DIVISION
+def snap(v: float, grid: Grid = DEFAULT_GRID) -> float:
+    """Round a value in module units to the nearest division of `grid`.
+
+    With no grid it is the default grid, `GRID_DIVISION` (0.125 M), so a call without one gives
+    the output it always gave.
+    """
+    return round(v / grid.division) * grid.division
 
 
-def on_grid(v: float, tol: float = 1e-9) -> bool:
-    """Return whether a value in module units is within `tol` of a grid division."""
-    return abs(v - snap(v)) <= tol
+def on_grid(v: float, tol: float = 1e-9, grid: Grid = DEFAULT_GRID) -> bool:
+    """Return whether a value in module units is within `tol` of a division of `grid`.
+
+    With no grid it is the default grid, as for `snap`.
+    """
+    return abs(v - snap(v, grid)) <= tol
 
 
 _DIVISION_TOLERANCE: float = 1e-9

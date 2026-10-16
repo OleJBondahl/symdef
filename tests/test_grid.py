@@ -13,7 +13,7 @@ from symdef.load import library_from_bundle, parse_config, validate_bundle
 from symdef.model import Library, Reference, Status, Symbol, SymbolKind
 from symdef.project import _lint_findings
 from symdef.serialize import bundle_to_data, to_json
-from symdef.units import DEFAULT_GRID, Grid, to_divisions
+from symdef.units import DEFAULT_GRID, Grid, on_grid, snap, to_divisions
 
 COARSE = Grid(module_mm=5, divisions_per_module=4)
 
@@ -54,7 +54,7 @@ def test_library_toml_without_a_grid_has_the_default():
 def test_divisions_must_be_a_power_of_two(divisions):
     _, findings = config(f"[grid]\nmodule_mm = 5\ndivisions_per_module = {divisions}\n")
     assert findings
-    assert all(m.startswith("must be") for m in findings)
+    assert all(m.startswith("must be") or "power of two" in m for m in findings)
 
 
 def test_a_grid_needs_both_keys_and_no_others():
@@ -99,3 +99,32 @@ def test_to_divisions_follows_the_librarys_divisions_per_module():
     assert to_divisions(DEFAULT_GRID, 0.75) == 6
     with pytest.raises(ValueError, match=re.escape(repr(0.125))):
         to_divisions(parsed.grid, 0.125)
+
+
+@pytest.mark.parametrize(
+    ("args", "named"),
+    [
+        ((2.5, 3), "divisions_per_module 3"),
+        ((2.5, 0), "divisions_per_module 0"),
+        ((2.5, True), "divisions_per_module True"),
+        ((0, 8), "module_mm 0"),
+        ((-1.0, 8), "module_mm -1.0"),
+        ((float("nan"), 8), "module_mm nan"),
+    ],
+)
+def test_a_grid_built_by_hand_is_checked(args, named):
+    with pytest.raises(ValueError, match=named):
+        Grid(*args)
+
+
+def test_the_error_names_the_fix():
+    with pytest.raises(ValueError, match="use 1, 2, 4, 8"):
+        Grid(2.5, 6)
+
+
+def test_snap_and_on_grid_follow_the_given_grid():
+    assert snap(0.3, COARSE) == 0.25
+    assert snap(0.1) == snap(0.1, DEFAULT_GRID) == 0.125
+    assert on_grid(0.25, grid=COARSE)
+    assert not on_grid(0.125, grid=COARSE)
+    assert on_grid(0.125)
