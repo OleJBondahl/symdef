@@ -13,6 +13,7 @@ from symdef.gridmeasure import Measure, measure
 from symdef.gridtypes import GridBox, GridPoint, GridPort
 from symdef.model import Library, Port, Reference, Slot, Status, Symbol, SymbolKind
 from symdef.orient import Orientation, orient
+from symdef.table import table
 from symdef.units import Grid
 
 HEIGHT = 2  # with FONT "ABiAB" is 5.0 wide
@@ -142,3 +143,52 @@ def test_the_value_is_read_only_and_a_library_with_no_font_still_measures():
         result.slots["x"] = result.body  # ty: ignore[invalid-assignment]  # frozen on purpose
     with pytest.raises(TypeError):
         result.ports["x"] = None  # ty: ignore[invalid-assignment]  # frozen on purpose
+
+
+COIL = build(
+    Line(Point(0, 0), Point(4, 0)),
+    Line(Point(0, 0), Point(0, 2)),
+    slots=(Slot("table", Point(4, 1), Direction.S, (1, 1)),),
+)
+ROW = build(Line(Point(0, 0), Point(2, 1)))
+
+
+def _expected_attached(orientation, attached):
+    """The turned slot box united with the attached keep-out at the turned slot's point."""
+    slot = orient(COIL, orientation).slots[0]
+    inner = keepout_box(attached)
+    x, y = slot.position.x, slot.position.y
+    moved = (x + inner.min.x, y + inner.min.y, x + inner.max.x, y + inner.max.y)
+    reserved = slot_box(slot)
+    return GridBox(
+        GridPoint(-up(-min(reserved.min.x, moved[0]), 8), -up(-min(reserved.min.y, moved[1]), 8)),
+        GridPoint(up(max(reserved.max.x, moved[2]), 8), up(max(reserved.max.y, moved[3]), 8)),
+    )
+
+
+@pytest.mark.parametrize("attached", [table(ROW, 2, "y"), table(table(ROW, 2, "y"), 3, "y")])
+@pytest.mark.parametrize("orientation", list(Orientation))
+def test_an_attached_table_grows_the_slot_box_turned_with_the_view(orientation, attached):
+    result = measure(COIL, orientation, EIGHT, attach={"table": attached})
+    assert result.slots["table"] == _expected_attached(orientation, attached)
+    assert result.keepout == GridBox.union(result.body, *result.slots.values())
+
+
+def test_attached_box_values_at_r0():
+    two = measure(COIL, Orientation.R0, EIGHT, attach={"table": table(ROW, 2, "y")})
+    assert two.slots["table"] == GridBox(GridPoint(28, 8), GridPoint(48, 24))
+    three = measure(
+        COIL, Orientation.R0, EIGHT, attach={"table": table(table(ROW, 2, "y"), 3, "y")}
+    )
+    assert three.slots["table"] == GridBox(GridPoint(28, 8), GridPoint(48, 56))
+    assert two.keepout.max == GridPoint(48, 24)
+
+
+def test_no_attach_changes_nothing():
+    for orientation in Orientation:
+        assert measure(COIL, orientation, EIGHT, attach={}) == measure(COIL, orientation, EIGHT)
+
+
+def test_an_unknown_attach_key_names_the_key_and_the_slots():
+    with pytest.raises(UnknownNameError, match=r"nope.*table"):
+        measure(COIL, Orientation.R0, EIGHT, attach={"nope": ROW})
