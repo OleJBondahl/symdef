@@ -26,6 +26,8 @@ class FontMetrics:
         default_advance: The advance of a character a table does not list.
         heights: Capital heights in millimetres by name, such as `smallest` or `body`. The
             names are the library's own; symdef does not interpret them. Empty when none.
+        family: The family name a renderer resolves the font by. Empty at construction means the
+            same as `name`, so it is never empty. `measure_font` reads it from the face.
     """
 
     name: str
@@ -36,9 +38,12 @@ class FontMetrics:
     advances: Mapping[Weight, Mapping[str, float]]
     default_advance: float
     heights: Mapping[str, float] = field(default_factory=dict)
+    family: str = ""
 
     def __post_init__(self) -> None:
         """Copy `advances` and `heights` into read-only mappings; every `Weight` needs a table."""
+        if not self.family:
+            object.__setattr__(self, "family", self.name)
         missing = [w.name for w in Weight if w not in self.advances]
         if missing:
             msg = f"font {self.name!r} has no advance table for {', '.join(missing)}; add one each"
