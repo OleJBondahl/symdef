@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 import symdef
+from symdef import authoring
 
 ROOT = Path(__file__).resolve().parent.parent
 SET = ROOT / "docs" / "tutorial-set"
@@ -22,8 +23,8 @@ def test_it_builds_and_checks_clean_on_a_throwaway_copy(tmp_path):
     """The set itself stays source-only, so the build goes into a copy."""
     copy = tmp_path / "set"
     shutil.copytree(SET, copy)
-    symdef.build(copy)
-    assert symdef.check(copy) == ()
+    authoring.build(copy)
+    assert authoring.check(copy) == ()
 
 
 def test_the_nine_numbers_are_exactly_the_expected_list():

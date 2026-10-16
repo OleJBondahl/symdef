@@ -2,8 +2,14 @@
 
 from symdef._version import LIBRARY_VERSION
 from symdef.boxes import body_box, keepout_box, slot_box, slots_box
-from symdef.errors import GraphicalSymbolsError, LibraryError, UnknownSymbolError
-from symdef.files import load_bundle, load_library, stale_build, write_build
+from symdef.errors import (
+    InvalidValueError,
+    LibraryError,
+    SymdefError,
+    UnknownNameError,
+    UnknownSymbolError,
+)
+from symdef.files import load_bundle, load_library
 from symdef.font import FontMetrics, text_width
 from symdef.geometry import (
     Arc,
@@ -20,15 +26,15 @@ from symdef.geometry import (
     Text,
     Weight,
 )
+from symdef.gridmeasure import Measure, measure
+from symdef.gridtypes import GridBox, GridPoint, GridPort
 from symdef.leads import leads
-from symdef.lint import RULES, finding_key, lint
 from symdef.model import (
     Allow,
     Anchor,
     Centre,
     Finding,
     Library,
-    LibraryConfig,
     Node,
     Path,
     Port,
@@ -44,12 +50,12 @@ from symdef.model import (
     nodes_of,
 )
 from symdef.orient import orient, orient_box, orient_direction, orient_point, translate
-from symdef.project import build, check, init
 from symdef.repeat import pole_pitch, pole_port, repeat
 from symdef.slottext import TextPlacement, slot_text
 from symdef.stretch import stretch
 from symdef.svg import to_fragment, to_svg
 from symdef.svg_mm import to_fragment_mm
+from symdef.svg_placed import to_placed_fragment
 from symdef.table import table
 from symdef.units import (
     DEFAULT_MODULE_MM,
@@ -67,7 +73,6 @@ __all__ = [
     "DEFAULT_MODULE_MM",
     "GRID_DIVISION",
     "LIBRARY_VERSION",
-    "RULES",
     "Allow",
     "Anchor",
     "Arc",
@@ -79,12 +84,15 @@ __all__ = [
     "Fill",
     "Finding",
     "FontMetrics",
-    "GraphicalSymbolsError",
     "Grid",
+    "GridBox",
+    "GridPoint",
+    "GridPort",
+    "InvalidValueError",
     "Library",
-    "LibraryConfig",
     "LibraryError",
     "Line",
+    "Measure",
     "Node",
     "Orientation",
     "Path",
@@ -99,24 +107,22 @@ __all__ = [
     "Style",
     "Symbol",
     "SymbolKind",
+    "SymdefError",
     "Text",
     "TextPlacement",
+    "UnknownNameError",
     "UnknownSymbolError",
     "Vocabulary",
     "Weight",
     "WireStyle",
     "body_box",
-    "build",
     "ceil_divisions",
-    "check",
-    "finding_key",
     "from_divisions",
-    "init",
     "keepout_box",
     "leads",
-    "lint",
     "load_bundle",
     "load_library",
+    "measure",
     "nodes_of",
     "on_grid",
     "orient",
@@ -130,15 +136,14 @@ __all__ = [
     "slot_text",
     "slots_box",
     "snap",
-    "stale_build",
     "stretch",
     "table",
     "text_width",
     "to_divisions",
     "to_fragment",
     "to_fragment_mm",
+    "to_placed_fragment",
     "to_svg",
     "translate",
     "wire",
-    "write_build",
 ]

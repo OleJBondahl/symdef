@@ -3,9 +3,13 @@
 import math
 from dataclasses import dataclass
 
+from symdef.errors import InvalidValueError
+
 DEFAULT_MODULE_MM: float = 2.5
 GRID_DIVISION: float = 0.125
 DEFAULT_DIVISIONS_PER_MODULE: int = 8
+DEFAULT_WIRE_PITCH: int = 8
+DEFAULT_WIRE_PITCH_FINE: int = 4
 
 
 def module_error(value: object) -> str | None:
@@ -29,6 +33,19 @@ def divisions_error(value: object) -> str | None:
     return None
 
 
+def pitch_error(standard: object, fine: object) -> str | None:
+    """Return why `standard` and `fine` are not usable wire pitches, in divisions, or None."""
+    for name, value in (("wire_pitch", standard), ("wire_pitch_fine", fine)):
+        if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+            return f"{name} {value!r} is not a whole number of divisions above zero; use 1 or more"
+    if standard % fine:  # ty: ignore[unsupported-operator] - both proved whole numbers above
+        return (
+            f"wire_pitch_fine {fine!r} does not divide wire_pitch {standard!r}; "
+            "give a fine pitch that divides the standard one"
+        )
+    return None
+
+
 @dataclass(frozen=True, slots=True)
 class Grid:
     """The drawing grid of a library: the size of the module and how many divisions it has.
@@ -37,16 +54,25 @@ class Grid:
         module_mm: One module in millimetres.
         divisions_per_module: How many grid divisions make one module; a power of two, so a
             division is exact in floating point.
+        wire_pitch: The standard wire pitch in divisions; every port sits on it.
+        wire_pitch_fine: The fine wire pitch in divisions, for a dense page; it divides
+            `wire_pitch`. A library has these two pitches and no third.
     """
 
     module_mm: float = DEFAULT_MODULE_MM
     divisions_per_module: int = DEFAULT_DIVISIONS_PER_MODULE
+    wire_pitch: int = DEFAULT_WIRE_PITCH
+    wire_pitch_fine: int = DEFAULT_WIRE_PITCH_FINE
 
     def __post_init__(self) -> None:
-        """Raise `ValueError`, naming the value and the fix, for an unusable module or divisions."""
-        error = module_error(self.module_mm) or divisions_error(self.divisions_per_module)
+        """Raise `InvalidValueError` naming the value and fix, for a bad grid value."""
+        error = (
+            module_error(self.module_mm)
+            or divisions_error(self.divisions_per_module)
+            or pitch_error(self.wire_pitch, self.wire_pitch_fine)
+        )
         if error:
-            raise ValueError(error)
+            raise InvalidValueError(error)
 
     @property
     def division(self) -> float:
@@ -85,7 +111,7 @@ def to_divisions(grid: Grid, v: float) -> int:
     n = v * grid.divisions_per_module
     if not math.isfinite(n) or abs(n - round(n)) > _DIVISION_TOLERANCE:
         msg = f"{v!r} is not on the grid of {grid.divisions_per_module} divisions per module"
-        raise ValueError(msg)
+        raise InvalidValueError(msg)
     return round(n)
 
 

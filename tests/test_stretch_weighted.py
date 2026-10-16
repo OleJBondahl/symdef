@@ -8,6 +8,7 @@ from hypothesis import strategies as st
 from roundtrip import round_trips
 
 from symdef.boxes import slot_box
+from symdef.errors import InvalidValueError
 from symdef.geometry import Arc, Circle, Direction, Line, Point, Text
 from symdef.load import parse_toml, symbol_from_data, validate
 from symdef.model import Anchor, Centre, Reference, Slot, Status, Stretch, Symbol, SymbolKind
@@ -65,7 +66,7 @@ def test_a_circle_arc_or_text_across_either_cut_raises(x, cls):
         "arc": Arc(Point(x, 3), 1, 0, 360),
         "text": Text("ab", Point(x - 0.5, 3), 1),
     }[cls]
-    with pytest.raises(ValueError, match="crosses the cut"):
+    with pytest.raises(InvalidValueError, match="crosses the cut"):
         stretch(base(shape), "x", 20)
 
 

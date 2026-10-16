@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Self
 
+from symdef.errors import InvalidValueError
+
 
 class Direction(Enum):
     """Compass direction, with the unit vector as its value.
@@ -113,7 +115,7 @@ class Box:
         """Return the smallest box holding all `boxes`; one box gives itself, none raises."""
         if not boxes:
             msg = "union needs at least one box"
-            raise ValueError(msg)
+            raise InvalidValueError(msg)
         return Box(
             Point(min(b.min.x for b in boxes), min(b.min.y for b in boxes)),
             Point(max(b.max.x for b in boxes), max(b.max.y for b in boxes)),

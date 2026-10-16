@@ -4,6 +4,7 @@ from collections.abc import Mapping, Sequence
 from typing import NamedTuple
 from xml.sax.saxutils import quoteattr
 
+from symdef.errors import InvalidValueError, UnknownNameError
 from symdef.geometry import (
     Arc,
     Circle,
@@ -50,6 +51,14 @@ class _Mm(NamedTuple):
         """Return a point as two millimetre numbers."""
         return _num(p.x * self.module), _num(p.y * self.module)
 
+    def width(self, weight: Weight) -> str:
+        """Return the stroke width of a weight in mm; a weight the caller left out raises."""
+        if weight not in self.weights:
+            have = ", ".join(w.name for w in self.weights)
+            msg = f"weights_mm has no width for {weight.name}; it has {have or 'none'}; add it"
+            raise UnknownNameError(msg)
+        return _num(self.weights[weight])
+
     def stroke(
         self,
         weight: Weight,
@@ -68,7 +77,7 @@ class _Mm(NamedTuple):
             solid = f' fill="{colour}"'
         else:
             solid = ""
-        width = _num(self.weights[weight])
+        width = self.width(weight)
         return f'stroke-width="{width}"{dashed}{solid}/>'
 
     def dashes(self, style: Style) -> str:
@@ -77,12 +86,12 @@ class _Mm(NamedTuple):
         A muted symbol has one pattern for every style: a dash and a gap of the normal width.
         """
         if self.muted is not None:
-            normal = _num(self.weights[Weight.NORMAL])
+            normal = self.width(Weight.NORMAL)
             return f' stroke-dasharray="{normal} {normal}"'
         if style is Style.DASH_DOT:
             if self.dash_dot is None:
                 message = "dash_dot_mm is required to draw a dash_dot element"
-                raise ValueError(message)
+                raise InvalidValueError(message)
             return f' stroke-dasharray="{" ".join(_num(n) for n in self.dash_dot)}"'
         if style is Style.DASHED:
             return f' stroke-dasharray="{_num(self.dash[0])} {_num(self.dash[1])}"'
@@ -218,10 +227,10 @@ def to_fragment_mm(  # noqa: PLR0913 - one physical size per keyword
         The `<g>...</g>` fragment text, ending with a single newline.
 
     Raises:
-        KeyError: A weight an element uses, or `Weight.NORMAL` when muted, is missing from
+        UnknownNameError: A weight an element uses, or `Weight.NORMAL` when muted, is missing from
             `weights_mm`; the key names it. Also a key of `texts` that is not a slot id of the
             symbol, checked before anything is drawn, also for an empty string.
-        ValueError: The tint or the muted colour is not a hex colour or a colour name, a
+        InvalidValueError: The tint or the muted colour is not a hex colour or a colour name, a
             dash-dot element is drawn and `dash_dot_mm` is None, or `texts` is given and misses a
             required slot; the message names it and the symbol.
     """

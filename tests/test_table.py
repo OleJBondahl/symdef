@@ -5,6 +5,7 @@ from dataclasses import replace
 import pytest
 
 from symdef.boxes import body_box
+from symdef.errors import InvalidValueError
 from symdef.geometry import Direction, Line, Point, Style, Weight
 from symdef.model import Path, Port, Reference, Slot, Status, Stretch, Symbol, SymbolKind
 from symdef.table import table
@@ -116,13 +117,13 @@ def test_the_head_stretch_must_fit_the_rows():
         Line(Point(0, 0), Point(8, 0), Weight.NORMAL, Style.SOLID),
         stretch=(Stretch("x", 4),),
     )
-    with pytest.raises(ValueError, match="below the natural extent"):
+    with pytest.raises(InvalidValueError, match="below the natural extent"):
         table(row(), 1, "x", h)
 
 
 @pytest.mark.parametrize("n", [0, 65])
 def test_the_row_count_is_bounded(n):
-    with pytest.raises(ValueError, match="between 1 and 64"):
+    with pytest.raises(InvalidValueError, match="between 1 and 64"):
         table(row(), n, "x")
 
 

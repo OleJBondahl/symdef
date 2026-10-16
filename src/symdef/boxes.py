@@ -2,6 +2,7 @@
 
 import math
 
+from symdef.errors import InvalidValueError
 from symdef.font import FontMetrics, text_width
 from symdef.geometry import (
     Arc,
@@ -124,14 +125,14 @@ def slot_box(
     box and the string's extent. Without a text it is the reserved box.
 
     Raises:
-        ValueError: If a text is given without a height.
+        InvalidValueError: If a text is given without a height.
     """
     reserved = _reserved_box(slot)
     if text is None:
         return reserved
     if height is None:
         msg = "slot_box needs a height to measure a text"
-        raise ValueError(msg)
+        raise InvalidValueError(msg)
     drawn = text_box(slot, text, height, font)
     return _bounding((reserved.min, reserved.max, drawn.min, drawn.max))
 

@@ -5,6 +5,10 @@ them, resolves composition, lints the wiring contract, renders SVG, and builds a
 bundle plus a gallery. Data packages hold only data and reuse the toolkit and its gates, for any standard: IEC 60617,
 ISO 14617, ISA 5.1 or your own.
 
+Two doors: `symdef` is what a consumer draws with (load, orient, render, measure), and
+`symdef.authoring` is what a library's author builds with (`build`, `check`, `init`, `lint`,
+`write_build`, `stale_build`, `RULES`, `finding_key`, `LibraryConfig`). No name is on both.
+
 Status: alpha. The toolkit the spec below describes is built: reading, resolving, linting, SVG and
 the build, with every lint rule and gate proven by a failing fixture. Published on PyPI from v0.4.0;
 v0.1.0 to v0.3.0 were git tags named `graphical-symbols`.
@@ -61,7 +65,8 @@ leaves open, and concerns about the spec, are in [docs/DECISIONS.md](docs/DECISI
 A data repo has `library.toml` and `symbols/<number>.toml`; `root` below is its directory.
 
 ```python
-from symdef import lint, load_library
+from symdef import load_library
+from symdef.authoring import lint
 from symdef.lint import RULES
 
 library = load_library(root)  # raises LibraryError, listing every problem in the files
@@ -91,7 +96,8 @@ normalised name (lowercase letters and digits, D8): the example's standard is `I
 package is `iec60617`.
 
 ```python
-from symdef import load_bundle, stale_build, write_build
+from symdef import load_bundle
+from symdef.authoring import stale_build, write_build
 
 write_build(library, root)
 assert stale_build(library, root) == ()

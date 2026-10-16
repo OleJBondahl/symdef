@@ -1322,3 +1322,117 @@ mappings (`MappingProxyType`). This replaces D75's "`snap` stays unchanged".
 Why: a library's grid is data, so every grid function must read it; a grid that is built by hand
 must not be able to hold an inexact division; frozen records hold no mutable contents.
 Cost if wrong: additive for callers; drop the trailing argument to revert.
+
+## D80: symdef raises its own errors
+
+Decided: the base error is `SymdefError` (renamed from `GraphicalSymbolsError`, no alias). Under it
+sit `InvalidValueError` (a bad argument or malformed data; replaces every `ValueError` raised by
+symdef), `UnknownNameError` (a name not in the set it was looked up in; replaces every `KeyError`),
+`UnknownSymbolError` and `LibraryError`. They are plain subclasses: none inherits the builtin it
+replaces, so `except ValueError` no longer catches symdef. A message gives the cause, the value
+and the valid values or the fix. No `FileError`: symdef raises no `OSError` itself, the reads and
+writes of `files` let pathlib's own propagate and the docstrings say so; `project.init` raises
+`InvalidValueError` for an existing file (review round 1; it first kept `FileExistsError`). The
+`OSError` that `write_build` and `stale_build` let propagate (disk errors) is a documented exception. `to_fragment_mm`
+raises `UnknownNameError` (not a bare dict `KeyError`) for a weight missing from `weights_mm`.
+`tests/test_errors.py` walks the package with `ast` and fails on a raise of any builtin
+exception class. The loader's own `except ValueError` clauses around standard-library
+parsers stay.
+Why: one base to catch, named causes, and a clean break while there are no other callers to keep.
+Cost if wrong: a consumer that caught the builtins must catch `SymdefError` or the subclass; add a
+second base to a class to revert one.
+
+## D82: `measure`, and the font holds one advance table per weight
+
+Decided (font part, committed first): `FontMetrics.advances` is a read-only mapping from `Weight`
+to a read-only mapping of character to advance, one table for every `Weight`; a font missing one
+raises `InvalidValueError` naming it. `thick_factor` is removed. `text_width` reads the table of the
+weight it is given, so a bold text differs glyph by glyph from a regular one. `library.toml`'s
+`[font]` takes `[font.advances.normal]` and `[font.advances.thick]`, both required, each a table of
+single characters to numbers above zero; the bundle's `font.advances` is an object with the keys
+`normal` and `thick`, each such a table. `default_advance` stays one number for both.
+Why: a bold face is not a scaled regular face, so a factor mismeasures it.
+Cost if wrong: a library with a font must write a second table; a bundle written by 0.11 does not
+load (its `advances` is flat). Fonts were new in 0.11, so the break is free.
+
+## D81: `GridPoint`, `GridBox` and `GridPort` are their own types
+
+Decided: `symdef.gridtypes` holds three frozen slotted types whose coordinates are whole grid
+divisions: `GridPoint(x, y)`, `GridBox(min, max)` with `width`, `height` and `GridBox.union`
+(the shape of `Box.union`), and `GridPort(id, x, y, direction)`. A coordinate that is not an `int`
+(a `bool` too) raises `InvalidValueError`. They do not subclass `Point` or `Box`.
+Why: divisions are a second unit; a float-typed `Point` could carry either unit unnoticed.
+Cost if wrong: additive; drop the module to revert.
+
+`measure(symbol, orientation, library, texts=None, text_height=None) -> Measure` (module
+`symdef.gridmeasure`, so the function does not shadow its own module). It orients the symbol, then
+reads `body_box`, `slot_box` (with `library.font`) and the ports, and returns a frozen `Measure`:
+`body`, `keepout` (the body united with every slot box, text included) as `GridBox`; `slots` as id
+to `GridBox`; `ports` as id to `GridPort` with the direction after the turn; `slots` and `ports`
+are read-only. Choices: slot text comes from the optional `texts` (slot id to string) with
+`text_height`; a text given without a height raises `InvalidValueError` naming `text_height`, a
+key that is no slot raises `UnknownNameError`; a slot with no string is its reserved box. An
+extent rounds outward (`min = -ceil_divisions(-min)`, `max = ceil_divisions(max)`), so a body
+already on the grid is exact; a port is a position and goes through `to_divisions`, so an off-grid
+port raises naming the port and the value. A slot's text is measured in the normal weight; a body
+`Text` uses its own weight's table.
+Why: SB12: layout gets the data from symdef and converts nothing.
+Cost if wrong: additive; delete the module and the exports to revert.
+
+## D83: `to_placed_fragment` draws a symbol at a grid position
+
+Decided: `to_placed_fragment(symbol, orientation, at, library, *, tint, muted, texts,
+required_slots)` in `symdef.svg_placed` orients the symbol, draws it with `to_fragment`, and wraps
+it in one `<g transform="translate(X Y)">`, X and Y being `at` (a `GridPoint`) turned into module
+units by `from_divisions(library.grid, n)`. `to_fragment`, `to_fragment_mm` and `to_svg` are
+unchanged, so every golden is byte-identical; `to_fragment_mm` is listed in the changelog for
+removal in 0.13, once its callers use the placed call.
+Why: SB12: the renderer places a symbol with no unit conversion of its own.
+Cost if wrong: additive; delete the module and the export to revert.
+
+## D84: two doors, `symdef` for consumers and `symdef.authoring` for authors
+
+Decided: `symdef.authoring` holds nine names: `build`, `check`, `init`, `lint`, `write_build`,
+`stale_build`, `RULES`, `finding_key` and `LibraryConfig`. They leave `symdef.__all__`; the two
+`__all__` sets are disjoint and `from symdef import build` raises `ImportError`. The rule: a name
+goes to the author door when no consumer-side call takes or returns it. Fransys's import census
+(2026-10-16) found no consumer import of these nine. `LibraryError` stays on the consumer door:
+`load_library` and `load_bundle` raise it. `Finding` and `Severity` stay there too, since they ride
+on `LibraryError.findings`; so does `Status`, a `Symbol` field a consumer building one sets. The
+`symdef` CLI imports from `symdef.project`, unchanged. `symdef.authoring` only re-exports, so the
+purity gate needs no entry for it.
+Why: a consumer's surface is what it draws with; the authoring verbs are noise there and a second
+reason for a major bump when one changes.
+Cost if wrong: breaking for an author who imports from `symdef`: change the import path.
+
+## D85: a surface snapshot and a changelog
+
+Decided: `surface.toml` at the repo root lists, sorted, the `__all__` of `symdef` and
+`symdef.authoring`; `scripts/write_surface.py` writes it and `tests/test_surface.py` fails on any
+difference. `docs/CHANGELOG.md` has one section per version, newest first, with one line per name
+added, removed, moved or widened. `tests/test_changelog.py` requires a section for
+`LIBRARY_VERSION`, as the newest, with a line. The rule: a `surface.toml` diff comes with a
+changelog line in the same commit. The first entry is the retroactive `Slot.side` widening to
+`Direction | Centre`, in 0.10.0.
+Why: a consumer pins a version and needs to see what moved; the snapshot makes a silent move a
+red test.
+Cost if wrong: additive; delete the file, the script and the two tests to revert.
+
+## D86: two wire pitches in `Grid`, and a map of text heights in the font
+
+Decided: `Grid` gains `wire_pitch` (default 8) and `wire_pitch_fine` (default 4), in divisions;
+`module_mm` stays the fixed symbol size. `[grid]` takes `wire_pitch` and `wire_pitch_fine` and
+refuses a third pitch key (`unknown key`), a pitch that is not a whole number above zero, and a
+fine pitch that does not divide the standard one. Every port of a resolved symbol must sit on the
+standard pitch: `resolve_library` adds the `port-off-wiring-grid` finding (the lint rule, reused,
+exempt through `lint_allow`) at load, so a library with an off-pitch port does not load.
+`electrical_symbols` was measured first: 76 symbols, 117 ports, none off a 1 M pitch. `FontMetrics`
+gains `heights`, a read-only map from a name to a capital height in millimetres, read from
+`[font.heights]` and carried by the bundle (written only when not empty). symdef does not interpret
+the names. `measure` is unchanged and takes no `module_mm`.
+Why: Fransys's GRID-HOME needs the pitches and the text heights as library data. A default of 8/4
+with 8 divisions is 1 M and 0.5 M; a library with 4 divisions and no pitch keys gets a standard
+pitch of 2 M.
+Cost if wrong: additive for a library that sets nothing; the loader check is new for one that has
+an off-pitch port (set `wire_pitch` or move the port).
+

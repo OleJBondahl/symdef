@@ -7,6 +7,7 @@ from dataclasses import replace
 from xml.sax.saxutils import escape
 
 from symdef.boxes import body_box, keepout_box, slot_box
+from symdef.errors import InvalidValueError, UnknownNameError
 from symdef.geometry import (
     Arc,
     Box,
@@ -96,18 +97,18 @@ _COLOUR = re.compile(r"#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})|[A-Za-z]+")
 
 
 def check_colour(name: str, colour: str | None) -> None:
-    """Raise ValueError unless a colour is `#rgb`, `#rrggbb` or a letters-only colour name.
+    """Raise InvalidValueError unless a colour is `#rgb`, `#rrggbb` or a letters-only colour name.
 
     The check keeps a caller's colour from injecting markup into an attribute (D57); `name` is
     the keyword it came in.
     """
     if colour is not None and _COLOUR.fullmatch(colour) is None:
         message = f"{name} must be #rgb, #rrggbb or a colour name, not {colour!r}"
-        raise ValueError(message)
+        raise InvalidValueError(message)
 
 
 def check_tint(tint: str | None) -> None:
-    """Raise ValueError unless a tint is `#rgb`, `#rrggbb` or a letters-only colour name."""
+    """Raise InvalidValueError unless a tint is `#rgb`, `#rrggbb` or a letters-only colour name."""
     check_colour("tint", tint)
 
 
@@ -346,18 +347,20 @@ def check_texts(
 ) -> None:
     """Check `texts` against the slots of the symbol (D63); nothing is checked when it is None.
 
-    Raises KeyError naming every key that is not a slot id, and ValueError naming the symbol and
-    every required slot (`required_ids`) that has no key; an empty string satisfies it.
+    Raises UnknownNameError naming every key that is not a slot id, and InvalidValueError naming
+    the symbol and every required slot (`required_ids`) with no key; an empty string satisfies it.
     """
     if texts is None:
         return
     unknown = sorted(set(texts) - {slot.id for slot in symbol.slots})
     if unknown:
-        raise KeyError(", ".join(unknown))
+        valid = ", ".join(sorted(slot.id for slot in symbol.slots))
+        msg = f"{symbol.name}: no such slot: {', '.join(unknown)}; the slots are {valid}"
+        raise UnknownNameError(msg)
     missing = [i for i, _, _ in required_ids(symbol, required_slots) if i not in texts]
     if missing:
         message = f"{symbol.name}: no text for the required slot {', '.join(missing)}"
-        raise ValueError(message)
+        raise InvalidValueError(message)
 
 
 def slot_align(slot: Slot) -> tuple[str, float, float]:
@@ -557,7 +560,7 @@ def to_svg(
         The SVG text, ending with a single newline.
 
     Raises:
-        ValueError: The tint is not a hex colour or a colour name.
+        InvalidValueError: The tint is not a hex colour or a colour name.
     """
     check_tint(tint)
     sampled = _sampled(symbol, texts or {})
@@ -623,9 +626,9 @@ def to_fragment(
         The `<g>...</g>` fragment text, ending with a single newline.
 
     Raises:
-        KeyError: A key of `texts` is not a slot id of the symbol; the key names it. Checked
+        UnknownNameError: A key of `texts` is not a slot id of the symbol; the key names it. Checked
             before anything is drawn, also for an empty string.
-        ValueError: The tint or the muted colour is not a hex colour or a colour name, or
+        InvalidValueError: The tint or the muted colour is not a hex colour or a colour name, or
             `texts` is given and misses a required slot; the message names it and the symbol.
     """
     check_tint(tint)
