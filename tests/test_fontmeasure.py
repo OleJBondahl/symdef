@@ -192,3 +192,34 @@ class TestFamily:
         assert [f.message for f in findings] == [
             "`family` comes from the font file; remove it beside `files`"
         ]
+
+
+HEIGHTS = "heights = { smallest = 1.8, body = 2.5, heading = 3.5, large = 5.0 }\n"
+
+
+class TestHeights:
+    def test_heights_beside_files_parse_into_the_config(self):
+        config, findings = parse_config(HEAD + FILES + HEIGHTS)
+        assert findings == ()
+        assert config is not None
+        assert dict(config.font_heights) == {
+            "smallest": 1.8,
+            "body": 2.5,
+            "heading": 3.5,
+            "large": 5.0,
+        }
+
+    def test_no_heights_leaves_the_config_heights_empty(self):
+        config, _ = parse_config(HEAD + FILES)
+        assert config is not None
+        assert dict(config.font_heights) == {}
+
+    @pytest.mark.parametrize("bad", ["0", "-1", '"tall"'])
+    def test_a_bad_height_is_a_finding_at_its_name(self, bad):
+        _, findings = parse_config(HEAD + FILES + f"heights = {{ body = {bad} }}\n")
+        assert [f.location for f in findings] == ["/font/heights/body"]
+
+    def test_the_literal_form_locates_a_bad_height_the_same_way(self):
+        text = HEAD + literal_toml() + "\n[font.heights]\nbody = 0\n"
+        _, findings = parse_config(text)
+        assert [f.location for f in findings] == ["/font/heights/body"]
