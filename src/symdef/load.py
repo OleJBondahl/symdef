@@ -258,6 +258,7 @@ _POLYLINE = _table(
         "fill": _POLYLINE_FILL,
         "weight": _WEIGHT,
         "style": _STYLE,
+        "between": _boolean,
     },
     required=("polyline",),
 )
@@ -274,7 +275,13 @@ def _polyline(value: dict[str, Any], location: str) -> list[Finding]:
 # One table per shape, keyed by the shape key; an element has exactly one of these keys.
 _ELEMENTS = {
     "line": _table(
-        {"line": _array(_POINT, 2), "weight": _WEIGHT, "style": _STYLE, "port": _string},
+        {
+            "line": _array(_POINT, 2),
+            "weight": _WEIGHT,
+            "style": _STYLE,
+            "port": _string,
+            "between": _boolean,
+        },
         required=("line",),
     ),
     "polyline": _polyline,
@@ -411,7 +418,12 @@ def _element_from_data(item: Mapping[str, Any]) -> Element:
     if "line" in item:
         start, end = item["line"]
         return Line(
-            _point(start), _point(end), weight, Style(item.get("style", "solid")), item.get("port")
+            _point(start),
+            _point(end),
+            weight,
+            Style(item.get("style", "solid")),
+            item.get("port"),
+            between=item.get("between", False),
         )
     if "polyline" in item:
         return Polyline(
@@ -420,6 +432,7 @@ def _element_from_data(item: Mapping[str, Any]) -> Element:
             Fill(item.get("fill", "none")),
             weight,
             Style(item.get("style", "solid")),
+            between=item.get("between", False),
         )
     if "circle" in item:
         return Circle(_point(item["circle"]), item["r"], Fill(item.get("fill", "none")), weight)

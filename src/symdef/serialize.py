@@ -61,7 +61,7 @@ def _cut(cut: Stretch) -> dict[str, Any]:
 def _element(element: Element) -> dict[str, Any]:
     """Write an element in the source vocabulary with every default key present."""
     match element:
-        case Line(start=start, end=end, weight=weight, style=style, port=port):
+        case Line(start=start, end=end, weight=weight, style=style, port=port, between=between):
             data = {
                 "line": [_point(start), _point(end)],
                 "weight": weight.name.lower(),
@@ -69,15 +69,22 @@ def _element(element: Element) -> dict[str, Any]:
             }
             if port is not None:
                 data["port"] = port
+            if between:
+                data["between"] = True
             return data
-        case Polyline(points=points, closed=closed, fill=fill, weight=weight, style=style):
-            return {
+        case Polyline(
+            points=points, closed=closed, fill=fill, weight=weight, style=style, between=between
+        ):
+            data = {
                 "polyline": [_point(p) for p in points],
                 "closed": closed,
                 "fill": fill.value,
                 "weight": weight.name.lower(),
                 "style": style.value,
             }
+            if between:
+                data["between"] = True
+            return data
         case Circle(center=center, radius=radius, fill=fill, weight=weight):
             return {
                 "circle": _point(center),
