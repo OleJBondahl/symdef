@@ -1486,7 +1486,9 @@ Decided: `text-outside-body` (`symdef.lint.textbody.text_outside_body(symbol, fo
 Text anchored inside the symbol's body, the union of its non-Text elements, and requires its extent to lie wholly
 inside that box, measured with the library font at the text's height and weight. A text anchored outside the body,
 or a symbol with no other element, is not checked. It is a library-level check outside the per-symbol lint registry:
-not one of the 35 guide-table rules, not in `__all__`. `Library.with_settings` runs it instead of `text-too-large`;
+not one of the 35 guide-table rules, not in `__all__`: `lint()` takes no font, so a registered rule could not measure.
+Two call sites run it: `load_library` (and so `symdef build`) with the library font when it has one, raising
+`LibraryError` naming the symbol; and `Library.with_settings`, instead of `text-too-large`;
 `text-too-large` stays for authoring.
 Why: designer ruling 2026-10-16 (b), spec SETTINGS ST4 amendment 2. `text-too-large` compared height with 1 M and read
 no font, so a consumer font could never fail the build.
