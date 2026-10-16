@@ -26,6 +26,7 @@ from symdef.geometry import (
     Text,
     Weight,
 )
+from symdef.gridtypes import GridBox, GridPoint, GridPort
 from symdef.leads import leads
 from symdef.lint import RULES, finding_key, lint
 from symdef.model import (
@@ -86,6 +87,9 @@ __all__ = [
     "Finding",
     "FontMetrics",
     "Grid",
+    "GridBox",
+    "GridPoint",
+    "GridPort",
     "InvalidValueError",
     "Library",
     "LibraryConfig",
