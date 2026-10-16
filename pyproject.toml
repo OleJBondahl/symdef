@@ -11,7 +11,7 @@ requires-python = ">=3.14"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "Ole Johan Bondahl" }]
-dependencies = []
+dependencies = ["fonttools==4.67.0"]
 
 [project.scripts]
 symdef = "symdef.cli:main"

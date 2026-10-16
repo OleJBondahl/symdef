@@ -200,7 +200,8 @@ def bundle_to_data(library: Library) -> dict[str, Any]:
 
     A library with wire styles adds the `wires` array; one with a font adds the `font` object
     (the font's fields and an `advances` object); a grid other than the default adds the `grid`
-    object (`module_mm`, `divisions_per_module` and the two wire pitches); one with none of these
+    object (`module_mm`, `divisions_per_module` and the two wire pitches); one with line widths adds
+    the `lines` object (millimetres by weight name); one with none of these
     has none of the keys.
     """
     data: dict[str, Any] = {
@@ -224,6 +225,8 @@ def bundle_to_data(library: Library) -> dict[str, Any]:
             "wire_pitch": library.grid.wire_pitch,
             "wire_pitch_fine": library.grid.wire_pitch_fine,
         }
+    if library.lines:
+        data["lines"] = {w.name.lower(): library.lines[w] for w in Weight if w in library.lines}
     return data
 
 

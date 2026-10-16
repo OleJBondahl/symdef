@@ -25,7 +25,10 @@ PACKAGE_DIR = ROOT / "src" / "symdef"
 # Paths relative to the package. Each reads or writes files or the console: `files.py` is the
 # shell around `library.toml` and the build, `project.py` the three verbs on a folder, `cli.py`
 # prints and exits, `__main__.py` runs `cli`, and `__init__.py` is the re-export list.
-IMPURE_MODULES = frozenset({"files.py", "project.py", "cli.py", "__main__.py", "__init__.py"})
+# `fontmeasure.py` imports `io` for a memory-only BytesIO: fontTools needs a file object.
+IMPURE_MODULES = frozenset(
+    {"files.py", "fontmeasure.py", "project.py", "cli.py", "__main__.py", "__init__.py"}
+)
 
 BANNED_CALLS = frozenset({"print", "input", "open", "exec", "eval", "__import__"})
 BANNED_IMPORTS = frozenset(
