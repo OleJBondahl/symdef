@@ -126,7 +126,7 @@ def test_a_font_that_outgrows_the_body_raises_naming_the_symbol_and_the_overflow
     base = library(boxed("S1"), boxed("S2", 9.0), font=FONT)
     assert base.with_settings() == base
     with pytest.raises(InvalidValueError) as raised:
-        base.with_settings(font=(REGULAR, BOLD), module_mm=2.0)
+        base.with_settings(font=(REGULAR, BOLD))
     message = str(raised.value)
     assert "symbol S1" in message
     assert "S2" not in message
