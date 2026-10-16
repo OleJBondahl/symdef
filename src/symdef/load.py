@@ -12,6 +12,7 @@ import re
 import tomllib
 from collections.abc import Callable, Mapping
 from dataclasses import replace
+from types import MappingProxyType
 from typing import Any
 
 from symdef.font import FontMetrics
@@ -694,7 +695,7 @@ def library_from_bundle(data: Mapping[str, Any]) -> Library:
         data["standard"],
         data["standard"],
         "",
-        symbols,
+        MappingProxyType(symbols),
         wires=_wires_from_data(data.get("wires", [])),
         font=font_from_data(data["font"]) if "font" in data else None,
         grid=grid_from_data(data["grid"]) if "grid" in data else DEFAULT_GRID,

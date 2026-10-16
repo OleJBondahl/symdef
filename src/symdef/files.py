@@ -2,6 +2,7 @@
 
 from dataclasses import replace
 from pathlib import Path
+from types import MappingProxyType
 from typing import Any
 
 from symdef.errors import LibraryError
@@ -93,7 +94,7 @@ def load_library(root: Path) -> Library:
         config.standard,
         config.title,
         config.number_pattern,
-        resolution.symbols,
+        MappingProxyType(resolution.symbols),
         config.vocabulary,
         config.required_slots,
         config.wires,
