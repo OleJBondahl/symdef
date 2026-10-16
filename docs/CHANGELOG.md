@@ -10,6 +10,8 @@ What changed in the public surface of each release: a name added, removed or mov
 - Added: `measure(symbol, orientation, library, texts=None, text_height=None)` returning `Measure`: body, keepout, slots and ports in whole divisions, already turned (D82).
 - Changed: `FontMetrics.advances` is one table per `Weight` (`[font.advances.normal]` and `[font.advances.thick]` in `library.toml`); `thick_factor` is removed, and the bundle's `font.advances` has a `normal` and a `thick` table (D82).
 - Added: `to_placed_fragment(symbol, orientation, at, library, ...)`, a fragment inside one `translate` read from a `GridPoint` (D83).
+- Added: `Grid.wire_pitch` (8) and `Grid.wire_pitch_fine` (4), in divisions, and `[grid]` keys of the same names; the loader refuses a third pitch, a fine pitch that does not divide the standard one, and a port off the standard pitch (D86).
+- Added: `FontMetrics.heights`, a read-only map of names to capital heights in millimetres, from `[font.heights]` (D86).
 - Deprecated: `to_fragment_mm` is listed for removal in 0.13, once its callers use `to_placed_fragment`.
 
 ## 0.11.0

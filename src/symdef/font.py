@@ -1,7 +1,7 @@
 """Font metrics as library data, and the width of a text measured with them."""
 
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from types import MappingProxyType
 
 from symdef.errors import InvalidValueError
@@ -24,6 +24,8 @@ class FontMetrics:
         descent: Depth of the lowest glyph below the baseline, in font units.
         advances: One table per `Weight`: the advance width of each character, in font units.
         default_advance: The advance of a character a table does not list.
+        heights: Capital heights in millimetres by name, such as `smallest` or `body`. The
+            names are the library's own; symdef does not interpret them. Empty when none.
     """
 
     name: str
@@ -33,15 +35,17 @@ class FontMetrics:
     descent: float
     advances: Mapping[Weight, Mapping[str, float]]
     default_advance: float
+    heights: Mapping[str, float] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        """Copy `advances` into read-only mappings; every `Weight` needs a table."""
+        """Copy `advances` and `heights` into read-only mappings; every `Weight` needs a table."""
         missing = [w.name for w in Weight if w not in self.advances]
         if missing:
             msg = f"font {self.name!r} has no advance table for {', '.join(missing)}; add one each"
             raise InvalidValueError(msg)
         tables = {w: MappingProxyType(dict(self.advances[w])) for w in Weight}
         object.__setattr__(self, "advances", MappingProxyType(tables))
+        object.__setattr__(self, "heights", MappingProxyType(dict(self.heights)))
 
 
 def text_width(

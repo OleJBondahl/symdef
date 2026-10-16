@@ -108,7 +108,11 @@ SECTION_11_SIGNATURES = {
     "lint": [
         *positional("symbol"),
         ("required_slots", "POSITIONAL_OR_KEYWORD", "()"),
-        ("grid", "POSITIONAL_OR_KEYWORD", "Grid(module_mm=2.5, divisions_per_module=8)"),
+        (
+            "grid",
+            "POSITIONAL_OR_KEYWORD",
+            "Grid(module_mm=2.5, divisions_per_module=8, wire_pitch=8, wire_pitch_fine=4)",
+        ),
     ],
     "to_svg": [
         *positional("symbol"),

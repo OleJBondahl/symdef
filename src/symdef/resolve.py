@@ -10,7 +10,9 @@ from dataclasses import dataclass, replace
 from typing import Any
 
 from symdef.geometry import Element, Line, Orientation, Point, Style, Weight
+from symdef.lint.exemptions import exempt
 from symdef.lint.file import metadata_findings, part_id_findings
+from symdef.lint.ports import port_off_pitch
 from symdef.lint.registry import finding_key, quote, rule_finding
 from symdef.load import symbol_from_data, validate
 from symdef.model import (
@@ -534,7 +536,8 @@ def resolve_library(config: LibraryConfig, sources: Mapping[str, Mapping[str, An
     A file that fails validation has `schema` findings and no symbol. Otherwise it is checked for
     `metadata` and `id-format`, and resolved: atomic files as read, composites flattened with
     their parts placed and their ports, nodes, paths and slots inherited as section 7 says. A
-    symbol with only `metadata` or `id-format` findings still resolves.
+    symbol with only `metadata` or `id-format` findings still resolves. A port off the library's
+    standard wire pitch is an error (D86).
 
     Args:
         config: The library's `library.toml`.
@@ -558,6 +561,9 @@ def resolve_library(config: LibraryConfig, sources: Mapping[str, Mapping[str, An
     resolved, found = _walk(sources, frozenset(valid))
     for stem, finding in found:
         problems[stem].append(finding)
+    for stem, symbol in resolved.items():
+        if symbol is not None:
+            problems[stem].extend(exempt(port_off_pitch(symbol, config.grid), symbol.lint_allow))
     return Resolution(
         {stem: symbol for stem in stems if (symbol := resolved.get(stem)) is not None},
         {stem: tuple(sorted(found, key=finding_key)) for stem, found in problems.items() if found},

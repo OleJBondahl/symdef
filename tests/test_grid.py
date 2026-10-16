@@ -69,7 +69,12 @@ def library(grid):
 
 def test_a_bundle_round_trips_a_non_default_grid():
     data = json.loads(to_json(bundle_to_data(library(COARSE))))
-    assert data["grid"] == {"module_mm": 5, "divisions_per_module": 4}
+    assert data["grid"] == {
+        "module_mm": 5,
+        "divisions_per_module": 4,
+        "wire_pitch": 8,
+        "wire_pitch_fine": 4,
+    }
     assert validate_bundle(data) == ()
     assert library_from_bundle(data).grid == COARSE
 
