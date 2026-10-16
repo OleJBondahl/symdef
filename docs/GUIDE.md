@@ -484,7 +484,7 @@ assert custom.grid.module_mm == 2.0 and custom.font.name == "DejaVu Sans Condens
 
 ## Measuring in whole divisions, and drawing where it was measured
 
-`measure(symbol, orientation, library, texts=None, text_height=None, attach=None)` returns a `Measure`: the body
+`measure(symbol, orientation, library, texts=None, text_height=None, *, attach=None)` returns a `Measure`: the body
 box, keepout box, slot boxes and ports of the symbol turned to `orientation`, as `GridBox` and
 `GridPort` values in whole divisions of `library.grid`. Boxes round outward; a port off the grid
 raises `InvalidValueError`. `to_placed_fragment(symbol, orientation, at, library, ...)` draws the

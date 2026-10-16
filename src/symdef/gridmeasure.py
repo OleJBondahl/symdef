@@ -73,12 +73,13 @@ def _slot_with_attached(
     return Box.union(box, placed)
 
 
-def measure(
+def measure(  # noqa: PLR0913 - the ruled signature: symbol, view, library and three options
     symbol: Symbol,
     orientation: Orientation,
     library: Library,
     texts: Mapping[str, str] | None = None,
     text_height: float | None = None,
+    *,
     attach: Mapping[str, Symbol] | None = None,
 ) -> Measure:
     """Return the symbol turned to `orientation`, measured in divisions of `library.grid`.
