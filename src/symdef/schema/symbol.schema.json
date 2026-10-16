@@ -183,7 +183,7 @@
       }
     },
     "element": {
-      "description": "Exactly one shape key. weight is allowed on every shape, style on line, polyline and arc, fill on polyline and circle, closed on polyline.",
+      "description": "Exactly one shape key. weight is allowed on every shape, style on line, polyline and arc, fill on polyline and circle, closed on polyline, between on line and polyline.",
       "oneOf": [
         {
           "type": "object",
@@ -198,7 +198,8 @@
             },
             "weight": { "$ref": "#/$defs/weight" },
             "style": { "$ref": "#/$defs/style" },
-            "port": { "type": "string" }
+            "port": { "type": "string" },
+            "between": { "type": "boolean" }
           }
         },
         {
@@ -210,7 +211,8 @@
             "closed": { "type": "boolean" },
             "fill": { "$ref": "#/$defs/polyline_fill" },
             "weight": { "$ref": "#/$defs/weight" },
-            "style": { "$ref": "#/$defs/style" }
+            "style": { "$ref": "#/$defs/style" },
+            "between": { "type": "boolean" }
           },
           "if": { "properties": { "fill": { "const": "tint" } }, "required": ["fill"] },
           "then": { "required": ["closed"], "properties": { "closed": { "const": true } } }
