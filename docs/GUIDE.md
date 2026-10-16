@@ -492,7 +492,7 @@ turned symbol inside one `translate` read from a `GridPoint`, so the caller conv
 `to_fragment_mm` is listed for removal in 0.13.
 
 `attach={slot_id: symbol}` makes room for a symbol drawn at a slot, such as a contact table beside a
-coil: its keep-out box is placed at the turned slot's point and joins `slots[slot_id]` and `keepout`.
+coil: its keep-out box hangs on the turned slot's point and side, as a slot's box does, and joins `slots[slot_id]` and `keepout`.
 A key that is not a slot id raises `UnknownNameError`. Build the symbol with `table(row, n, "y")`.
 
 ```python
