@@ -39,7 +39,7 @@ def _lint_findings(library: Library, label: str = "") -> tuple[Finding, ...]:
     found = []
     for symbol in library:
         number = symbol.reference.number
-        found.extend(_named(f"{number}{label}", lint(symbol, library.required_slots)))
+        found.extend(_named(f"{number}{label}", lint(symbol, library.required_slots, library.grid)))
     return tuple(found)
 
 
@@ -75,7 +75,10 @@ def _through_repeats(library: Library) -> tuple[Finding, ...]:
             repeated = repeat(symbol, 3)
             number = symbol.reference.number
             found.extend(
-                _named(f"{number} repeated 3 times", lint(repeated, library.required_slots))
+                _named(
+                    f"{number} repeated 3 times",
+                    lint(repeated, library.required_slots, library.grid),
+                )
             )
     return tuple(found)
 

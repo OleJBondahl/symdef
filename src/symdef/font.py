@@ -15,6 +15,7 @@ class FontMetrics:
     """The measures of one font, in the font's own units; `units_per_em` is one em.
 
     Attributes:
+        name: The font's name, for the record; it changes no measure.
         units_per_em: How many font units make one em, the text height.
         cap_height: Height of a capital letter above the baseline, in font units.
         ascent: Height of the tallest glyph above the baseline, in font units.
@@ -24,6 +25,7 @@ class FontMetrics:
         thick_factor: What an advance is multiplied by for `Weight.THICK`; 1 means no change.
     """
 
+    name: str
     units_per_em: float
     cap_height: float
     ascent: float

@@ -91,7 +91,11 @@ SECTION_11_SIGNATURES = {
         *(("text", "POSITIONAL_OR_KEYWORD", "None"), ("height", "POSITIONAL_OR_KEYWORD", "None")),
         ("font", "POSITIONAL_OR_KEYWORD", "None"),
     ],
-    "lint": [*positional("symbol"), ("required_slots", "POSITIONAL_OR_KEYWORD", "()")],
+    "lint": [
+        *positional("symbol"),
+        ("required_slots", "POSITIONAL_OR_KEYWORD", "()"),
+        ("grid", "POSITIONAL_OR_KEYWORD", "Grid(module_mm=2.5, divisions_per_module=8)"),
+    ],
     "to_svg": [
         *positional("symbol"),
         ("module_mm", "KEYWORD_ONLY", "2.5"),
@@ -136,7 +140,7 @@ SECTION_11_FIELDS = {
     ],
     "Library": [
         *("standard", "title", "number_pattern", "symbols", "vocabulary", "required_slots"),
-        *("wires", "font"),
+        *("wires", "font", "grid"),
     ],
     "Finding": ["rule", "severity", "message", "location", "orientation"],
 }

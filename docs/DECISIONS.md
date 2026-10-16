@@ -1246,3 +1246,21 @@ bottom-up with the caps to the west of the point). A text without a height raise
 Why: SYMBOL-BOUNDARY SB2.
 Cost if wrong: additive; the new parameters default to the old behaviour. Revert `slottext.py`
 and the three parameters.
+
+## D73 amended: the library's settings are `[font]` and `[grid]` in `library.toml` (SB0)
+
+Decided: the `[font]` table of D73 also takes a required `name` (a string; it changes no
+measure), and `library.toml` gains an optional `[grid]` table with `module_mm` (a number above
+zero) and `divisions_per_module` (an integer power of two, so a division is exact in floating
+point and the off-grid test stays an exact multiply). `Grid(module_mm, divisions_per_module)`
+(frozen, slotted, in `symdef.units`, with `division` = 1 / `divisions_per_module`) is
+`Library.grid`; a library with no `[grid]` has `DEFAULT_GRID`, 2.5 mm and 8 divisions, which are
+`DEFAULT_MODULE_MM` and `GRID_DIVISION` of 0.10.1, so every constant keeps its value. The bundle
+gains an optional `grid` object, written only when the grid is not the default, so existing
+bundles stay byte-identical. `lint(symbol, required_slots=(), grid=DEFAULT_GRID)` and
+`off_drawing_grid(symbol, grid=DEFAULT_GRID)` check the drawing grid against the library's own;
+`check` and `build` pass `library.grid`. The wiring grid (`port-off-wiring-grid`) is a separate
+rule and is unchanged. `to_fragment_mm` keeps its `module_mm` keyword; a caller passes
+`library.grid.module_mm`.
+Why: SYMBOL-BOUNDARY amendment 1 (SB0): one settings file, frozen in the loaded library.
+Cost if wrong: both tables are optional; revert `Grid`, the two keys and the `grid` argument.

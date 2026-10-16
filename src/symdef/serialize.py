@@ -15,6 +15,7 @@ from symdef.gallery import readme, sample_texts
 from symdef.geometry import Arc, Box, Circle, Element, Line, Point, Polyline, Text
 from symdef.model import Library, Slot, Stretch, Symbol, nodes_of
 from symdef.svg import to_svg
+from symdef.units import DEFAULT_GRID
 
 _SCHEMA_VERSION = 1
 
@@ -181,6 +182,7 @@ def symbol_to_data(symbol: Symbol) -> dict[str, Any]:
 def _font(font: FontMetrics) -> dict[str, Any]:
     """Return the font as the bundle writes it; `thick_factor` only when it is not 1."""
     data: dict[str, Any] = {
+        "name": font.name,
         "units_per_em": font.units_per_em,
         "cap_height": font.cap_height,
         "ascent": font.ascent,
@@ -197,7 +199,8 @@ def bundle_to_data(library: Library) -> dict[str, Any]:
     """Return the bundle: the schema version, the standard and every symbol, by number (D7).
 
     A library with wire styles adds the `wires` array; one with a font adds the `font` object
-    (the font's fields and an `advances` object); one without either has neither.
+    (the font's fields and an `advances` object); a grid other than the default adds the `grid`
+    object (`module_mm`, `divisions_per_module`); one with none of these has none of the keys.
     """
     data: dict[str, Any] = {
         "schema": _SCHEMA_VERSION,
@@ -213,6 +216,11 @@ def bundle_to_data(library: Library) -> dict[str, Any]:
         ]
     if library.font is not None:
         data["font"] = _font(library.font)
+    if library.grid != DEFAULT_GRID:
+        data["grid"] = {
+            "module_mm": library.grid.module_mm,
+            "divisions_per_module": library.grid.divisions_per_module,
+        }
     return data
 
 

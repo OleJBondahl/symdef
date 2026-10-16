@@ -19,6 +19,7 @@ GUIDE = Path(__file__).resolve().parent / "fixtures" / "guide"
 
 # A planted three-glyph table: "A" is 500 units, "B" 700, "i" 250; anything else 600.
 FONT = FontMetrics(
+    name="Planted",
     units_per_em=1000,
     cap_height=700,
     ascent=900,
@@ -118,6 +119,7 @@ title = "T"
 number_pattern = '^S$'
 
 [font]
+name = "Planted"
 units_per_em = 1000
 cap_height = 700
 ascent = 900
