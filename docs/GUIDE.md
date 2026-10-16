@@ -456,6 +456,16 @@ raises `InvalidValueError`. `to_placed_fragment(symbol, orientation, at, library
 turned symbol inside one `translate` read from a `GridPoint`, so the caller converts nothing.
 `to_fragment_mm` is listed for removal in 0.13.
 
+```python
+from symdef import GridPoint, Orientation, measure, to_placed_fragment
+
+contact = library.get("S00227")
+measured = measure(contact, Orientation.R90, library)
+assert measured.body.max.x > measured.body.min.x
+fragment = to_placed_fragment(contact, Orientation.R90, GridPoint(16, 8), library)
+assert "translate(" in fragment
+```
+
 Every error symdef raises derives from `SymdefError` (`InvalidValueError`, `UnknownNameError`,
 `UnknownSymbolError`, `LibraryError`). None subclasses `ValueError`, `KeyError` or `OSError`, so catch
 `SymdefError`. See [the changelog](CHANGELOG.md) for what moved in each release.
