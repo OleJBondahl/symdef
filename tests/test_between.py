@@ -153,3 +153,12 @@ def test_the_json_schema_agrees_with_the_loader_on_between(element, accepted):
     data, _ = parse_toml(toml_symbol(element))
     assert Draft202012Validator(schema).is_valid(data) is accepted
     assert (validate(data) == ()) is accepted
+
+
+def test_a_between_polyline_serialises_with_and_without_the_key():
+    on = symbol_to_data(
+        replace(row(), elements=(Polyline((Point(0, 0), Point(1, 0)), between=True),))
+    )
+    off = symbol_to_data(replace(row(), elements=(Polyline((Point(0, 0), Point(1, 0))),)))
+    assert on["elements"][0]["between"] is True
+    assert "between" not in off["elements"][0]
