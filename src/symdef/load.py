@@ -14,6 +14,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import replace
 from typing import Any
 
+from symdef.font import FontMetrics
 from symdef.geometry import (
     Arc,
     Circle,
@@ -568,12 +569,49 @@ def _wires_from_data(entries: list[dict[str, str]]) -> tuple[WireStyle, ...]:
     )
 
 
+def _advances(value: object, location: str) -> list[Finding]:
+    """Check the `advances` table: a single character for each key, a number above zero for it."""
+    found = _map_of(_positive)(value, location)
+    if isinstance(value, dict):
+        found += [
+            _finding(_child(location, key), "must be a single character")
+            for key in value
+            if not (isinstance(key, str) and len(key) == 1)
+        ]
+    return found
+
+
+_FONT_FIELDS = ("units_per_em", "cap_height", "ascent", "descent", "default_advance")
+_FONT = _table(
+    {
+        **dict.fromkeys(_FONT_FIELDS, _positive),
+        "thick_factor": _positive,
+        "advances": _advances,
+    },
+    required=(*_FONT_FIELDS, "advances"),
+)
+
+
+def font_from_data(data: Mapping[str, Any]) -> FontMetrics:
+    """Build the font metrics of a checked `[font]` table or a bundle's `font` object."""
+    return FontMetrics(
+        data["units_per_em"],
+        data["cap_height"],
+        data["ascent"],
+        data["descent"],
+        dict(data["advances"]),
+        data["default_advance"],
+        data.get("thick_factor", 1.0),
+    )
+
+
 _BUNDLE = _table(
     {
         "schema": _schema_version,
         "standard": _string,
         "symbols": _map_of(_bundle_symbol),
         "wires": _wires,
+        "font": _FONT,
     },
     required=("schema", "standard", "symbols"),
 )
@@ -632,6 +670,7 @@ def library_from_bundle(data: Mapping[str, Any]) -> Library:
         "",
         symbols,
         wires=_wires_from_data(data.get("wires", [])),
+        font=font_from_data(data["font"]) if "font" in data else None,
     )
 
 
@@ -641,9 +680,14 @@ _RULES = _table({"required_slots": _array(_string)})
 
 
 def _tables_problems(data: Mapping[str, Any]) -> list[Finding]:
-    """Check the optional `[vocabulary]`, `[rules]` and `[[wire]]` parts of `library.toml`."""
+    """Check the optional `[vocabulary]`, `[rules]`, `[[wire]]` and `[font]` of `library.toml`."""
     found: list[Finding] = []
-    for key, check in (("vocabulary", _VOCABULARY), ("rules", _RULES), ("wire", _wires)):
+    for key, check in (
+        ("vocabulary", _VOCABULARY),
+        ("rules", _RULES),
+        ("wire", _wires),
+        ("font", _FONT),
+    ):
         if key in data:
             found += check(data[key], _child("", key))
     return found
@@ -655,7 +699,9 @@ def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
     An optional `package` names the data package's folder under `src/` (D45). The optional
     tables `[vocabulary]` (`path_kinds`, `potentials`, `links`) and `[rules]` (`required_slots`)
     hold lists of strings; an absent list is empty. The `[[wire]]` tables (`id`, `weight`,
-    `style`) give the wire styles `wire` draws; an absent list is empty.
+    `style`) give the wire styles `wire` draws; an absent list is empty. The optional `[font]` table
+    (`units_per_em`, `cap_height`, `ascent`, `descent`, `default_advance`, optional `thick_factor`
+    and an `[font.advances]` table of one number per character) is the font text is measured with.
 
     Args:
         text: The file's TOML text.
@@ -699,4 +745,5 @@ def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
         words,
         required,
         _wires_from_data(data.get("wire", [])),
+        font_from_data(data["font"]) if "font" in data else None,
     ), ()

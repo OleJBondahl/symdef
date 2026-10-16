@@ -83,8 +83,8 @@ SECTION_11_SIGNATURES = {
     "orient": positional("symbol", "orientation"),
     "translate": positional("symbol", "dx", "dy"),
     "repeat": positional("symbol", "n"),
-    "body_box": positional("symbol"),
-    "keepout_box": positional("symbol"),
+    "body_box": [*positional("symbol"), ("font", "POSITIONAL_OR_KEYWORD", "None")],
+    "keepout_box": [*positional("symbol"), ("font", "POSITIONAL_OR_KEYWORD", "None")],
     "leads": positional("symbol", "ports"),
     "slot_box": positional("slot"),
     "lint": [*positional("symbol"), ("required_slots", "POSITIONAL_OR_KEYWORD", "()")],
@@ -132,7 +132,7 @@ SECTION_11_FIELDS = {
     ],
     "Library": [
         *("standard", "title", "number_pattern", "symbols", "vocabulary", "required_slots"),
-        "wires",
+        *("wires", "font"),
     ],
     "Finding": ["rule", "severity", "message", "location", "orientation"],
 }

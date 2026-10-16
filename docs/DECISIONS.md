@@ -1212,3 +1212,22 @@ side, which moved the text of `marking.<port>` slots across a cut.
 Why: designer spec SS17 (position moves with the cuts it lies beyond) and SS18 (only `C` is centred);
 found by a byte check against 0.9.0.
 Cost if wrong: a non-`C` slot across a cut sits at its box centre again; revert `_place`.
+
+## D73. Font metrics are library data (0.11.0, SB1)
+
+Decided: `library.toml` takes an optional `[font]` table with `units_per_em`, `cap_height`,
+`ascent`, `descent` and `default_advance` (numbers above zero, all required), an optional
+`thick_factor` (default 1: what an advance is multiplied by for `Weight.THICK`) and a required
+`[font.advances]` table of one number per single character. `bundle.json` gains an optional `font`
+object of the same keys, `advances` an object, written only when the library has a font, with
+`thick_factor` only when it is not 1. `Library.font` and `LibraryConfig.font` are
+`FontMetrics | None` (frozen, slotted, in `symdef.font`), `None` when none is declared.
+`text_width(font, text, height, weight=Weight.NORMAL)` is the sum of the advances in ems times
+`height`; a character not in `advances` takes `default_advance`; with `font=None` it is 0.6 em
+per character, the measure of 0.10.1, computed in the same order so existing output is
+byte-identical. `body_box`, `keepout_box` and `element_box` take `font=None`. `cap_height(font,
+height)` is the capital's height in module units (0.72 em with no font). The font is data in the
+library, never global state; kerning, ligatures and per-weight advance tables are not modelled.
+Why: SYMBOL-BOUNDARY SB1, "Font metrics are symdef library data."
+Cost if wrong: the keys are additive and optional; remove `font` from the two dataclasses, the
+loader and the bundle, and `font=None` from the three box functions.

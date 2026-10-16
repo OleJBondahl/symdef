@@ -6,6 +6,7 @@ from enum import Enum
 from typing import Literal
 
 from symdef.errors import UnknownSymbolError
+from symdef.font import FontMetrics
 from symdef.geometry import Direction, Element, Orientation, Point, Style, Weight
 
 
@@ -236,7 +237,8 @@ class LibraryConfig:
     """The standard-specific settings from `library.toml`.
 
     `required_slots` is `[rules] required_slots`: slot ids every `kind = "symbol"` file carries,
-    where `marking.<port>` stands for one slot per port. `wires` is the `[[wire]]` tables.
+    where `marking.<port>` stands for one slot per port. `wires` is the `[[wire]]` tables. `font` is
+    the `[font]` table, or None when the library declares none.
     """
 
     standard: str
@@ -246,13 +248,15 @@ class LibraryConfig:
     vocabulary: Vocabulary = Vocabulary()
     required_slots: tuple[str, ...] = ()
     wires: tuple[WireStyle, ...] = ()
+    font: FontMetrics | None = None
 
 
 @dataclass(frozen=True, slots=True)
 class Library:
     """The symbols of one standard, keyed by reference number.
 
-    Iterating yields the symbols sorted by reference number; `len` is their count.
+    Iterating yields the symbols sorted by reference number; `len` is their count. `font` is the
+    metrics text is measured with, or None, which measures 0.6 em per character.
     """
 
     standard: str
@@ -262,6 +266,7 @@ class Library:
     vocabulary: Vocabulary = Vocabulary()
     required_slots: tuple[str, ...] = ()
     wires: tuple[WireStyle, ...] = ()
+    font: FontMetrics | None = None
 
     def get(self, number: str) -> Symbol:
         """Return the symbol with this reference number.
