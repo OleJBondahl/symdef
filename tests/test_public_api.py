@@ -100,6 +100,18 @@ SECTION_11_SIGNATURES = {
     "body_box": [*positional("symbol"), ("font", "POSITIONAL_OR_KEYWORD", "None")],
     "keepout_box": [*positional("symbol"), ("font", "POSITIONAL_OR_KEYWORD", "None")],
     "leads": positional("symbol", "ports"),
+    "only_ports": positional("symbol", "ports"),
+    "stretch_to_ports": [
+        *positional("symbol", "axis", "edge", "n"),
+        (
+            "grid",
+            "KEYWORD_ONLY",
+            (
+                "Grid(module_mm=2.5, divisions_per_module=8, wire_pitch=8, wire_pitch_fine=4, "
+                "stretch_split='weight')"
+            ),
+        ),
+    ],
     "slot_box": [
         *positional("slot"),
         *(("text", "POSITIONAL_OR_KEYWORD", "None"), ("height", "POSITIONAL_OR_KEYWORD", "None")),

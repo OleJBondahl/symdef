@@ -234,11 +234,12 @@ must be framed and still small can declare the body instead:
 
 ```toml
 body = [0, -2, 6, 2]      # x0, y0, x1, y1 in M; x0 < x1 and y0 < y1
-keepout = [-1, -3, 7, 3]  # optional; without it the keep-out is the body united with the slots
+keepout = [-1, -3, 7, 3]  # optional; without it the keep-out is the body united with the leads
 ```
 
 `body_box` then returns exactly the declared box, and `keepout_box` the declared `keepout` or the
-body united with the slot boxes. Both turn with `orient` and `translate`. `stretch` moves a declared
+body united with the bound leads. A slot is a text slot: its box never enlarges the keep-out, so a
+designation hung in a corner sets no row's width; read `slot_box` for it (D101). Both turn with `orient` and `translate`. `stretch` moves a declared
 edge past a cut with the cut, as it moves a line end, and reads its natural extent from the
 declared body. `repeat` and `table` declare the union of their poles' or rows' boxes. A composite
 whose part declares a body must declare its own, or `resolve` reports a `schema` finding.
@@ -287,6 +288,23 @@ card = Symbol(
 wide = stretch(card, "x", 112, {"1": 8, "2": 40, "3": 64, "4": 104})
 drawn = orient(wide, Orientation.R0)
 svg = to_fragment(drawn)  # pass texts= in the SVG calls to fill the slots
+```
+
+`stretch_to_ports(symbol, axis, edge, n, *, grid=DEFAULT_GRID)` returns the `length` and
+`offsets` that make `edge` carry `n` ports on the grid's wire pitch. The first `n` ports of the edge
+keep their order; the first keeps its place and the rest follow a pitch apart, with the margins the
+symbol declares at both ends. It reads the symbol's own cut and never gives a length below the
+natural extent. A symbol with no cut on the axis, an edge across the axis, or `n` above the ports
+the edge declares raises `InvalidValueError` naming the symbol, the edge, `n` and the count (D102).
+
+```python
+from symdef import only_ports, stretch_to_ports
+
+two = only_ports(card, ("1", "2"))
+length, offsets = stretch_to_ports(two, "x", Direction.S, 2)
+assert offsets == {"1": 4, "2": 5}
+narrow = stretch(two, "x", length, offsets)
+assert [p.position.x for p in narrow.ports] == [4, 5]
 ```
 
 A frame is a symbol with a stretch on both axes and a label slot at a corner;
@@ -395,11 +413,17 @@ the leads of the ports you name and drops the rest, so an unwired port draws no 
 symbol does not hold raises `UnknownNameError`; after `table` or `repeat` the ids carry their prefix
 (`1.a`). The toolkit knows no net: you decide which ports are wired (D59).
 
+`only_ports(symbol, ports)` goes further: it keeps the listed ports with their leads and their
+`marking.<port>` slots and drops every other port with its lead and marking slot, so a symbol with
+spare ports keeps no keep-out or off-grid port for them. Call it before `stretch`. An unknown id
+raises `UnknownNameError` naming the id and the symbol (D102).
+
 ```python
-from symdef import leads
+from symdef import leads, only_ports
 
 wired = leads(card, ("1",))
 assert [e.port for e in wired.elements if isinstance(e, Line) and e.port] == ["1"]
+assert [p.id for p in only_ports(card, ("1",)).ports] == ["1"]
 ```
 
 A line, polyline or arc may say `style = "dash_dot"`. `to_fragment` draws it with a dash of 1 M,
