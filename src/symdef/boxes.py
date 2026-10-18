@@ -158,12 +158,13 @@ def slot_box(
 
 
 def keepout_box(symbol: Symbol, font: FontMetrics | None = None) -> Box:
-    """Return the body box united with every slot box: the room the symbol needs kept clear.
+    """Return the room the symbol needs kept clear: the body box united with its bound leads.
 
-    `font` measures the body's text as `body_box` does. A symbol that declares its `keepout` has
-    exactly that box; one that declares only a `body` has the declared body united with the slots.
+    A bound lead is a `Line` whose `port` is set. Slots stay text slots and never enlarge it
+    (D101). `font` measures the body's text as `body_box` does. A symbol that declares its
+    `keepout` has exactly that box.
     """
     if symbol.keepout is not None:
         return symbol.keepout
-    boxes = (body_box(symbol, font), *(slot_box(s) for s in symbol.slots))
-    return _bounding(tuple(p for b in boxes for p in (b.min, b.max)))
+    leads = (element_box(e) for e in symbol.elements if isinstance(e, Line) and e.port is not None)
+    return Box.union(body_box(symbol, font), *leads)

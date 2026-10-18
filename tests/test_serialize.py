@@ -264,7 +264,7 @@ class TestSymbolToData:
     def test_the_boxes_are_the_base_orientation_boxes(self):
         data = symbol_to_data(LIBRARY.get("S00227"))
         assert data["body_box"] == [[-1, -2], [0, 2]]
-        assert data["keepout_box"] == [[-7.5, -2], [1.75, 2]]
+        assert data["keepout_box"] == [[-1, -2], [0, 2]]
 
     def test_there_are_no_parts(self):
         assert "parts" not in symbol_to_data(LIBRARY.get("S00254"))

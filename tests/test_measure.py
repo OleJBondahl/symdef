@@ -8,7 +8,7 @@ from test_font import FONT
 
 from symdef.boxes import body_box, keepout_box, slot_box
 from symdef.errors import InvalidValueError, UnknownNameError
-from symdef.geometry import Direction, Line, Point, Text, Weight
+from symdef.geometry import Box, Direction, Line, Point, Text, Weight
 from symdef.gridmeasure import Measure, measure
 from symdef.gridtypes import GridBox, GridPoint, GridPort
 from symdef.model import Library, Port, Reference, Slot, Status, Symbol, SymbolKind
@@ -118,7 +118,8 @@ def test_a_port_off_the_grid_raises_naming_the_value():
 def test_with_no_texts_a_slot_is_its_reserved_box():
     result = measure(WIDE, Orientation.R0, EIGHT)
     assert result.slots["tag"] == grid_box(slot_box(WIDE.slots[0]), 8)
-    assert result.keepout == grid_box(keepout_box(WIDE, FONT), 8)
+    united = Box.union(keepout_box(WIDE, FONT), slot_box(WIDE.slots[0]))
+    assert result.keepout == grid_box(united, 8)
 
 
 def test_texts_need_a_height_and_a_slot_to_name():

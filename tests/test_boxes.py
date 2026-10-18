@@ -1,4 +1,5 @@
 import math
+from dataclasses import replace
 
 import pytest
 from hypothesis import given
@@ -121,16 +122,26 @@ def test_slot_box_grows_from_at_by_side(side, expected):
     assert slot_box(Slot("tag", Point(1, 2), side, (3.0, 1.0))) == expected
 
 
-def test_keepout_box_unites_body_and_every_slot_box():
+def test_keepout_box_is_the_body_and_its_leads_and_slots_stay_text_slots():
     s = sym(
-        Line(Point(0, -2), Point(0, 2)),
+        Line(Point(0, -2), Point(4, -2)),
+        Line(Point(2, -2), Point(2, -4), port="in"),
         slots=(
             Slot("tag", Point(-1.5, 0), Direction.W, (6.0, 1.0)),
-            Slot("marking.in", Point(0.25, -1.5), Direction.E, (1.5, 1.0)),
+            Slot("marking.in", Point(2.25, -3.5), Direction.E, (1.5, 1.0)),
         ),
     )
-    assert body_box(s) == box(0, -2, 0, 2)
-    assert keepout_box(s) == box(-7.5, -2, 1.75, 2)
+    assert body_box(s) == box(0, -4, 4, -2)
+    assert keepout_box(s) == box(0, -4, 4, -2)
+    assert slot_box(s.slots[0]) == box(-7.5, -0.5, -1.5, 0.5)
+
+
+def test_keepout_box_holds_a_lead_that_leaves_a_declared_body():
+    s = replace(
+        sym(Line(Point(0, 0), Point(4, 0)), Line(Point(2, 0), Point(2, 3), port="p")),
+        body=box(0, -1, 4, 1),
+    )
+    assert keepout_box(s) == box(0, -1, 4, 3)
 
 
 def test_keepout_box_without_slots_is_the_body_box():
