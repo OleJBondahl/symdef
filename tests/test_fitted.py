@@ -75,6 +75,8 @@ def test_a_planted_wider_text_widens_its_column_by_its_width_rounded_up():
     before = fitted_table(ROW, "y", [{"a": MID}, {"a": SHORT}], LIB, HEIGHT)
     after = fitted_table(ROW, "y", [{"a": MID}, {"a": WIDE}], LIB, HEIGHT)
     assert up(WIDE) != text_width(FONT, WIDE, HEIGHT)
+    assert width(after, "1.a") == up(WIDE)
+    assert width(before, "1.a") == up(MID)
     assert width(after, "1.a") - width(before, "1.a") == up(WIDE) - up(MID)
     assert body_box(after).width - body_box(before).width == up(WIDE) - up(MID)
 
