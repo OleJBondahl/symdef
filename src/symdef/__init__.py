@@ -10,6 +10,7 @@ from symdef.errors import (
     UnknownSymbolError,
 )
 from symdef.files import load_bundle, load_library
+from symdef.fitted import fitted_table
 from symdef.font import FontMetrics, text_width
 from symdef.fontmeasure import measure_font
 from symdef.geometry import (
@@ -118,6 +119,7 @@ __all__ = [
     "WireStyle",
     "body_box",
     "ceil_divisions",
+    "fitted_table",
     "from_divisions",
     "keepout_box",
     "leads",

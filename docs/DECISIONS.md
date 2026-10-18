@@ -1533,3 +1533,9 @@ that names the key and the fix: "`K` is not a key of the files form (`name`, `fi
 Why: designer ruling 2026-10-16 (SYMDEF-0.16). The consumer's text sizes are not in the font bytes; the files form could not
 carry them, so a files-form library had no heights.
 Cost if wrong: additive; a key that was refused is accepted. The reworded error is the only changed text.
+
+## D94: `fitted_table`, a table sized by its texts
+
+Decided: `fitted_table(row, axis, texts, library, text_height, *, head=None, head_texts=None)` returns `table(row, len(texts), axis, head)` with each column as wide as its widest text. `texts` holds one mapping of slot id to text for each row. Each text is set in `library.font` at `text_height` (module units), and the widest over all rows and `head_texts` is rounded up to whole grid divisions. A column is a row slot with a `[[stretch]]` cut across its box on the other axis; the cut grows by the rounded width less the slot's reserved extent, never below zero, so the row's pads stay. The growth goes through `stretch`, and the head grows at the same cuts. A column never shrinks below the row's natural slot box. Errors raise `InvalidValueError` or `UnknownNameError`, each naming the thing and the fix: no font; a text height not above zero; a text for a slot the row lacks; a slot with no cut across its box; a head with no cut where the rows grow; `head_texts` without `head`.
+Why: owner 2026-10-18 chose the text-sized table: the contact table's width follows its texts today, and the measure belongs in symdef, which owns the font and the drawn sizes.
+Cost if wrong: additive; a new function, and nothing existing changes.
