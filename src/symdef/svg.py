@@ -25,7 +25,7 @@ from symdef.geometry import (
 )
 from symdef.model import Anchor, Port, Slot, Symbol
 from symdef.required import required_ids
-from symdef.slottext import SIDE_ALIGN, TURNED_ALIGN
+from symdef.slottext import SIDE_ALIGN, TURNED_ALIGN, stack_shifts
 from symdef.units import DEFAULT_MODULE_MM
 
 _HALF_TURN = 180
@@ -313,7 +313,8 @@ def _sample_size(slot: Slot, content: str) -> float:
     w, h = slot.box
     if not content or not (w > 0 and h > 0):
         return 0.0
-    size = min(_SAMPLE_MAX_SIZE, h, w / (_TEXT_WIDTH * len(content)))
+    lines = content.split("\n")
+    size = min(_SAMPLE_MAX_SIZE, h / len(lines), w / (_TEXT_WIDTH * max(map(len, lines))))
     return math.floor(size * 10_000) / 10_000
 
 
@@ -409,21 +410,24 @@ def _slot_texts(symbol: Symbol, texts: Mapping[str, str] | None, muted: str | No
         size = _sample_size(along_height, content)
         if size > 0:
             anchor, east, south = slot_align(slot)
-            at = (
-                _num(slot.position.x + east * _CAP_HEIGHT * size),
-                _num(slot.position.y + south * _CAP_HEIGHT * size),
-            )
-            tags.append(
-                slot_text_tag(
-                    at,
-                    _num(size),
-                    anchor=anchor,
-                    fill=fill,
-                    family='"sans-serif"',
-                    content=content,
-                    turn=slot.turn,
+            lines = content.split("\n")
+            for line, shift in zip(lines, stack_shifts(slot, len(lines)), strict=True):
+                across = (east + shift, south) if slot.turn else (east, south + shift)
+                at = (
+                    _num(slot.position.x + across[0] * _CAP_HEIGHT * size),
+                    _num(slot.position.y + across[1] * _CAP_HEIGHT * size),
                 )
-            )
+                tags.append(
+                    slot_text_tag(
+                        at,
+                        _num(size),
+                        anchor=anchor,
+                        fill=fill,
+                        family='"sans-serif"',
+                        content=line,
+                        turn=slot.turn,
+                    )
+                )
     return tags
 
 

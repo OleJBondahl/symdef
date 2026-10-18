@@ -1,9 +1,11 @@
 """Wire styles: `[[wire]]` in `library.toml`, the `wires` bundle array, and `wire()`."""
 
 import json
+from typing import Any
 
 import pytest
 
+from symdef import to_fragment, to_fragment_mm
 from symdef.errors import InvalidValueError, UnknownNameError
 from symdef.geometry import Fill, Point, Polyline, Style, Weight
 from symdef.load import library_from_bundle, parse_config, validate_bundle
@@ -150,3 +152,65 @@ def test_bad_bundle_wire_entries_are_findings():
     }
     found = validate_bundle(data)
     assert {f.location for f in found} == {"/wires/0/weight", "/wires/1"}
+
+
+MARKER_LIBRARY = Library(
+    "IEC 60617", "IEC 60617", "", {}, wires=(WireStyle("marker", Weight.NORMAL, Style.SOLID),)
+)
+
+
+def test_a_wire_draws_one_open_solid_normal_polyline_in_the_marker_style():
+    symbol = wire(MARKER_LIBRARY, "marker", [(0, 0), (0, 2)])
+    assert len(symbol.elements) == 1
+    line = polyline_of(symbol)
+    assert line.closed is False
+    assert line.points == (Point(0, 0), Point(0, 2))
+    assert line.weight is Weight.NORMAL
+    assert line.style is Style.SOLID
+    assert line.fill is Fill.NONE
+
+
+def test_an_unknown_style_names_the_known_marker_style():
+    with pytest.raises(UnknownNameError, match="marker") as info:
+        wire(MARKER_LIBRARY, "markr", [(0, 0), (0, 2)])
+    assert "marker" in str(info.value)
+
+
+MM_KW: dict[str, Any] = {
+    "module_mm": 2.5,
+    "weights_mm": {Weight.NORMAL: 0.25, Weight.THICK: 0.5},
+    "dash_mm": (1.2, 0.6),
+    "font_family": "Inter, sans-serif",
+    "font_mm": 2.0,
+    "cap_ratio": 0.7,
+}
+
+
+def test_closed_false_is_the_same_as_leaving_closed_out():
+    assert wire(LIBRARY, "link", PATH, closed=False) == wire(LIBRARY, "link", PATH)
+    line = polyline_of(wire(LIBRARY, "link", PATH, closed=False))
+    assert line.closed is False
+
+
+def test_a_closed_wire_is_a_closed_unfilled_polyline_in_the_same_style():
+    line = polyline_of(wire(LIBRARY, "trunk", PATH, closed=True))
+    assert line.closed is True
+    assert line.fill is Fill.NONE
+    assert (line.weight, line.style) == (Weight.THICK, Style.SOLID)
+
+
+def test_a_closed_wire_draws_a_polygon_and_an_open_one_a_polyline():
+    closed = wire(LIBRARY, "trunk", PATH, closed=True)
+    for svg in (to_fragment(closed), to_fragment_mm(closed, **MM_KW)):
+        assert "<polygon" in svg
+        assert "<polyline" not in svg
+    opened = wire(LIBRARY, "trunk", PATH)
+    for svg in (to_fragment(opened), to_fragment_mm(opened, **MM_KW)):
+        assert "<polyline" in svg
+
+
+def test_a_closed_wire_needs_three_points_but_an_open_one_takes_two():
+    with pytest.raises(InvalidValueError, match="at least 3 points, got 2"):
+        wire(LIBRARY, "link", [(0, 0), (4, 0)], closed=True)
+    line = polyline_of(wire(LIBRARY, "link", [(0, 0), (4, 0)]))
+    assert line.points == (Point(0, 0), Point(4, 0))
