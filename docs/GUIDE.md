@@ -364,6 +364,17 @@ link = wire(styled, "link", [(0, 0), (4, 0), (4, 6)])
 assert link.elements[0].style is Style.DASHED
 ```
 
+`lanes=2` draws two parallel polylines in the one symbol, lane 0 on the points and lane k moved
+k * `pitch` towards +y on a horizontal run and +x on a vertical one, mitred at the corners.
+`pitch` is in modules and defaults to the library's `wire_pitch`. Every run of a multi-lane
+wire must be horizontal or vertical, and a closed wire has one lane; a bad value raises
+`InvalidValueError` (D99).
+
+```python
+trunk = wire(styled, "link", [(0, 0), (10, 0), (10, 10)], lanes=2)
+assert [(p.x, p.y) for p in trunk.elements[1].points] == [(0, 1), (11, 1), (11, 10)]
+```
+
 A closed polyline may say `fill = "tint"`. The caller passes the colour: `to_svg(symbol,
 tint="#cfe8ff")`, `to_fragment(symbol, tint=...)` and `to_fragment_mm(..., tint=...)` take a
 `#rgb`, `#rrggbb` or letters-only colour name, and without a tint a tinted polyline is unfilled
