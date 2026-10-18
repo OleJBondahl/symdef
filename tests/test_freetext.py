@@ -105,4 +105,16 @@ def test_a_text_set_by_a_corner_lies_within_the_box_by_text_width(corner):
         if placed.anchor == "start"
         else (placed.point.x - width, placed.point.x)
     )
-    assert (x0, x1) == (BOX.min.x, BOX.min.x + width) or (x0, x1) == (BOX.max.x - width, BOX.max.x)
+    if placed.anchor == "start":
+        assert (x0, x1) == (BOX.min.x, BOX.min.x + width)
+    else:
+        assert (x0, x1) == (BOX.max.x - width, BOX.max.x)
+
+
+@pytest.mark.parametrize("corner", ["SX", "XW", "NX"])
+def test_an_unknown_corner_raises_and_names_it(corner):
+    with pytest.raises(InvalidValueError) as err:
+        corner_text(BOX, corner, 2.5, None)
+    message = str(err.value)
+    assert repr(corner) in message
+    assert all(valid in message for valid in ("NW", "NE", "SW", "SE"))
