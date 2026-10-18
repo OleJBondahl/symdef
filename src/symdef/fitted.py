@@ -59,7 +59,8 @@ def _growth(  # noqa: PLR0913 - the symbol, axis, texts, library, height and the
     for slot_id, text in texts.items():
         slot = slots[slot_id]
         need = from_divisions(
-            grid, ceil_divisions(grid, _along(text_box(slot, text, height, library.font), axis))
+            grid,
+            ceil_divisions(grid, _along(text_box(slot, text, height, library.font, grid), axis)),
         )
         grow = need - _along(slot_box(slot), axis)
         if lenient and grow <= _NOISE:

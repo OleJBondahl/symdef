@@ -595,6 +595,7 @@ def _advances(value: object, location: str) -> list[Finding]:
 _ADVANCE_TABLES = _table(
     {w.name.lower(): _advances for w in Weight}, required=tuple(w.name.lower() for w in Weight)
 )
+_TEXT_BLOCK = _enum("cap", "grid")
 _FONT_FIELDS = ("units_per_em", "cap_height", "ascent", "descent", "default_advance")
 _FONT = _table(
     {
@@ -603,6 +604,7 @@ _FONT = _table(
         "heights": _map_of(_positive),
         "name": _string,
         "family": _string,
+        "text_block": _TEXT_BLOCK,
     },
     required=(*_FONT_FIELDS, "advances", "name"),
 )
@@ -620,6 +622,7 @@ def font_from_data(data: Mapping[str, Any]) -> FontMetrics:
         data["default_advance"],
         data.get("heights", {}),
         data.get("family", ""),
+        data.get("text_block", "cap"),
     )
 
 
@@ -628,6 +631,7 @@ _FONT_FILES = _table(
         "name": _string,
         "files": _table({"regular": _string, "bold": _string}, ("regular", "bold")),
         "heights": _map_of(_positive),
+        "text_block": _TEXT_BLOCK,
     },
     required=("name", "files"),
 )
@@ -640,11 +644,11 @@ def _font_table(value: object, location: str) -> list[Finding]:
     if "family" in value:
         message = "`family` comes from the font file; remove it beside `files`"
         return [_finding(location, message)]
-    extra = [key for key in value if key not in ("name", "files", "heights")]
+    extra = [key for key in value if key not in ("name", "files", "heights", "text_block")]
     if extra:
         message = (
-            f"`{extra[0]}` is not a key of the files form (`name`, `files`, `heights`); "
-            "remove it, or drop `files` and give the measured tables"
+            f"`{extra[0]}` is not a key of the files form (`name`, `files`, `heights`, "
+            "`text_block`); remove it, or drop `files` and give the measured tables"
         )
         return [_finding(location, message)]
     return _FONT_FILES(value, location)
@@ -655,15 +659,18 @@ def _literal_font(data: Mapping[str, Any]) -> bool:
     return "font" in data and "files" not in data["font"]
 
 
-def _font_files(data: Mapping[str, Any]) -> tuple[tuple[str, str] | None, str, dict[str, float]]:
-    """Return the files form's paths, name and heights of a checked `[font]`, or None, '', {}."""
+def _font_files(
+    data: Mapping[str, Any],
+) -> tuple[tuple[str, str] | None, str, dict[str, float], str]:
+    """Return the files form's paths, name, heights and text block of a checked `[font]`."""
     font = data.get("font", {})
     if "files" not in font:
-        return None, "", {}
+        return None, "", {}, "cap"
     return (
         (font["files"]["regular"], font["files"]["bold"]),
         font["name"],
         dict(font.get("heights", {})),
+        font.get("text_block", "cap"),
     )
 
 
