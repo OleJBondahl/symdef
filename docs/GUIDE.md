@@ -386,6 +386,8 @@ assert "#000" not in dim and 'stroke="#888"' in dim
 
 ## Weighted cuts, moving slots and ticks between rows
 
+`[grid] stretch_split = "weight"` (the default) shares a growth as described next. `"whole"` splits it in whole divisions instead: the growth must be a whole number of divisions, each cut but the last (by position) takes the floor of its weighted share, and the last takes the rest. Two equal cuts grown by 7 divisions take 3 and 4; three equal cuts grown by 7 take 2, 2 and 3. Pass the library's grid to `stretch(symbol, axis, length, grid=library.grid)` or `table(..., grid=library.grid)` to apply it; `fitted_table` and `fitted_symbol` do so already (D97). A single cut takes the whole growth either way.
+
 An axis may carry several cuts. Each has a `weight`, a number above zero that defaults to 1. The
 growth, `length` minus the natural extent, is shared among the cuts in proportion to their
 weights, and a point moves by the shares of the cuts it lies beyond (D67). With cuts of weight 1

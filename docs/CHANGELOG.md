@@ -2,6 +2,11 @@
 
 What changed in the public surface of each release: a name added, removed or moved, and a type that widened. Every change to `surface.toml` has a line here. The reasons are in [the decisions](DECISIONS.md).
 
+## 0.20.0
+
+- Added: `[grid] stretch_split = "weight" | "whole"` (default "weight") and `Grid.stretch_split`; the bundle writes it only when "whole" (D97).
+- Added: a keyword-only `grid` on `stretch` and `table`; under "whole" a growth over several cuts splits in whole divisions, each cut but the last flooring its weighted share, and a growth that is not a whole number of divisions raises (D97). `fitted_table` and `fitted_symbol` pass `library.grid`.
+
 ## 0.19.0
 
 - Changed: under `text_block = "grid"` a centred text sits at the slot box's start edge plus floor(length / 2) whole divisions, not at the true centre; "cap" is unchanged (D96).

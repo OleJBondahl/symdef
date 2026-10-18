@@ -46,6 +46,16 @@ def pitch_error(standard: object, fine: object) -> str | None:
     return None
 
 
+STRETCH_SPLITS = ("weight", "whole")
+
+
+def split_error(value: object) -> str | None:
+    """Return why `value` is not a `stretch_split`, or None."""
+    if value in STRETCH_SPLITS:
+        return None
+    return f'stretch_split {value!r} is not one of {STRETCH_SPLITS}; use "weight" or "whole"'
+
+
 @dataclass(frozen=True, slots=True)
 class Grid:
     """The drawing grid of a library: the size of the module and how many divisions it has.
@@ -57,12 +67,15 @@ class Grid:
         wire_pitch: The standard wire pitch in divisions; every port sits on it.
         wire_pitch_fine: The fine wire pitch in divisions, for a dense page; it divides
             `wire_pitch`. A library has these two pitches and no third.
+        stretch_split: How `stretch` shares a growth among several cuts: "weight" (by weight, the
+            default) or "whole" (in whole divisions, near cuts floored; D97).
     """
 
     module_mm: float = DEFAULT_MODULE_MM
     divisions_per_module: int = DEFAULT_DIVISIONS_PER_MODULE
     wire_pitch: int = DEFAULT_WIRE_PITCH
     wire_pitch_fine: int = DEFAULT_WIRE_PITCH_FINE
+    stretch_split: str = "weight"
 
     def __post_init__(self) -> None:
         """Raise `InvalidValueError` naming the value and fix, for a bad grid value."""
@@ -70,6 +83,7 @@ class Grid:
             module_error(self.module_mm)
             or divisions_error(self.divisions_per_module)
             or pitch_error(self.wire_pitch, self.wire_pitch_fine)
+            or split_error(self.stretch_split)
         )
         if error:
             raise InvalidValueError(error)
