@@ -142,3 +142,13 @@ def test_slot_box_with_a_block_taller_than_the_reserved_box_grows_it():
     grown = slot_box(slot, "AB\nCD", HEIGHT, None)
     assert reserved.max.y - reserved.min.y == pytest.approx(2.0)
     assert grown.max.y - grown.min.y > reserved.max.y - reserved.min.y
+
+
+def test_the_pitch_is_one_and_a_half_cap_heights_written_out():
+    """Fixed numbers, so the pitch cannot drift with the constant the other tests read."""
+    from symdef import Centre, Point, Slot, slot_lines
+
+    slot = Slot("c", Point(3, 5), Centre.C, (4, 1))
+    first, second = slot_lines(slot, "AB\nCD", 2, None)
+    assert first.point.y == pytest.approx(5 + 0.72 - 0.75 * 1.44)
+    assert second.point.y == pytest.approx(5 + 0.72 + 0.75 * 1.44)
