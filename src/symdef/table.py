@@ -7,7 +7,7 @@ from symdef.errors import InvalidValueError
 from symdef.geometry import Element, Line, Polyline
 from symdef.model import Slot, Symbol, nodes_of
 from symdef.orient import translate
-from symdef.repeat import MAX_REPEAT, pole_elements, pole_parts
+from symdef.repeat import MAX_REPEAT, declared_union, pole_elements, pole_parts
 from symdef.stretch import Axis, stretch
 from symdef.units import Grid
 
@@ -91,4 +91,8 @@ def table(
         slots=head_slots
         + tuple(s for k, r in enumerate(rows, start=1) for s in _row_slots(r.slots, k)),
         stretch=(),
+        body=declared_union((*(() if head is None else (head.body,)), *(r.body for r in rows))),
+        keepout=declared_union(
+            (*(() if head is None else (head.keepout,)), *(r.keepout for r in rows))
+        ),
     )

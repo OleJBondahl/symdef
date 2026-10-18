@@ -51,6 +51,8 @@
     "pole_pitch": { "$ref": "#/$defs/integer" },
     "lint_allow": { "type": "array", "items": { "$ref": "#/$defs/allow" } },
     "stretch": { "type": "array", "items": { "$ref": "#/$defs/stretch" } },
+    "body": { "$ref": "#/$defs/declared_box" },
+    "keepout": { "$ref": "#/$defs/declared_box" },
     "body_box": { "$ref": "#/$defs/box" },
     "keepout_box": { "$ref": "#/$defs/box" }
   },
@@ -77,6 +79,13 @@
       "items": { "$ref": "#/$defs/point" },
       "minItems": 2,
       "maxItems": 2
+    },
+    "declared_box": {
+      "description": "[x0, y0, x1, y1] in module units with x0 < x1 and y0 < y1 (the order is checked by the loader, not by this schema).",
+      "type": "array",
+      "items": { "$ref": "#/$defs/number" },
+      "minItems": 4,
+      "maxItems": 4
     },
     "direction": { "enum": ["N", "E", "S", "W"] },
     "slot_side": {

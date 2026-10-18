@@ -382,6 +382,28 @@ def _inherit_paths(
     return (*(path for path in inherited if between(path) not in replaced), *own)
 
 
+def _part_bodies(
+    parts: list[Mapping[str, Any]], placed: Mapping[str, Symbol], own: Symbol
+) -> tuple[Finding, ...]:
+    """Refuse a part that declares a body or keep-out in a composite that declares none (D98).
+
+    A composite that declares its own `body` or `keepout` is its own box; a part's declaration is
+    then that part's alone. Without one the composite would have to guess how to unite them.
+    """
+    if own.body is not None or own.keepout is not None:
+        return ()
+    return tuple(
+        rule_finding(
+            "schema",
+            f"part {quote(part['as'])} declares a body or keepout, which a composite cannot "
+            "inherit; declare `body` (and `keepout`) on the composite, or drop the part's",
+            _at("parts", index),
+        )
+        for index, part in enumerate(parts)
+        if part["as"] in placed and (placed[part["as"]].body or placed[part["as"]].keepout)
+    )
+
+
 def _compose(
     data: Mapping[str, Any], bases: Mapping[str, Symbol]
 ) -> tuple[Symbol | None, tuple[Finding, ...]]:
@@ -394,6 +416,8 @@ def _compose(
     if found:
         return None, found
     own = symbol_from_data(data)
+    if found := _part_bodies(data["parts"], placed, own):
+        return None, found
     ports, exported, port_findings = _export_ports(data.get("ports", {}), placed)
     slots, slot_findings = _export_slots(data.get("slots", {}), placed, own)
     found = (*port_findings, *slot_findings)

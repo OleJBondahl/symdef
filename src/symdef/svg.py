@@ -6,7 +6,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import replace
 from xml.sax.saxutils import escape
 
-from symdef.boxes import body_box, keepout_box, slot_box
+from symdef.boxes import body_box, elements_box, keepout_box, slot_box
 from symdef.errors import InvalidValueError, UnknownNameError
 from symdef.geometry import (
     Arc,
@@ -527,6 +527,8 @@ def _extent(symbol: Symbol, sampled: Sequence[tuple[Slot, str, float]], *, annot
     everything the annotations draw outside it (`_annotation_boxes`).
     """
     boxes = [keepout_box(symbol) if annotate else body_box(symbol)]
+    if symbol.body is not None:
+        boxes.append(elements_box(symbol.elements))
     boxes.extend(slot_box(slot) for slot, _, _ in sampled)
     if annotate:
         boxes.extend(_annotation_boxes(symbol))
