@@ -154,13 +154,13 @@ the author door: import them from `symdef.authoring`. `symdef` itself holds what
 from symdef.authoring import lint
 from symdef.lint import RULES
 
-assert len(RULES) == 35
+assert len(RULES) == 36
 for finding in lint(contact, library.required_slots):
     print(finding.rule, finding.severity, finding.location, finding.orientation, finding.message)
 ```
 
-There are 35 rules: the spec's 33 (section 9) and two of the toolkit's own, `lead-off-port`
-(D40) and `stretch-cut`. `lint` takes a symbol in base orientation and your set's `required_slots`. That list is empty by default,
+There are 36 rules: the spec's 33 (section 9) and three of the toolkit's own, `lead-off-port`
+(D40), `stretch-cut` and `element-outside-body` (D98). `lint` takes a symbol in base orientation and your set's `required_slots`. That list is empty by default,
 so no slot is required. It runs the orientation-dependent rules in all 8 itself (D6, D23, D46). It returns a tuple of `Finding`, each with `rule`, `severity` (`Severity`),
 `message`, `location` (a string or `None`) and `orientation` (or `None`). They are ordered by the spec
 table, then orientation, then location (D23, D34).
@@ -226,6 +226,27 @@ transform. Coordinates and radii are multiplied by `module_mm`. Stroke widths co
 `weights_mm`, dash lengths from `dash_mm`, and the font size from `font_mm`, all in the caller's
 millimetres. Use it when a drawing must show each size exactly as given. `to_svg` and
 `to_fragment` keep their output.
+
+## Declaring the body
+
+A symbol's body is the box its elements span, so a frame drawn as a polyline sets it. A symbol that
+must be framed and still small can declare the body instead:
+
+```toml
+body = [0, -2, 6, 2]      # x0, y0, x1, y1 in M; x0 < x1 and y0 < y1
+keepout = [-1, -3, 7, 3]  # optional; without it the keep-out is the body united with the slots
+```
+
+`body_box` then returns exactly the declared box, and `keepout_box` the declared `keepout` or the
+body united with the slot boxes. Both turn with `orient` and `translate`. `stretch` moves a declared
+edge past a cut with the cut, as it moves a line end, and reads its natural extent from the
+declared body. `repeat` and `table` declare the union of their poles' or rows' boxes. A composite
+whose part declares a body must declare its own, or `resolve` reports a `schema` finding.
+
+The lint rule `element-outside-body` reports a line, polyline, circle or arc that leaves a declared
+body; `text-outside-body` measures a fixed text against it. A symbol with no `body` is not checked.
+The resolved JSON writes `body` and `keepout` only when set, and its `body_box` and `keepout_box`
+keys always give the boxes `body_box` and `keepout_box` return.
 
 ## Stretching and tables
 
@@ -341,6 +362,17 @@ from symdef import Style, Weight, WireStyle, wire
 styled = replace(library, wires=(WireStyle("link", Weight.NORMAL, Style.DASHED),))
 link = wire(styled, "link", [(0, 0), (4, 0), (4, 6)])
 assert link.elements[0].style is Style.DASHED
+```
+
+`lanes=2` draws two parallel polylines in the one symbol, lane 0 on the points and lane k moved
+k * `pitch` towards +y on a horizontal run and +x on a vertical one, mitred at the corners.
+`pitch` is in modules and defaults to the library's `wire_pitch`. Every run of a multi-lane
+wire must be horizontal or vertical, and a closed wire has one lane; a bad value raises
+`InvalidValueError` (D99).
+
+```python
+trunk = wire(styled, "link", [(0, 0), (10, 0), (10, 10)], lanes=2)
+assert [(p.x, p.y) for p in trunk.elements[1].points] == [(0, 1), (11, 1), (11, 10)]
 ```
 
 A closed polyline may say `fill = "tint"`. The caller passes the colour: `to_svg(symbol,
@@ -494,6 +526,23 @@ whole divisions, ignoring float noise of 1e-9. `lint` takes the grid to check ag
 and `on_grid(v, tol, grid)` take it as a trailing argument; with none they use `DEFAULT_GRID`, so a call
 without a grid gives the output it always gave. `Grid(module_mm, divisions_per_module, wire_pitch=8, wire_pitch_fine=4)` raises
 `InvalidValueError` for a module not above zero, divisions not a power of two, or a pitch that is not a whole number above zero or a fine pitch that does not divide the standard one, naming the value and the fix. A port off the standard pitch is a load error (`port-off-wiring-grid`). `FontMetrics.heights` holds the `[font.heights]` names; symdef does not interpret them.
+
+## Free text
+
+`text_tag(content, point, height_mm, *, anchor, font_family, turn=False, weight=Weight.NORMAL,
+tint=None, muted=None)` returns one `<text>` in millimetres at the baseline `point`, aligned by
+`anchor` (`"start"`, `"middle"` or `"end"`); `turn` rotates it -90 degrees about the point and
+`Weight.THICK` makes it bold. `corner_text(box, corner, height, font)` gives the `TextPlacement`
+for a text hung inside `box` on `"NW"`, `"NE"`, `"SW"` or `"SE"`: the capitals touch the north
+edge, or the baseline sits on the south edge (D100).
+
+```python
+from symdef import Box, Point, corner_text, text_tag
+
+placed = corner_text(Box(Point(10, 20), Point(30, 24)), "SE", 2.5, None)
+tag = text_tag("K1", placed.point, 2.5, anchor=placed.anchor, font_family="Sans")
+assert tag.startswith('<text x="30" y="24" font-size="2.5" text-anchor="end"')
+```
 
 ## A consumer's font, grid and line widths
 

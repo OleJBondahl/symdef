@@ -1,4 +1,4 @@
-"""The toolkit reports exactly the guide's 35 rules, each with its group, severity and fixture.
+"""The toolkit reports exactly the guide's 36 rules, each with its group, severity and fixture.
 
 The table below is written out by hand from the guide's section 9 on purpose: it is the check on
 the registry, so it must not be derived from it.
@@ -20,6 +20,7 @@ THE_RULES = {
     "degenerate": ("Geometry", E),
     "text-too-large": ("Geometry", E),
     "stretch-cut": ("Geometry", E),
+    "element-outside-body": ("Geometry", E),
     "port-duplicate-id": ("Ports", E),
     "port-off-wiring-grid": ("Ports", E),
     "port-off-geometry": ("Ports", E),
@@ -62,13 +63,13 @@ RESOLVER_RULES = {
 EXEMPTION_RULES = {"allow-unknown", "allow-unused"}
 
 
-def test_the_hand_written_table_has_35_rules():
-    assert len(THE_RULES) == 35
+def test_the_hand_written_table_has_36_rules():
+    assert len(THE_RULES) == 36
 
 
-def test_the_registry_holds_exactly_the_35_rules_of_the_guide():
+def test_the_registry_holds_exactly_the_36_rules_of_the_guide():
     assert set(RULES) == set(RULE_IDS) == set(THE_RULES)
-    assert len(RULES) == 35
+    assert len(RULES) == 36
 
 
 def test_the_hand_written_table_is_the_guides_table():

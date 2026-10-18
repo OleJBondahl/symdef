@@ -134,7 +134,12 @@ SECTION_11_SIGNATURES = {
     ],
     "write_build": positional("library", "root"),
     "stale_build": positional("library", "root"),
-    "wire": [*positional("library", "style_id", "points"), ("closed", "KEYWORD_ONLY", "False")],
+    "wire": [
+        *positional("library", "style_id", "points"),
+        ("closed", "KEYWORD_ONLY", "False"),
+        ("lanes", "KEYWORD_ONLY", "1"),
+        ("pitch", "KEYWORD_ONLY", "None"),
+    ],
     "table": [
         *positional("row", "n", "axis"),
         ("head", "POSITIONAL_OR_KEYWORD", "None"),
@@ -167,7 +172,7 @@ SECTION_11_FIELDS = {
     "Reference": ["standard", "number", "edition", "form"],
     "Symbol": [
         *("name", "kind", "status", "reference", "elements", "ports", "nodes", "paths"),
-        *("anchors", "slots", "pole_pitch", "lint_allow", "stretch"),
+        *("anchors", "slots", "pole_pitch", "lint_allow", "stretch", "body", "keepout"),
     ],
     "Library": [
         *("standard", "title", "number_pattern", "symbols", "vocabulary", "required_slots"),

@@ -6,7 +6,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import replace
 from xml.sax.saxutils import escape
 
-from symdef.boxes import body_box, keepout_box, slot_box
+from symdef.boxes import body_box, elements_box, keepout_box, slot_box
 from symdef.errors import InvalidValueError, UnknownNameError
 from symdef.geometry import (
     Arc,
@@ -385,16 +385,20 @@ def slot_text_tag(  # noqa: PLR0913 - one slot text tag is these things
     family: str,
     content: str,
     turn: bool = False,
+    bold: bool = False,
 ) -> str:
-    """Render one slot text at its baseline point; a turned one is rotated -90 about that point.
+    """Render one text at its baseline point; a turned one is rotated -90 about that point.
 
-    `family` is the finished `font-family` attribute value, quotes included.
+    `family` is the finished `font-family` attribute value, quotes included. `bold` adds
+    `font-weight="bold"` (D100); `text_tag` shares this code.
     """
     x, y = at
     rotate = f' transform="rotate(-90 {x} {y})"' if turn else ""
+    weight = ' font-weight="bold"' if bold else ""
     return (
         f'<text x="{x}" y="{y}" font-size="{size}" text-anchor="{anchor}" '
-        f'fill="{fill}" stroke="none" font-family={family}{rotate}>{_content(content)}</text>'
+        f'fill="{fill}" stroke="none" font-family={family}{weight}{rotate}>'
+        f"{_content(content)}</text>"
     )
 
 
@@ -527,6 +531,8 @@ def _extent(symbol: Symbol, sampled: Sequence[tuple[Slot, str, float]], *, annot
     everything the annotations draw outside it (`_annotation_boxes`).
     """
     boxes = [keepout_box(symbol) if annotate else body_box(symbol)]
+    if symbol.body is not None:
+        boxes.append(elements_box(symbol.elements))
     boxes.extend(slot_box(slot) for slot, _, _ in sampled)
     if annotate:
         boxes.extend(_annotation_boxes(symbol))
