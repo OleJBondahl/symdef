@@ -2,6 +2,10 @@
 
 What changed in the public surface of each release: a name added, removed or moved, and a type that widened. Every change to `surface.toml` has a line here. The reasons are in [the decisions](DECISIONS.md).
 
+## 0.17.0
+
+- Added: `fitted_table(row, axis, texts, library, text_height, *, head=None, head_texts=None)`, a `table` whose columns are as wide as the widest text set in them, measured with `library.font` and rounded up to whole grid divisions (D94).
+
 ## 0.16.0
 
 - Added: `[font]` with `files` takes `heights`, the capital heights in mm by name; `FontMetrics.heights` carries them (D93). `family` beside `files` stays refused.
