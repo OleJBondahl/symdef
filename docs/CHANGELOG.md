@@ -4,6 +4,7 @@ What changed in the public surface of each release: a name added, removed or mov
 
 ## 0.21.0
 
+- Added: keyword-only `lanes` (default 1) and `pitch` (default `library.grid.wire_pitch`, in M) on `wire`. For `lanes` above 1 the symbol holds one polyline per lane, lane 0 on the points and lane k moved k * pitch towards +y on a horizontal run and +x on a vertical run, mitred at corners. `lanes=1` is unchanged; `lanes` below 1, `pitch` of 0 or less, and a closed wire with several lanes raise `InvalidValueError` (D99).
 - Added: the symbol keys `body` and `keepout`, `[x0, y0, x1, y1]` in M; `Symbol.body` and `Symbol.keepout` (default None). `body_box` and `keepout_box` return a declared box exactly; `orient`, `translate`, `stretch`, `repeat` and `table` carry it (D98).
 - Added: lint rule `element-outside-body` (ERROR, Geometry): a shape that leaves a declared body; 36 rules. `text-outside-body` measures against a declared body (D98).
 - Added: the JSON schema's `body` and `keepout`; the resolved form writes them only when set.
