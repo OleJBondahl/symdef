@@ -700,6 +700,7 @@ _GRID_KEYS = _table(
         "divisions_per_module": _divisions,
         "wire_pitch": _pitch,
         "wire_pitch_fine": _pitch,
+        "stretch_split": _enum("weight", "whole"),
     },
     required=("module_mm", "divisions_per_module"),
 )
@@ -724,6 +725,7 @@ def grid_from_data(data: Mapping[str, Any]) -> Grid:
         int(data["divisions_per_module"]),
         int(data.get("wire_pitch", DEFAULT_WIRE_PITCH)),
         int(data.get("wire_pitch_fine", DEFAULT_WIRE_PITCH_FINE)),
+        data.get("stretch_split", "weight"),
     )
 
 

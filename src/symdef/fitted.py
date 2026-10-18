@@ -11,7 +11,7 @@ from symdef.slottext import text_box
 from symdef.stretch import Axis, stretch
 from symdef.svg import check_texts
 from symdef.table import table
-from symdef.units import ceil_divisions, from_divisions
+from symdef.units import Grid, ceil_divisions, from_divisions
 
 _NOISE = 1e-9
 
@@ -70,7 +70,7 @@ def _growth(  # noqa: PLR0913 - the symbol, axis, texts, library, height and the
     return {at: grow for at, grow in wanted.items() if grow > _NOISE}
 
 
-def _grown(symbol: Symbol, axis: Axis, growth: Mapping[float, float]) -> Symbol:
+def _grown(symbol: Symbol, axis: Axis, growth: Mapping[float, float], grid: Grid) -> Symbol:
     """Return the symbol stretched along the axis, each cut in `growth` taking its own growth."""
     if not growth:
         return symbol
@@ -84,7 +84,8 @@ def _grown(symbol: Symbol, axis: Axis, growth: Mapping[float, float]) -> Symbol:
     cuts = tuple(Stretch(axis, at, grow) for at, grow in sorted(growth.items()))
     kept = tuple(s for s in symbol.stretch if s.axis != axis)
     natural = _along(body_box(symbol), axis)
-    return stretch(replace(symbol, stretch=kept + cuts), axis, natural + sum(growth.values()))
+    length = natural + sum(growth.values())
+    return stretch(replace(symbol, stretch=kept + cuts), axis, length, grid=grid)
 
 
 def _merge(*growths: Mapping[float, float]) -> dict[float, float]:
@@ -150,8 +151,9 @@ def fitted_table(  # noqa: PLR0913 - the ruled signature: row, axis, texts, libr
         check_texts(head, head_texts)
         growth = _merge(growth, _growth(head, cross, head_texts, library, text_height))
     if head is not None and any(s.axis == cross for s in head.stretch):
-        head = _grown(head, cross, growth)
-    return table(_grown(row, cross, growth), len(texts), axis, head)
+        head = _grown(head, cross, growth, library.grid)
+    grown = _grown(row, cross, growth, library.grid)
+    return table(grown, len(texts), axis, head, grid=library.grid)
 
 
 def fitted_symbol(
@@ -179,5 +181,5 @@ def fitted_symbol(
     check_texts(symbol, texts)
     for axis in ("x", "y"):
         growth = _growth(symbol, axis, texts, library, text_height, lenient=True)
-        symbol = _grown(symbol, axis, growth)
+        symbol = _grown(symbol, axis, growth, library.grid)
     return symbol
