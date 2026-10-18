@@ -3,6 +3,7 @@
 from typing import Literal
 from xml.sax.saxutils import quoteattr
 
+from symdef.errors import InvalidValueError
 from symdef.font import FontMetrics, cap_height
 from symdef.geometry import Box, Point, Weight
 from symdef.slottext import Anchor, TextPlacement
@@ -51,8 +52,12 @@ def corner_text(box: Box, corner: Corner, height: float, font: FontMetrics | Non
 
     The text hangs inside the box on that corner: `W` corners start at the box's west edge and `E`
     corners end at its east edge; `N` corners put the capitals' top on the north edge, `S` corners
-    put the baseline on the south edge. The result is upright, in the box's own unit.
+    put the baseline on the south edge. The result is upright, in the box's own unit. Raises
+    `InvalidValueError` for a corner that is not one of the four.
     """
+    if corner not in ("NW", "NE", "SW", "SE"):
+        msg = f"corner_text: corner {corner!r} is not valid; use 'NW', 'NE', 'SW' or 'SE'"
+        raise InvalidValueError(msg)
     north, west = corner[0] == "N", corner[1] == "W"
     x = box.min.x if west else box.max.x
     y = box.min.y + cap_height(font, height) if north else box.max.y
