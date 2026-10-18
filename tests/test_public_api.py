@@ -107,7 +107,10 @@ SECTION_11_SIGNATURES = {
         (
             "grid",
             "POSITIONAL_OR_KEYWORD",
-            "Grid(module_mm=2.5, divisions_per_module=8, wire_pitch=8, wire_pitch_fine=4)",
+            (
+                "Grid(module_mm=2.5, divisions_per_module=8, wire_pitch=8, wire_pitch_fine=4, "
+                "stretch_split='weight')"
+            ),
         ),
     ],
     "lint": [
@@ -116,7 +119,10 @@ SECTION_11_SIGNATURES = {
         (
             "grid",
             "POSITIONAL_OR_KEYWORD",
-            "Grid(module_mm=2.5, divisions_per_module=8, wire_pitch=8, wire_pitch_fine=4)",
+            (
+                "Grid(module_mm=2.5, divisions_per_module=8, wire_pitch=8, wire_pitch_fine=4, "
+                "stretch_split='weight')"
+            ),
         ),
     ],
     "to_svg": [
@@ -132,6 +138,7 @@ SECTION_11_SIGNATURES = {
     "table": [
         *positional("row", "n", "axis"),
         ("head", "POSITIONAL_OR_KEYWORD", "None"),
+        ("grid", "KEYWORD_ONLY", "None"),
     ],
 }
 
