@@ -31,7 +31,7 @@ from symdef.geometry import (
 )
 from symdef.gridmeasure import Measure, measure
 from symdef.gridtypes import GridBox, GridPoint, GridPort
-from symdef.leads import leads
+from symdef.leads import leads, only_ports
 from symdef.model import (
     Allow,
     Anchor,
@@ -132,6 +132,7 @@ __all__ = [
     "measure_font",
     "nodes_of",
     "on_grid",
+    "only_ports",
     "orient",
     "orient_box",
     "orient_direction",

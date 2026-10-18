@@ -100,6 +100,7 @@ SECTION_11_SIGNATURES = {
     "body_box": [*positional("symbol"), ("font", "POSITIONAL_OR_KEYWORD", "None")],
     "keepout_box": [*positional("symbol"), ("font", "POSITIONAL_OR_KEYWORD", "None")],
     "leads": positional("symbol", "ports"),
+    "only_ports": positional("symbol", "ports"),
     "slot_box": [
         *positional("slot"),
         *(("text", "POSITIONAL_OR_KEYWORD", "None"), ("height", "POSITIONAL_OR_KEYWORD", "None")),
