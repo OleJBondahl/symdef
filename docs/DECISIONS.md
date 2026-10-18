@@ -1546,3 +1546,9 @@ Decided: (1) `slot_lines(slot, text, height, font) -> tuple[TextPlacement, ...]`
 Rule: `[font] text_block = "cap" | "grid"` (default "cap", today's pitch and cap-centred baseline) sets how a text block is placed; "grid" is Fransys render's rule: row pitch = text height rounded up to whole divisions, block top snapped down to a division, baseline = top + ascent * height (Ruling 6). `slot_text`, `slot_lines`, `text_box` and `slot_box` take `grid` for it.
 Why: designer ruling 2026-10-18 (SYMDEF-0.18, Ruling 5, M1 to M4): the marker drawings need a symbol fitted to its texts, multi-line slot text, a stub in a wire style, and a closed outline that joins at its corner.
 Cost if wrong: additive. The only changed behaviour is a slot text containing a newline, formerly one `<text>` with the newline in it.
+
+## D96: "grid" centres a text at the edge plus half the divisions, floored
+
+Decided: under `text_block = "grid"`, a text anchored "middle" (side N, S, C; for a turned slot E, W, C) sits at the slot box's start edge plus floor(length / 2) whole divisions along the text, in the symbol's own frame before orientation; an offset from the edge, not a floor of the absolute coordinate. "cap" is unchanged.
+Why: designer ruling 2026-10-18 (Ruling 13, A1/A2): Fransys render centres at `box + width // 2`, so an odd width left a half-division gap against symdef's true centre.
+Cost if wrong: a "grid" text on an odd-division box moves half a division; "cap" and even widths are unchanged.
