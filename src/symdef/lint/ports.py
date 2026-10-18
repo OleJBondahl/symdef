@@ -21,9 +21,9 @@ def _lane_frame(symbol: Symbol) -> Box:
     A wire lane is unbounded; clipped to this box it still reaches past all of the symbol's
     geometry, so it meets exactly what the unbounded lane would.
     """
-    keepout = keepout_box(symbol)
-    xs = (keepout.min.x, keepout.max.x, *(p.position.x for p in symbol.ports))
-    ys = (keepout.min.y, keepout.max.y, *(p.position.y for p in symbol.ports))
+    boxes = (keepout_box(symbol), *(slot_box(s) for s in symbol.slots))
+    xs = (*(x for b in boxes for x in (b.min.x, b.max.x)), *(p.position.x for p in symbol.ports))
+    ys = (*(y for b in boxes for y in (b.min.y, b.max.y)), *(p.position.y for p in symbol.ports))
     return Box(
         Point(min(xs) - _LANE_MARGIN, min(ys) - _LANE_MARGIN),
         Point(max(xs) + _LANE_MARGIN, max(ys) + _LANE_MARGIN),
