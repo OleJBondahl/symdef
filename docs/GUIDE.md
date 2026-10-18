@@ -318,6 +318,8 @@ sized_table = fitted_table(row, "y", [{"a": "AB"}, {"a": "ABiAB"}], sized, 2)
 assert body_box(sized_table).width > body_box(table(row, 2, "y")).width
 ```
 
+`[font] text_block` picks how a text block is set. "cap" (the default) puts rows 1.5 cap heights apart with the block centred on its cap height. "grid" puts rows the text height rounded up to whole divisions apart, snaps the block top down to a division and the baseline an ascent below it; `slot_lines`, `text_box` and `slot_box` take the library's `grid` for it (D95).
+
 `fitted_symbol(symbol, texts, library, text_height)` does the same for one symbol (D95). Each slot named
 in `texts` must hold its text as `text_box` measures it, a multi-line text by its whole block and a
 turned slot's text along y. The extent is rounded up to whole grid divisions and the cut across the
