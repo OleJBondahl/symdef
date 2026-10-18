@@ -18,6 +18,7 @@ from typing import Any
 from symdef.font import FontMetrics
 from symdef.geometry import (
     Arc,
+    Box,
     Circle,
     Direction,
     Element,
@@ -210,6 +211,7 @@ def _map_of(item: _Check) -> _Check:
 
 _POINT = _array(_number, 2)
 _BOX = _array(_POINT, 2)
+_DECLARED_BOX = _array(_number, 4)
 _DIRECTION = _enum("N", "E", "S", "W")
 _SLOT_SIDE = _enum("N", "E", "S", "W", "C")
 _WEIGHT = _enum("normal", "thick")
@@ -367,6 +369,8 @@ _FILE = _table(
         "pole_pitch": _integer,
         "lint_allow": _array(_ALLOW),
         "stretch": _array(_STRETCH),
+        "body": _DECLARED_BOX,
+        "keepout": _DECLARED_BOX,
         "body_box": _BOX,
         "keepout_box": _BOX,
     },
@@ -387,6 +391,24 @@ def parse_toml(text: str) -> tuple[dict[str, Any] | None, tuple[Finding, ...]]:
     return data, ()
 
 
+def _declared_order(data: Mapping[str, Any]) -> list[Finding]:
+    """Check that each well-formed declared box runs from its low corner to its high corner."""
+    found = []
+    for key in ("body", "keepout"):
+        if key not in data:
+            continue
+        box = data[key]
+        if not _DECLARED_BOX(box, key) and not (box[0] < box[2] and box[1] < box[3]):
+            found.append(
+                _finding(
+                    _child("", key),
+                    f"symbol {_short(data.get('name'))!r}: {key} = [x0, y0, x1, y1] needs x0 < x1 "
+                    f"and y0 < y1; write the low corner first and give the box a size",
+                )
+            )
+    return found
+
+
 def validate(data: object) -> tuple[Finding, ...]:
     """Check decoded data against the symbol file format, atomic, composite or resolved.
 
@@ -399,6 +421,7 @@ def validate(data: object) -> tuple[Finding, ...]:
     """
     found = _FILE(data, "")
     if isinstance(data, dict):
+        found += _declared_order(data)
         if "elements" not in data and "parts" not in data:
             found.append(_finding("", "a file needs elements, parts, or both"))
         if data.get("kind") == "symbol" and "slots" not in data:
@@ -462,13 +485,20 @@ def _element_from_data(item: Mapping[str, Any]) -> Element:
     return Text(item["text"], _point(item["at"]), item["height"], weight)
 
 
+def _declared_box(value: list[float] | None) -> Box | None:
+    """Build a declared box from `[x0, y0, x1, y1]`, or None when the key is absent."""
+    if value is None:
+        return None
+    return Box(Point(value[0], value[1]), Point(value[2], value[3]))
+
+
 def symbol_from_data(data: Mapping[str, Any]) -> Symbol:
     """Build a symbol from validated atomic data: a TOML file or a resolved JSON symbol.
 
     Absent optional keys take their documented defaults, so the explicit keys of the resolved
-    form read the same way. `schema`, `body_box` and `keepout_box` are ignored. Slots keep
-    their table order. Composite-only forms (`parts`, a rename-map `ports`, string slot
-    references) are the resolver's business and not read here.
+    form read the same way. `schema`, `body_box` and `keepout_box` are ignored; `body` and
+    `keepout` declare the boxes (D98). Slots keep their table order. Composite-only forms
+    (`parts`, a rename-map `ports`, string slot references) are the resolver's business.
 
     Args:
         data: Decoded data for which `validate` returned no findings.
@@ -517,6 +547,8 @@ def symbol_from_data(data: Mapping[str, Any]) -> Symbol:
         stretch=tuple(
             Stretch(s["axis"], s["at"], s.get("weight", 1)) for s in data.get("stretch", ())
         ),
+        body=_declared_box(data.get("body")),
+        keepout=_declared_box(data.get("keepout")),
     )
 
 

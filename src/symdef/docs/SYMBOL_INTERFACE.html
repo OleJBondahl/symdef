@@ -41,6 +41,7 @@ with a dated entry in the change list below and in <code>docs/DECISIONS.md</code
 <h2 id="changes">Change list</h2>
 <table>
 <tr><th>Date</th><th>Version</th><th>Change</th></tr>
+<tr><td>2026-10-18</td><td>0.21.0</td><td>New keys <code>body</code> and <code>keepout</code> (<code>[x0, y0, x1, y1]</code> in M): a symbol declares its body and keep-out box, which <code>body_box</code> and <code>keepout_box</code> then return, and which <code>orient</code>, <code>translate</code>, <code>stretch</code>, <code>repeat</code> and <code>table</code> carry. New lint rule <code>element-outside-body</code> makes 36 rules; <code>text-outside-body</code> measures against a declared body (D98).</td></tr>
 <tr><td>2026-10-18</td><td>0.20.0</td><td>New <code>[grid] stretch_split = "weight" | "whole"</code> and <code>Grid.stretch_split</code>; <code>stretch(..., *, grid=None)</code> and <code>table(..., *, grid=None)</code> take the library's grid. With "whole" a multi-cut growth splits in whole divisions, the near cuts flooring their weighted share (D97). The default splits as before.</td></tr>
 <tr><td>2026-10-18</td><td>0.18.0</td><td>New <code>slot_lines</code>, <code>fitted_symbol</code> and <code>wire(..., closed=)</code>; a <code>\n</code> in a slot text starts a new row, one <code>&lt;text&gt;</code> per line (D95).</td></tr>
 <tr><td>2026-10-18</td><td>0.17.0</td><td>New <code>fitted_table</code>, a <code>table</code> whose columns are as wide as the widest text set in them (D94).</td></tr>
@@ -169,6 +170,8 @@ Generic consumers should chain symbols using the through path's <code>from</code
 <tr><td><code>slots</code></td><td>table of tables</td><td><code>kind = "symbol"</code>: yes</td><td>See section 6.</td></tr>
 <tr><td><code>pole_pitch</code></td><td>integer</td><td>no</td><td>Multiple of 4. Only for symbols that cannot fit the 4 M pitch.</td></tr>
 <tr><td><code>stretch</code></td><td>array of tables</td><td>no</td><td><code>axis</code> (<code>x</code> or <code>y</code>), <code>at</code> (number) and optional <code>weight</code> (number above 0, default 1). Several per axis are allowed, each at its own <code>at</code>. The cut lines that <code>stretch()</code> moves everything beyond; see section 7.</td></tr>
+<tr><td><code>body</code></td><td>array of 4 numbers</td><td>no</td><td><code>[x0, y0, x1, y1]</code> in M with <code>x0 &lt; x1</code> and <code>y0 &lt; y1</code>: the symbol's declared body box. <code>body_box</code> is then exactly this box, whatever the elements; <code>keepout_box</code> is it united with the slot boxes. It orients, repeats and stretches with the symbol, and a composite whose part declares one must declare its own.</td></tr>
+<tr><td><code>keepout</code></td><td>array of 4 numbers</td><td>no</td><td>Same form. The declared keep-out box; <code>keepout_box</code> is exactly this box.</td></tr>
 <tr><td><code>lint_allow</code></td><td>array of tables</td><td>no</td><td><code>rule</code>, <code>reason</code>. The only way to be exempt from a lint rule.</td></tr>
 </table>
 
@@ -454,10 +457,11 @@ Data repo gates require zero findings of either severity, so a warning is simply
 <tr><td rowspan="3">File</td><td><code>schema</code></td><td>the file fails JSON Schema validation</td></tr>
 <tr><td><code>metadata</code></td><td>empty name, <code>reference.standard</code> differs from <code>library.toml</code>, number not matching its <code>number_pattern</code>, or number differs from the file stem</td></tr>
 <tr><td><code>id-format</code></td><td>a port, anchor or part id does not match the id pattern</td></tr>
-<tr><td rowspan="4">Geometry</td><td><code>off-drawing-grid</code></td><td>any coordinate, radius, text height, anchor, slot point or slot box size is not a multiple of 0.125</td></tr>
+<tr><td rowspan="5">Geometry</td><td><code>off-drawing-grid</code></td><td>any coordinate, radius, text height, anchor, slot point or slot box size is not a multiple of 0.125</td></tr>
 <tr><td><code>degenerate</code></td><td>zero-length line, non-positive radius, polyline with fewer than 2 points (3 when closed), arc with equal angles, exact duplicate element, slot box with a non-positive side</td></tr>
 <tr><td><code>text-too-large</code></td><td>a text element is taller than 1 M</td></tr>
 <tr><td><code>stretch-cut</code></td><td>a circle, arc or text crosses a stretch cut, a cut lies outside <code>body_min &lt;= at &lt; body_max</code> on its axis, or two cuts on one axis lie at the same <code>at</code></td></tr>
+<tr><td><code>element-outside-body</code></td><td>a symbol declares its <code>body</code> and a line, polyline, circle or arc extends outside it (a text is left to <code>text-outside-body</code>)</td></tr>
 <tr><td rowspan="8">Ports</td><td><code>port-duplicate-id</code></td><td>two ports share an id</td></tr>
 <tr><td><code>port-off-wiring-grid</code></td><td>a port position is not a multiple of 1 M</td></tr>
 <tr><td><code>port-off-geometry</code></td><td>a port is not at a line or polyline endpoint, on a circle or arc, or on a closed outline</td></tr>

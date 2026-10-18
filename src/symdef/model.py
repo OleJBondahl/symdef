@@ -8,7 +8,7 @@ from typing import Literal
 
 from symdef.errors import UnknownSymbolError
 from symdef.font import FontMetrics
-from symdef.geometry import Direction, Element, Orientation, Point, Style, Weight
+from symdef.geometry import Box, Direction, Element, Orientation, Point, Style, Weight
 from symdef.units import DEFAULT_GRID, Grid
 
 
@@ -173,6 +173,8 @@ class Symbol:
         pole_pitch: Spacing between poles for `repeat`, in module units; None means 4.
         stretch: Cut lines for `stretch`, one or more per axis.
         lint_allow: Lint exemptions the symbol claims.
+        body: A declared body box in module units, or None for the element extent (D98).
+        keepout: A declared keep-out box in module units, or None for the body and slot boxes.
     """
 
     name: str
@@ -188,6 +190,8 @@ class Symbol:
     pole_pitch: int | None = None
     lint_allow: tuple[Allow, ...] = ()
     stretch: tuple[Stretch, ...] = ()
+    body: Box | None = None
+    keepout: Box | None = None
 
 
 @dataclass(frozen=True, slots=True)

@@ -1,9 +1,10 @@
 """Repeat a symbol along +x: the only multi-pole mechanism."""
 
+from collections.abc import Iterable
 from dataclasses import replace
 
 from symdef.errors import InvalidValueError
-from symdef.geometry import Element, Line, Point, Style, Weight
+from symdef.geometry import Box, Element, Line, Point, Style, Weight
 from symdef.model import Node, Path, Port, Slot, Symbol, nodes_of
 from symdef.orient import translate
 
@@ -14,6 +15,12 @@ _MARKING = "marking."
 # A repeat in a part file stops here: the guide sets no bound, and a data file must not be able to
 # ask for a million poles. `table` uses the same bound.
 MAX_REPEAT = 64
+
+
+def declared_union(boxes: Iterable[Box | None]) -> Box | None:
+    """Return the box holding every declared box, or None when none is declared (D98)."""
+    declared = tuple(b for b in boxes if b is not None)
+    return Box.union(*declared) if declared else None
 
 
 def pole_pitch(symbol: Symbol) -> float:
@@ -110,4 +117,6 @@ def repeat(symbol: Symbol, n: int) -> Symbol:
         anchors=poles[0].anchors,
         slots=tuple(s for k, pole in enumerate(poles, start=1) for s in _pole_slots(pole.slots, k)),
         pole_pitch=n * pitch,
+        body=declared_union(p.body for p in poles),
+        keepout=declared_union(p.keepout for p in poles),
     )

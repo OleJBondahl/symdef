@@ -2,6 +2,12 @@
 
 What changed in the public surface of each release: a name added, removed or moved, and a type that widened. Every change to `surface.toml` has a line here. The reasons are in [the decisions](DECISIONS.md).
 
+## 0.21.0
+
+- Added: the symbol keys `body` and `keepout`, `[x0, y0, x1, y1]` in M; `Symbol.body` and `Symbol.keepout` (default None). `body_box` and `keepout_box` return a declared box exactly; `orient`, `translate`, `stretch`, `repeat` and `table` carry it (D98).
+- Added: lint rule `element-outside-body` (ERROR, Geometry): a shape that leaves a declared body; 36 rules. `text-outside-body` measures against a declared body (D98).
+- Added: the JSON schema's `body` and `keepout`; the resolved form writes them only when set.
+
 ## 0.20.0
 
 - Added: `[grid] stretch_split = "weight" | "whole"` (default "weight") and `Grid.stretch_split`; the bundle writes it only when "whole" (D97).

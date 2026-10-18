@@ -15,6 +15,7 @@ from symdef.lint.connectivity import (
     through_count,
     through_missing,
 )
+from symdef.lint.declared import element_outside_body
 from symdef.lint.exemptions import allow_unknown, allow_unused, exempt
 from symdef.lint.file import symbol_id_findings
 from symdef.lint.geometry import degenerate, off_drawing_grid, stretch_cut, text_too_large
@@ -55,6 +56,7 @@ CHECKS: Mapping[str, Check] = MappingProxyType(
         "degenerate": degenerate,
         "text-too-large": text_too_large,
         "stretch-cut": stretch_cut,
+        "element-outside-body": element_outside_body,
         "port-duplicate-id": port_duplicate_id,
         "port-off-wiring-grid": port_off_wiring_grid,
         "port-off-geometry": port_off_geometry,

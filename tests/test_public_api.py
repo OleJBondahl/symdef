@@ -167,7 +167,7 @@ SECTION_11_FIELDS = {
     "Reference": ["standard", "number", "edition", "form"],
     "Symbol": [
         *("name", "kind", "status", "reference", "elements", "ports", "nodes", "paths"),
-        *("anchors", "slots", "pole_pitch", "lint_allow", "stretch"),
+        *("anchors", "slots", "pole_pitch", "lint_allow", "stretch", "body", "keepout"),
     ],
     "Library": [
         *("standard", "title", "number_pattern", "symbols", "vocabulary", "required_slots"),

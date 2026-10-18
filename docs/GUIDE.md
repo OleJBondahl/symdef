@@ -154,13 +154,13 @@ the author door: import them from `symdef.authoring`. `symdef` itself holds what
 from symdef.authoring import lint
 from symdef.lint import RULES
 
-assert len(RULES) == 35
+assert len(RULES) == 36
 for finding in lint(contact, library.required_slots):
     print(finding.rule, finding.severity, finding.location, finding.orientation, finding.message)
 ```
 
-There are 35 rules: the spec's 33 (section 9) and two of the toolkit's own, `lead-off-port`
-(D40) and `stretch-cut`. `lint` takes a symbol in base orientation and your set's `required_slots`. That list is empty by default,
+There are 36 rules: the spec's 33 (section 9) and three of the toolkit's own, `lead-off-port`
+(D40), `stretch-cut` and `element-outside-body` (D98). `lint` takes a symbol in base orientation and your set's `required_slots`. That list is empty by default,
 so no slot is required. It runs the orientation-dependent rules in all 8 itself (D6, D23, D46). It returns a tuple of `Finding`, each with `rule`, `severity` (`Severity`),
 `message`, `location` (a string or `None`) and `orientation` (or `None`). They are ordered by the spec
 table, then orientation, then location (D23, D34).
@@ -226,6 +226,27 @@ transform. Coordinates and radii are multiplied by `module_mm`. Stroke widths co
 `weights_mm`, dash lengths from `dash_mm`, and the font size from `font_mm`, all in the caller's
 millimetres. Use it when a drawing must show each size exactly as given. `to_svg` and
 `to_fragment` keep their output.
+
+## Declaring the body
+
+A symbol's body is the box its elements span, so a frame drawn as a polyline sets it. A symbol that
+must be framed and still small can declare the body instead:
+
+```toml
+body = [0, -2, 6, 2]      # x0, y0, x1, y1 in M; x0 < x1 and y0 < y1
+keepout = [-1, -3, 7, 3]  # optional; without it the keep-out is the body united with the slots
+```
+
+`body_box` then returns exactly the declared box, and `keepout_box` the declared `keepout` or the
+body united with the slot boxes. Both turn with `orient` and `translate`. `stretch` moves a declared
+edge past a cut with the cut, as it moves a line end, and reads its natural extent from the
+declared body. `repeat` and `table` declare the union of their poles' or rows' boxes. A composite
+whose part declares a body must declare its own, or `resolve` reports a `schema` finding.
+
+The lint rule `element-outside-body` reports a line, polyline, circle or arc that leaves a declared
+body; `text-outside-body` measures a fixed text against it. A symbol with no `body` is not checked.
+The resolved JSON writes `body` and `keepout` only when set, and its `body_box` and `keepout_box`
+keys always give the boxes `body_box` and `keepout_box` return.
 
 ## Stretching and tables
 

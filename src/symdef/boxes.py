@@ -84,7 +84,12 @@ def body_box(symbol: Symbol, font: FontMetrics | None = None) -> Box:
     Extents are as for text (`text_width` with `font`; with no font `0.6 * height` per character),
     arcs (the true swept extent) and the other elements. A symbol without elements has the box
     (0, 0) to (0, 0). Ports, anchors and slots do not count.
+
+    A symbol that declares its `body` (D98) has exactly that box, whatever its elements and
+    `font`.
     """
+    if symbol.body is not None:
+        return symbol.body
     return elements_box(symbol.elements, font)
 
 
@@ -155,7 +160,10 @@ def slot_box(
 def keepout_box(symbol: Symbol, font: FontMetrics | None = None) -> Box:
     """Return the body box united with every slot box: the room the symbol needs kept clear.
 
-    `font` measures the body's text as `body_box` does.
+    `font` measures the body's text as `body_box` does. A symbol that declares its `keepout` has
+    exactly that box; one that declares only a `body` has the declared body united with the slots.
     """
+    if symbol.keepout is not None:
+        return symbol.keepout
     boxes = (body_box(symbol, font), *(slot_box(s) for s in symbol.slots))
     return _bounding(tuple(p for b in boxes for p in (b.min, b.max)))

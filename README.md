@@ -56,7 +56,7 @@ The key ideas:
 ## What is here
 
 The data model and `orient`, the boxes and `repeat`, the TOML reader with its JSON Schema
-(`src/symdef/schema/symbol.schema.json`), the composition resolver, 35 lint rules, plain and annotated SVG,
+(`src/symdef/schema/symbol.schema.json`), the composition resolver, 36 lint rules, plain and annotated SVG,
 and the build (resolved JSON per symbol, the bundle, SVGs, a gallery README). Decisions the spec
 leaves open, and concerns about the spec, are in [docs/DECISIONS.md](docs/DECISIONS.md).
 
@@ -71,8 +71,8 @@ from symdef.lint import RULES
 
 library = load_library(root)  # raises LibraryError, listing every problem in the files
 contact = library.get("S00227")  # by number; iterating a library is sorted by number
-assert len(RULES) == 35  # the spec's 33 rules plus lead-off-port (D40) and stretch-cut
-findings = lint(contact)  # all 35 rules, geometric ones in all 8 orientations
+assert len(RULES) == 36  # the spec's 33 rules plus lead-off-port (D40), stretch-cut and element-outside-body (D98)
+findings = lint(contact)  # all 36 rules, geometric ones in all 8 orientations
 assert findings == ()  # the spec's make contact lints clean
 for finding in findings:  # each has .rule, .severity, .message, .location, .orientation
     print(finding.rule, finding.location, finding.message)

@@ -35,6 +35,11 @@ def _box(box: Box) -> list[list[float]]:
     return [_point(box.min), _point(box.max)]
 
 
+def _declared(box: Box) -> list[float]:
+    """Write a declared box as `[x0, y0, x1, y1]`."""
+    return [box.min.x, box.min.y, box.max.x, box.max.y]
+
+
 def _slot_id(slot: Slot) -> str:
     """Return a slot's id, the sort key of the slot table."""
     return slot.id
@@ -118,8 +123,8 @@ def symbol_to_data(symbol: Symbol) -> dict[str, Any]:
     Ports, nodes, paths, anchors, elements and slots are always written, empty when the symbol has
     none; `nodes` lists every node, the single-port ones included (`nodes_of`); slots are a table
     keyed by slot id, in id order. `edition`, `form`, `pole_pitch` and a non-empty `lint_allow`
-    or `stretch` appear only when set. `body_box` and `keepout_box` are computed in base
-    orientation.
+    or `stretch` appear only when set, as do the declared `body` and `keepout`. `body_box` and
+    `keepout_box` are computed in base orientation; a declared box is what they give.
 
     Args:
         symbol: A flattened symbol in base orientation.
@@ -176,6 +181,10 @@ def symbol_to_data(symbol: Symbol) -> dict[str, Any]:
         data["lint_allow"] = [{"rule": a.rule, "reason": a.reason} for a in symbol.lint_allow]
     if symbol.stretch:
         data["stretch"] = [_cut(s) for s in symbol.stretch]
+    if symbol.body is not None:
+        data["body"] = _declared(symbol.body)
+    if symbol.keepout is not None:
+        data["keepout"] = _declared(symbol.keepout)
     return data
 
 
