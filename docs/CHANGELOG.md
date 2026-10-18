@@ -2,6 +2,12 @@
 
 What changed in the public surface of each release: a name added, removed or moved, and a type that widened. Every change to `surface.toml` has a line here. The reasons are in [the decisions](DECISIONS.md).
 
+## 0.22.0
+
+- Changed: `keepout_box` is the body united with the bound leads (`Line`s with a `port`); a slot is a text slot and no longer enlarges it. A caller that read the keep-out as the room of the labels reads `slot_box`; `Measure.keepout` still holds the slots. The resolved JSON `keepout_box` moves with it (D101).
+- Added: `only_ports(symbol, ports)`, the symbol with only the listed ports, their leads and `marking.<port>` slots; an unknown id raises `UnknownNameError` naming it and the symbol (D102).
+- Added: `stretch_to_ports(symbol, axis, edge, n, *, grid=DEFAULT_GRID)`, the `(length, offsets)` that `stretch` takes so that `edge` carries `n` ports on the wire pitch; it raises `InvalidValueError` for a symbol with no cut on the axis, an edge across the axis, or `n` above the ports the edge declares (D102).
+
 ## 0.21.0
 
 - Added: `text_tag(content, point, height_mm, *, anchor, font_family, turn=False, weight=Weight.NORMAL, tint=None, muted=None)`, one `<text>` in mm at a baseline point, and `corner_text(box, corner, height, font)`, the baseline point, anchor and `turned` that a box corner gives a text, as a `TextPlacement` (D100).
