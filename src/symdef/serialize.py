@@ -193,6 +193,8 @@ def _font(font: FontMetrics) -> dict[str, Any]:
     }
     if font.heights:
         data["heights"] = dict(sorted(font.heights.items()))
+    if font.text_block != "cap":
+        data["text_block"] = font.text_block
     return data
 
 

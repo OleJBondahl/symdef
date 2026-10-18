@@ -28,6 +28,7 @@ class FontMetrics:
             names are the library's own; symdef does not interpret them. Empty when none.
         family: The family name a renderer resolves the font by. Empty at construction means the
             same as `name`, so it is never empty. `measure_font` reads it from the face.
+        text_block: How `slot_lines` sets a text block: "cap" or "grid" (D95).
     """
 
     name: str
@@ -39,6 +40,7 @@ class FontMetrics:
     default_advance: float
     heights: Mapping[str, float] = field(default_factory=dict)
     family: str = ""
+    text_block: str = "cap"
 
     def __post_init__(self) -> None:
         """Copy `advances` and `heights` into read-only mappings; every `Weight` needs a table."""

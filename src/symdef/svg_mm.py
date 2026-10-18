@@ -20,6 +20,7 @@ from symdef.geometry import (
     arc_sweep,
 )
 from symdef.model import Symbol
+from symdef.slottext import stack_shifts
 from symdef.svg import (
     _FULL_TURN,
     _HALF_TURN,
@@ -138,16 +139,22 @@ def _slot_texts(mm: _Mm, symbol: Symbol, texts: Mapping[str, str] | None) -> lis
     for slot in _slots_by_id(symbol):
         if texts.get(slot.id):
             anchor, east, south = slot_align(slot)
-            tag = slot_text_tag(
-                (mm.moved(slot.position.x, east), mm.moved(slot.position.y, south)),
-                _num(mm.font),
-                anchor=anchor,
-                fill=mm.muted or "#000",
-                family=quoteattr(mm.family),
-                content=texts[slot.id],
-                turn=slot.turn,
-            )
-            tags.append(tag)
+            lines = texts[slot.id].split("\n")
+            for line, shift in zip(lines, stack_shifts(slot, len(lines)), strict=True):
+                across = (east + shift, south) if slot.turn else (east, south + shift)
+                tag = slot_text_tag(
+                    (
+                        mm.moved(slot.position.x, across[0]),
+                        mm.moved(slot.position.y, across[1]),
+                    ),
+                    _num(mm.font),
+                    anchor=anchor,
+                    fill=mm.muted or "#000",
+                    family=quoteattr(mm.family),
+                    content=line,
+                    turn=slot.turn,
+                )
+                tags.append(tag)
     return tags
 
 

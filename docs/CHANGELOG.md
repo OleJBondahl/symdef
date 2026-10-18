@@ -2,6 +2,14 @@
 
 What changed in the public surface of each release: a name added, removed or moved, and a type that widened. Every change to `surface.toml` has a line here. The reasons are in [the decisions](DECISIONS.md).
 
+## 0.18.0
+
+- Added: `slot_lines(slot, text, height, font)`, one `TextPlacement` per `\n` line of a slot text, `LINE_PITCH` cap heights apart; `text_box`, `to_fragment` and `to_fragment_mm` draw and measure the whole block (D95).
+- Added: `fitted_symbol(symbol, texts, library, text_height)`, a symbol stretched on each axis so every slot in `texts` holds its text (D95).
+- Added: `wire(..., closed=False)`, keyword-only; `closed=True` draws a closed polyline (D95).
+- Added: `[font] text_block = "cap" | "grid"` (default "cap"), `FontMetrics.text_block`, and a `grid` keyword on `slot_text`, `slot_lines`, `text_box` and `slot_box`; "grid" sets rows a whole number of divisions apart with the baseline an ascent below the block top (D95).
+- Changed: a slot text containing `\n` is drawn as several rows; a string without one is unchanged.
+
 ## 0.17.0
 
 - Added: `fitted_table(row, axis, texts, library, text_height, *, head=None, head_texts=None)`, a `table` whose columns are as wide as the widest text set in them, measured with `library.font` and rounded up to whole grid divisions (D94).

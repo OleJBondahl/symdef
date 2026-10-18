@@ -41,6 +41,7 @@ with a dated entry in the change list below and in <code>docs/DECISIONS.md</code
 <h2 id="changes">Change list</h2>
 <table>
 <tr><th>Date</th><th>Version</th><th>Change</th></tr>
+<tr><td>2026-10-18</td><td>0.18.0</td><td>New <code>slot_lines</code>, <code>fitted_symbol</code> and <code>wire(..., closed=)</code>; a <code>\n</code> in a slot text starts a new row, one <code>&lt;text&gt;</code> per line (D95).</td></tr>
 <tr><td>2026-10-18</td><td>0.17.0</td><td>New <code>fitted_table</code>, a <code>table</code> whose columns are as wide as the widest text set in them (D94).</td></tr>
 <tr><td>2026-10-16</td><td>0.16.0</td><td><code>[font]</code> with <code>files</code> takes <code>heights</code>, the capital heights in mm by name, and <code>FontMetrics.heights</code> carries them; <code>family</code> beside <code>files</code> stays refused; the load error for a literal key beside <code>files</code> names the key and the fix (D93).</td></tr>
 <tr><td>2026-10-16</td><td>0.15.0</td><td>New <code>FontMetrics.family</code>, the family a renderer resolves the font by: <code>measure_font</code> reads the typographic family (name ID 16, else ID 1); the literal <code>[font]</code> takes an optional <code>family</code>, and <code>family</code> beside <code>files</code> is refused (D92).</td></tr>

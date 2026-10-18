@@ -318,9 +318,21 @@ sized_table = fitted_table(row, "y", [{"a": "AB"}, {"a": "ABiAB"}], sized, 2)
 assert body_box(sized_table).width > body_box(table(row, 2, "y")).width
 ```
 
+`[font] text_block` picks how a text block is set. "cap" (the default) puts rows 1.5 cap heights apart with the block centred on its cap height. "grid" puts rows the text height rounded up to whole divisions apart, snaps the block top down to a division and the baseline an ascent below it; `slot_lines`, `text_box` and `slot_box` take the library's `grid` for it (D95).
+
+`fitted_symbol(symbol, texts, library, text_height)` does the same for one symbol (D95). Each slot named
+in `texts` must hold its text as `text_box` measures it, a multi-line text by its whole block and a
+turned slot's text along y. The extent is rounded up to whole grid divisions and the cut across the
+slot's box grows by that less the slot's own extent, through `stretch`. A text that fits changes
+nothing and needs no cut; a slot that must grow and has no cut across its box on that axis raises
+`InvalidValueError`.
+
 A symbol set declares wire styles in `library.toml` as `[[wire]]` with `id`, `weight` (`normal` or
 `thick`) and `style` (`solid` or `dashed`). `wire(library, style_id, points)` returns an
-element-kind symbol of one open polyline in that style; an unknown id raises `UnknownNameError`. The
+element-kind symbol of one open polyline in that style; an unknown id raises `UnknownNameError`.
+`closed=True` joins the last point back to the first, so the closing corner is mitred like the others
+and not left as two butt caps; it needs three points (D95). A short stub to a marker is such a wire,
+in a style you name `marker`. The
 resolved bundle carries the styles, so a library read with `load_bundle` can draw wires (D56).
 
 ```python
@@ -412,7 +424,7 @@ elements = [
 
 `to_fragment(symbol, texts={...})` and `to_fragment_mm(..., texts={...})` draw the string you pass
 for each slot, by slot id, after the symbol's elements. The slot's `side` sets the alignment
-and a slot with `turn = true` reads bottom-up. A slot side is where text sits, and a port side is where a wire leaves. Keeping `C` out of `Direction` means a port can never be `C`. The side `C` centres the string on the slot point, and its box is centred on it too (D68). symdef never measures, shrinks or wraps a string:
+and a slot with `turn = true` reads bottom-up. A slot side is where text sits, and a port side is where a wire leaves. Keeping `C` out of `Direction` means a port can never be `C`. The side `C` centres the string on the slot point, and its box is centred on it too (D68). symdef never measures, shrinks or wraps a string, but a `\n` in the string starts a new row (D95):
 `to_fragment_mm` draws at your `font_mm`, and `to_fragment` sizes to the box. An empty string draws
 nothing; an id that is no slot raises `UnknownNameError`. `required_slots` (the entries `lint` takes)
 makes a missing string an `InvalidValueError`, and the check runs only when `texts` is given (D63 to D65).
@@ -427,6 +439,12 @@ try:
 except InvalidValueError as error:
     assert "marking.1" in str(error)
 ```
+
+A string with `\n` draws one `<text>` per line. `slot_lines(slot, text, height, font)` gives one
+`TextPlacement` per line, `LINE_PITCH` (1.5) cap heights apart, and `text_box` returns the box of the
+whole block. The block is centred on the slot point for `C`, `E` and `W`; `N` grows up from the point
+and `S` down. A turned slot stacks its lines west to east, `turn` set on each, and grows west for `W`
+and east for `E`. A one-line string is placed exactly as before.
 
 ## Measuring text and the grid
 
@@ -464,7 +482,7 @@ body = 2.5
 With no `[font]`, `Library.font` is `None` and a text measures 0.6 em per character and a capital
 0.72 em tall, as before. `text_width(font, text, height, weight=Weight.NORMAL)` is the width of a
 string; `body_box(symbol, font)`, `keepout_box(symbol, font)` and `slot_box(slot, text, height,
-font)` measure with it. `slot_text(slot, text, height, font)` returns a `TextPlacement(point, anchor,
+font, grid)` measure with it. `slot_text(slot, text, height, font, grid)` returns a `TextPlacement(point, anchor,
 turned)`: where the string sits for the slot's side.
 
 With no `[grid]` the grid is `DEFAULT_GRID` (2.5 mm, 8 divisions). `to_divisions(grid, v)` returns

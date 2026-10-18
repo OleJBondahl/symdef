@@ -19,6 +19,7 @@ from symdef.geometry import (
 )
 from symdef.model import Centre, Slot, Symbol
 from symdef.slottext import text_box
+from symdef.units import DEFAULT_GRID, Grid
 
 _AXIS_ANGLES = (0, 90, 180, 270)
 _FULL_TURN = 360
@@ -126,6 +127,7 @@ def slot_box(
     text: str | None = None,
     height: float | None = None,
     font: FontMetrics | None = None,
+    grid: Grid = DEFAULT_GRID,
 ) -> Box:
     """Return the box a slot reserves: it grows from the slot point towards its side.
 
@@ -146,7 +148,7 @@ def slot_box(
     if height is None:
         msg = "slot_box needs a height to measure a text"
         raise InvalidValueError(msg)
-    drawn = text_box(slot, text, height, font)
+    drawn = text_box(slot, text, height, font, grid)
     return _bounding((reserved.min, reserved.max, drawn.min, drawn.max))
 
 

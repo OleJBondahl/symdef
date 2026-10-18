@@ -40,22 +40,32 @@ def _cut_across(symbol: Symbol, slot: Slot, axis: Axis) -> Stretch:
     raise InvalidValueError(msg)
 
 
-def _growth(
-    symbol: Symbol, axis: Axis, texts: Mapping[str, str], library: Library, height: float
+def _growth(  # noqa: PLR0913 - the symbol, axis, texts, library, height and the leniency
+    symbol: Symbol,
+    axis: Axis,
+    texts: Mapping[str, str],
+    library: Library,
+    height: float,
+    *,
+    lenient: bool = False,
 ) -> dict[float, float]:
     """Return how far each cut must grow: each text's extent rounded up, less its slot's.
 
-    The key is the cut's `at`. A text that fits its slot's reserved box asks for no growth.
+    The key is the cut's `at`. A text that fits its slot's reserved box asks for no growth; when
+    `lenient`, it also needs no cut, which `fitted_symbol` allows (D95).
     """
     slots = {s.id: s for s in symbol.slots}
     grid, wanted = library.grid, {}
     for slot_id, text in texts.items():
         slot = slots[slot_id]
-        cut = _cut_across(symbol, slot, axis)
         need = from_divisions(
-            grid, ceil_divisions(grid, _along(text_box(slot, text, height, library.font), axis))
+            grid,
+            ceil_divisions(grid, _along(text_box(slot, text, height, library.font, grid), axis)),
         )
         grow = need - _along(slot_box(slot), axis)
+        if lenient and grow <= _NOISE:
+            continue
+        cut = _cut_across(symbol, slot, axis)
         wanted[cut.at] = max(wanted.get(cut.at, 0.0), grow)
     return {at: grow for at, grow in wanted.items() if grow > _NOISE}
 
@@ -142,3 +152,32 @@ def fitted_table(  # noqa: PLR0913 - the ruled signature: row, axis, texts, libr
     if head is not None and any(s.axis == cross for s in head.stretch):
         head = _grown(head, cross, growth)
     return table(_grown(row, cross, growth), len(texts), axis, head)
+
+
+def fitted_symbol(
+    symbol: Symbol, texts: Mapping[str, str], library: Library, text_height: float
+) -> Symbol:
+    """Return `symbol` stretched on each axis so every slot in `texts` holds its text (D95).
+
+    A text is measured as `text_box` does in `library.font` at `text_height` (module units), a
+    multi-line text by its whole block, and a turned slot's text along y. The extent is rounded up
+    to whole grid divisions; a cut across the slot's box grows by that less the slot's reserved
+    extent. A slot whose text fits asks for nothing and needs no cut. The growth goes through
+    `stretch`; the result is an ordinary symbol.
+
+    Raises:
+        UnknownNameError: If a text names a slot the symbol does not have.
+        InvalidValueError: If the library has no font, `text_height` is not above zero, or a slot
+            that must grow has no cut across its box on that axis.
+    """
+    if library.font is None:
+        msg = "fitted_symbol needs a library with a font to measure the texts; load one with [font]"
+        raise InvalidValueError(msg)
+    if not text_height > 0:
+        msg = f"fitted_symbol needs a text height above zero, got {text_height!r}"
+        raise InvalidValueError(msg)
+    check_texts(symbol, texts)
+    for axis in ("x", "y"):
+        growth = _growth(symbol, axis, texts, library, text_height, lenient=True)
+        symbol = _grown(symbol, axis, growth)
+    return symbol
