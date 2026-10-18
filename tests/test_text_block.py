@@ -9,6 +9,9 @@ from test_font import BOLD
 from symdef import Centre, Point, Slot, Weight, slot_lines, slot_text
 from symdef.boxes import slot_box
 from symdef.font import FontMetrics
+from symdef.load import font_from_data
+from symdef.model import Library
+from symdef.serialize import bundle_to_data
 from symdef.slottext import text_box
 from symdef.units import Grid
 
@@ -68,3 +71,10 @@ def test_the_cap_rule_keeps_the_cap_pitch_and_centre():
     y = BOX_G / 16
     assert first.point.y == pytest.approx(y + 0.5 * cap - 0.75 * cap)
     assert second.point.y == pytest.approx(y + 0.5 * cap + 0.75 * cap)
+
+
+def test_the_bundle_carries_a_grid_rule_and_leaves_the_cap_default_out():
+    grid = bundle_to_data(Library("S", "S", "", {}, font=GRID_FONT))["font"]
+    assert grid["text_block"] == "grid"
+    assert font_from_data(grid).text_block == "grid"
+    assert "text_block" not in bundle_to_data(Library("S", "S", "", {}, font=CAP_FONT))["font"]

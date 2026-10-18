@@ -142,7 +142,7 @@ class TestFilesForm:
 
 
 MIXED = (
-    "`{}` is not a key of the files form (`name`, `files`, `heights`); "
+    "`{}` is not a key of the files form (`name`, `files`, `heights`, `text_block`); "
     "remove it, or drop `files` and give the measured tables"
 )
 HEAD = "standard = 'S'\ntitle = 'T'\nnumber_pattern = '^S$'\n"

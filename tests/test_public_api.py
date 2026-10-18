@@ -104,6 +104,11 @@ SECTION_11_SIGNATURES = {
         *positional("slot"),
         *(("text", "POSITIONAL_OR_KEYWORD", "None"), ("height", "POSITIONAL_OR_KEYWORD", "None")),
         ("font", "POSITIONAL_OR_KEYWORD", "None"),
+        (
+            "grid",
+            "POSITIONAL_OR_KEYWORD",
+            "Grid(module_mm=2.5, divisions_per_module=8, wire_pitch=8, wire_pitch_fine=4)",
+        ),
     ],
     "lint": [
         *positional("symbol"),
