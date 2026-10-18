@@ -2,6 +2,10 @@
 
 What changed in the public surface of each release: a name added, removed or moved, and a type that widened. Every change to `surface.toml` has a line here. The reasons are in [the decisions](DECISIONS.md).
 
+## 0.19.0
+
+- Changed: under `text_block = "grid"` a centred text sits at the slot box's start edge plus floor(length / 2) whole divisions, not at the true centre; "cap" is unchanged (D96).
+
 ## 0.18.0
 
 - Added: `slot_lines(slot, text, height, font)`, one `TextPlacement` per `\n` line of a slot text, `LINE_PITCH` cap heights apart; `text_box`, `to_fragment` and `to_fragment_mm` draw and measure the whole block (D95).

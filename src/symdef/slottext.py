@@ -125,6 +125,14 @@ def _grid_block(
     return [top + i * pitch + font.ascent / font.units_per_em * height for i in range(count)]
 
 
+def _grid_centre(slot: Slot, grid: Grid) -> float:
+    """Return a centred text's place: the start edge plus half the divisions, floored (D96)."""
+    length = slot.box[1] if slot.turn else slot.box[0]
+    at = slot.position.y if slot.turn else slot.position.x
+    whole = math.floor(length * grid.divisions_per_module / 2 + 1e-9)
+    return at - length / 2 + from_divisions(grid, whole)
+
+
 def slot_lines(
     slot: Slot, text: str, height: float, font: FontMetrics | None, grid: Grid = DEFAULT_GRID
 ) -> tuple[TextPlacement, ...]:
@@ -137,6 +145,11 @@ def slot_lines(
     count, turned = len(text.split("\n")), first.turned
     if font is not None and font.text_block == "grid":
         rows = _grid_block(slot, count, height, font, grid)
+        if first.anchor == "middle":
+            at = _grid_centre(slot, grid)
+            first = replace(
+                first, point=Point(first.point.x, at) if turned else Point(at, first.point.y)
+            )
     else:
         start = first.point.x if turned else first.point.y
         rows = [start + shift * cap_height(font, height) for shift in stack_shifts(slot, count)]
