@@ -31,7 +31,7 @@ from symdef.geometry import (
 )
 from symdef.gridmeasure import Measure, measure
 from symdef.gridtypes import GridBox, GridPoint, GridPort
-from symdef.leads import leads
+from symdef.leads import leads, only_ports
 from symdef.model import (
     Allow,
     Anchor,
@@ -56,6 +56,7 @@ from symdef.orient import orient, orient_box, orient_direction, orient_point, tr
 from symdef.repeat import pole_pitch, pole_port, repeat
 from symdef.slottext import TextPlacement, slot_lines, slot_text
 from symdef.stretch import stretch
+from symdef.stretch_ports import stretch_to_ports
 from symdef.svg import to_fragment, to_svg
 from symdef.svg_mm import to_fragment_mm
 from symdef.svg_placed import to_placed_fragment
@@ -132,6 +133,7 @@ __all__ = [
     "measure_font",
     "nodes_of",
     "on_grid",
+    "only_ports",
     "orient",
     "orient_box",
     "orient_direction",
@@ -145,6 +147,7 @@ __all__ = [
     "slots_box",
     "snap",
     "stretch",
+    "stretch_to_ports",
     "table",
     "text_tag",
     "text_width",

@@ -1584,3 +1584,21 @@ Decided: two new top-level names in `freetext.py`. `text_tag(content, point, hei
 Deviation from the order: `text_tag` has no `cap_ratio`, since the point is already a baseline and the tag needs no cap; `corner_text` takes `font` (as `slot_text` does) in its place, so a caller whose cap setting is not the font's 0.72 em passes a `FontMetrics` with its `cap_height`, or places the point itself.
 Why: designer Ruling 67 (RENDER-TEXTS step 0): render draws a free text (a drawn text with a box and a corner) and symdef had no call for it; a private import was rejected.
 Cost if wrong: additive. The corner rule (hang inside the box) is a guess at what the caller's boxes mean; a different rule is a new function.
+
+## D101: `keepout_box` is the body plus its bound leads
+
+Decided: `keepout_box` returns the union of `body_box` and the extent of every `Line` whose `port` is set; a declared `keepout` still wins. Slots stay text slots: `slot_box` and `slots_box` are unchanged and no slot enlarges the keep-out. Consequences inside symdef: `lint/ports.py` `_lane_frame` now unites the keep-out with the slot boxes itself, so the port-lane check still sees every slot; `Measure.keepout` is still the body united with the slots (it is a `measure` result, not `keepout_box`); the resolved JSON `keepout_box` and the 0.9 stretch goldens' JSON files carry the new box (the SVG goldens are unchanged).
+Why: designer ruling 2026-10-18: "keepout_box = body plus leads only, with the slots staying text slots", from the owner rule that an attached text, a designation in a corner, never sets a row's width.
+Cost if wrong: a behaviour change for any caller that read the keep-out as the room of the labels; it reads `slot_box` for that. `Measure.keepout` keeps the old union, so the grid measure is unaffected.
+
+## D102: `only_ports(symbol, ports)` and `stretch_to_ports(symbol, axis, edge, n, *, grid=DEFAULT_GRID)`
+
+Decided: two new top-level names. `only_ports` (in `leads.py`) keeps the listed ports with their bound leads and `marking.<port>` slots and drops every other port, its lead and its marking slot; other elements, slots and anchors stay; a declared `keepout` stays as declared; an unknown id raises `UnknownNameError` naming the id and the symbol. It is meant to run before `stretch`. `stretch_to_ports` (in `stretch_ports.py`) returns `(length, offsets)` for `stretch(symbol, axis, length, offsets, grid=grid)`: the first n ports declared on `edge`, in order along the axis, take the first one's coordinate plus k times the grid's `wire_pitch` (in module units); the length is the margin from the body's low side to the first port, plus (n-1) pitches, plus the margin from the last declared port to the high side, never below the natural extent. It raises `InvalidValueError` naming the symbol, the edge, n and the declared count for n below 1 or above the declared count, for a symbol with no cut on the axis, and for an edge not parallel to the axis. The helper's name is my choice; the order gave `stretch_to_ports` as an example.
+Why: designer rulings 2026-10-18: `only_ports` "is general: any symbol with spare ports, not only supplies"; "(c)... stretch this symbol so its edge carries n ports on the pitch is toolkit geometry that any symdef user needs".
+Cost if wrong: additive. The margin rule (the symbol's own end margins) and "the first n ports" are guesses where the ruling is silent; a different layout of the ports is a new option. When the first port lies right of a cut, its absolute place in the stretched body is its natural one.
+
+## D103: the 0.22 release scope
+
+Decided: symdef 0.22.0 holds D101 (keep-out), D102 (`only_ports` and `stretch_to_ports`) and nothing else. Designation corners as library data are not in 0.22.
+Why: designer ruling 2026-10-18: "Designation corners as library data are not in 0.22."
+Cost if wrong: a later release adds them; nothing here blocks it.

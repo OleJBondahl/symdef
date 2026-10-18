@@ -7,7 +7,7 @@ from build_symbol import PLAIN, plain_symbol
 from roundtrip import round_trips
 from test_resolve import HEAD, resolve
 
-from symdef.boxes import body_box, keepout_box
+from symdef.boxes import body_box, keepout_box, slot_box
 from symdef.errors import InvalidValueError
 from symdef.geometry import Box, Circle, Direction, Line, Orientation, Point, Polyline, Text
 from symdef.lint import lint
@@ -43,9 +43,10 @@ class TestBoxes:
     def test_undeclared_the_body_is_the_element_extent(self):
         assert body_box(PLAIN) == box(0, 0, 0, 1)
 
-    def test_the_keepout_is_the_declared_body_united_with_the_slots(self):
+    def test_the_keepout_is_the_declared_body_and_a_slot_does_not_enlarge_it(self):
         slot = Slot("tag", Point(5, 0), Direction.E, (2, 1))
-        assert keepout_box(framed(slots=(slot,))) == box(-1, -2, 7, 2)
+        assert keepout_box(framed(slots=(slot,))) == keepout_box(framed()) == box(-1, -2, 5, 2)
+        assert slot_box(slot) == box(5, -0.5, 7, 0.5)
 
     def test_a_declared_keepout_is_returned_as_declared(self):
         assert keepout_box(framed(keepout=box(-3, -3, 9, 3))) == box(-3, -3, 9, 3)
