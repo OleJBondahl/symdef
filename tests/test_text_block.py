@@ -1,4 +1,4 @@
-"""`[font] text_block`: "grid" sets a text block as Fransys render does, "cap" keeps symdef's (D95)."""
+"""`[font] text_block`: "grid" sets a block as render does, "cap" keeps symdef's (D95)."""
 
 import math
 from dataclasses import replace
