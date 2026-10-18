@@ -64,7 +64,7 @@ def _slot_with_attached(
     attach: Mapping[str, Symbol] | None,
 ) -> Box:
     """Return the slot's box, grown to hold the symbol attached to it, if any."""
-    box = slot_box(slot, (texts or {}).get(slot.id), text_height, library.font)
+    box = slot_box(slot, (texts or {}).get(slot.id), text_height, library.font, library.grid)
     if not attach or slot.id not in attach:
         return box
     inner = keepout_box(attach[slot.id], library.font)

@@ -104,6 +104,11 @@ SECTION_11_SIGNATURES = {
         *positional("slot"),
         *(("text", "POSITIONAL_OR_KEYWORD", "None"), ("height", "POSITIONAL_OR_KEYWORD", "None")),
         ("font", "POSITIONAL_OR_KEYWORD", "None"),
+        (
+            "grid",
+            "POSITIONAL_OR_KEYWORD",
+            "Grid(module_mm=2.5, divisions_per_module=8, wire_pitch=8, wire_pitch_fine=4)",
+        ),
     ],
     "lint": [
         *positional("symbol"),
@@ -123,7 +128,7 @@ SECTION_11_SIGNATURES = {
     ],
     "write_build": positional("library", "root"),
     "stale_build": positional("library", "root"),
-    "wire": positional("library", "style_id", "points"),
+    "wire": [*positional("library", "style_id", "points"), ("closed", "KEYWORD_ONLY", "False")],
     "table": [
         *positional("row", "n", "axis"),
         ("head", "POSITIONAL_OR_KEYWORD", "None"),

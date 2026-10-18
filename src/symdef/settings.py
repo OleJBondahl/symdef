@@ -41,7 +41,8 @@ def _font(library: Library, font: object, heights: object) -> FontMetrics | None
             msg = f"font {type(font).__name__} is not a pair of bytes; give (regular_ttf, bold_ttf)"
             raise InvalidValueError(msg)
         kept = metrics.heights if metrics else {}
-        metrics = replace(measure_font(*font), heights=kept)  # ty: ignore[not-iterable] - font is a checked pair
+        block = metrics.text_block if metrics else "cap"
+        metrics = replace(measure_font(*font), heights=kept, text_block=block)  # ty: ignore[not-iterable] - font is a checked pair
     if heights is None:
         return metrics
     if metrics is None:
