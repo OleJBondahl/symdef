@@ -15,7 +15,7 @@ from symdef.model import Finding, Severity, Symbol
 
 _QUOTE_LIMIT = 60
 
-# The 35 rule ids in the order of the guide's section 9 table: the order findings are sorted in.
+# The 36 rule ids in the order of the guide's section 9 table: the order findings are sorted in.
 GUIDE_ORDER: tuple[str, ...] = (
     "schema",
     "metadata",
@@ -24,6 +24,7 @@ GUIDE_ORDER: tuple[str, ...] = (
     "degenerate",
     "text-too-large",
     "stretch-cut",
+    "element-outside-body",
     "port-duplicate-id",
     "port-off-wiring-grid",
     "port-off-geometry",
@@ -94,7 +95,7 @@ class Rule:
     orientation_dependent: bool = False
 
 
-# All 35 rules of the guide's section 9 table, with their group and severity.
+# All 36 rules of the guide's section 9 table, with their group and severity.
 RULES: Mapping[str, Rule] = MappingProxyType(
     {
         rule.id: rule
@@ -106,6 +107,7 @@ RULES: Mapping[str, Rule] = MappingProxyType(
             Rule("degenerate", Severity.ERROR, "Geometry"),
             Rule("text-too-large", Severity.ERROR, "Geometry"),
             Rule("stretch-cut", Severity.ERROR, "Geometry"),
+            Rule("element-outside-body", Severity.ERROR, "Geometry"),
             Rule("port-duplicate-id", Severity.ERROR, "Ports"),
             Rule("port-off-wiring-grid", Severity.ERROR, "Ports"),
             Rule("port-off-geometry", Severity.ERROR, "Ports"),

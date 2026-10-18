@@ -9,7 +9,12 @@ RULE = "text-outside-body"
 
 
 def _shapes_box(symbol: Symbol, font: FontMetrics | None) -> Box | None:
-    """Return the box of the symbol's drawn shapes (every element but a text), or None if none."""
+    """Return the symbol's declared body, else the box of its shapes (every element but a text).
+
+    None when there is no declared body and no shape.
+    """
+    if symbol.body is not None:
+        return symbol.body
     shapes = tuple(e for e in symbol.elements if not isinstance(e, Text))
     return elements_box(shapes, font) if shapes else None
 
@@ -24,9 +29,9 @@ def text_outside_body(
 ) -> tuple[Finding, ...]:
     """Report each fixed text anchored inside the body whose measured box leaves the body.
 
-    The text is measured with `font` at its own height and weight. The body is the box of the
-    symbol's other elements. A text anchored outside the body, such as a label beside it, and a
-    symbol with no other element are not checked.
+    The text is measured with `font` at its own height and weight. The body is the declared `body`
+    (D98) or else the box of the symbol's other elements. A text anchored outside the body, such
+    as a label beside it, and a symbol with no other element are not checked.
     """
     body = _shapes_box(symbol, font)
     if body is None:

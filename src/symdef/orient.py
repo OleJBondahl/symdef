@@ -59,10 +59,19 @@ def _slot_side(side: SlotSide, turn: _Turn) -> SlotSide:
     return side if isinstance(side, Centre) else turn(side)
 
 
+def _map_box(box: Box | None, move: _Move) -> Box | None:
+    """Carry a declared box along as the box of its two moved corners; None stays None."""
+    if box is None:
+        return None
+    a, b = move(box.min), move(box.max)
+    return Box(Point(min(a.x, b.x), min(a.y, b.y)), Point(max(a.x, b.x), max(a.y, b.y)))
+
+
 def _map_symbol(symbol: Symbol, move: _Move, turn: _Turn, angles: _Angles) -> Symbol:
     """Carry every geometric part of a symbol along: points with `move`, directions with `turn`.
 
-    Slot boxes keep their size, and nodes, paths and every non-geometric field are untouched.
+    A declared body and keep-out move as boxes. Slot boxes keep their size; nodes, paths and every
+    non-geometric field are untouched.
     """
     return replace(
         symbol,
@@ -78,6 +87,8 @@ def _map_symbol(symbol: Symbol, move: _Move, turn: _Turn, angles: _Angles) -> Sy
             replace(s, position=move(s.position), side=_slot_side(s.side, turn))
             for s in symbol.slots
         ),
+        body=_map_box(symbol.body, move),
+        keepout=_map_box(symbol.keepout, move),
     )
 
 

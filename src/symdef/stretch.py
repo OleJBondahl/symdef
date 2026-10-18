@@ -7,7 +7,7 @@ from typing import Literal
 
 from symdef.boxes import body_box, element_box
 from symdef.errors import InvalidValueError
-from symdef.geometry import Arc, Circle, Direction, Element, Line, Point, Polyline, Text
+from symdef.geometry import Arc, Box, Circle, Direction, Element, Line, Point, Polyline, Text
 from symdef.model import Slot, Stretch, Symbol
 from symdef.stretch_slot import stretch_slot
 from symdef.units import Grid
@@ -81,6 +81,13 @@ def _move(point: Point, axis: Axis, shift: Callable[[float], float]) -> Point:
     """Return the point moved by the shift of its coordinate."""
     delta = shift(_coord(point, axis))
     return _add(point, axis, delta) if delta else point
+
+
+def _stretch_box(box: Box | None, axis: Axis, shift: Callable[[float], float]) -> Box | None:
+    """Return a declared box with each edge moved by its shift: an edge past a cut moves (D98)."""
+    if box is None:
+        return None
+    return Box(_move(box.min, axis, shift), _move(box.max, axis, shift))
 
 
 def _whole_shares(
@@ -220,5 +227,7 @@ def stretch(
         anchors=tuple(replace(a, position=_move(a.position, axis, shift)) for a in symbol.anchors),
         slots=tuple(stretch_slot(s, axis, shift) for s in symbol.slots),
         stretch=tuple(s for s in symbol.stretch if s.axis != axis),
+        body=_stretch_box(symbol.body, axis, shift),
+        keepout=_stretch_box(symbol.keepout, axis, shift),
     )
     return _move_offsets(stretched, axis, offsets or {})
