@@ -13,6 +13,7 @@ from symdef.files import load_bundle, load_library
 from symdef.fitted import fitted_symbol, fitted_table
 from symdef.font import FontMetrics, text_width
 from symdef.fontmeasure import measure_font
+from symdef.freetext import corner_text, text_tag
 from symdef.geometry import (
     Arc,
     Box,
@@ -119,6 +120,7 @@ __all__ = [
     "WireStyle",
     "body_box",
     "ceil_divisions",
+    "corner_text",
     "fitted_symbol",
     "fitted_table",
     "from_divisions",
@@ -144,6 +146,7 @@ __all__ = [
     "snap",
     "stretch",
     "table",
+    "text_tag",
     "text_width",
     "to_divisions",
     "to_fragment",

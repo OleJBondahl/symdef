@@ -527,6 +527,23 @@ and `on_grid(v, tol, grid)` take it as a trailing argument; with none they use `
 without a grid gives the output it always gave. `Grid(module_mm, divisions_per_module, wire_pitch=8, wire_pitch_fine=4)` raises
 `InvalidValueError` for a module not above zero, divisions not a power of two, or a pitch that is not a whole number above zero or a fine pitch that does not divide the standard one, naming the value and the fix. A port off the standard pitch is a load error (`port-off-wiring-grid`). `FontMetrics.heights` holds the `[font.heights]` names; symdef does not interpret them.
 
+## Free text
+
+`text_tag(content, point, height_mm, *, anchor, font_family, turn=False, weight=Weight.NORMAL,
+tint=None, muted=None)` returns one `<text>` in millimetres at the baseline `point`, aligned by
+`anchor` (`"start"`, `"middle"` or `"end"`); `turn` rotates it -90 degrees about the point and
+`Weight.THICK` makes it bold. `corner_text(box, corner, height, font)` gives the `TextPlacement`
+for a text hung inside `box` on `"NW"`, `"NE"`, `"SW"` or `"SE"`: the capitals touch the north
+edge, or the baseline sits on the south edge (D100).
+
+```python
+from symdef import Box, Point, corner_text, text_tag
+
+placed = corner_text(Box(Point(10, 20), Point(30, 24)), "SE", 2.5, None)
+tag = text_tag("K1", placed.point, 2.5, anchor=placed.anchor, font_family="Sans")
+assert tag.startswith('<text x="30" y="24" font-size="2.5" text-anchor="end"')
+```
+
 ## A consumer's font, grid and line widths
 
 `[font]` may name the font files instead of listing metrics; `symdef build` measures them into the
