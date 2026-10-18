@@ -294,6 +294,30 @@ assert {"heading", "marking.2.1", "3.tag"} <= {s.id for s in cores.slots}
 assert body_box(cores).width == 128  # the head spans the four rows
 ```
 
+`fitted_table(row, axis, texts, library, text_height, *, head=None, head_texts=None)` returns the same table, with each column as wide as the widest text set in it (D94). `texts` holds one mapping of slot id to text for each row. The texts are set in `library.font` at `text_height`; the widest in each column, and the head's `head_texts`, are rounded up to whole grid divisions. A column's cut grows by that less the slot's own box, never below zero, so the row's pads stay. The library needs a font, and a text whose slot has no cut across its box raises `InvalidValueError`.
+
+```python
+from symdef import (
+    Direction, FontMetrics, Grid, Library, Line, Point, Reference, Slot, Status, Stretch,
+    Symbol, SymbolKind, Weight, body_box, fitted_table, table,
+)
+
+font = FontMetrics(
+    name="My Sans", units_per_em=1000, cap_height=700, ascent=900, descent=200,
+    advances={Weight.NORMAL: {"A": 650, "B": 650, "i": 250}, Weight.THICK: {}},
+    default_advance=600,
+)
+sized = Library("S", "S", "", {}, font=font, grid=Grid(divisions_per_module=8))
+row = Symbol(
+    "row", SymbolKind.SYMBOL, Status.UNVERIFIED, Reference("X", "1"),
+    (Line(Point(0, 0), Point(10, 0)), Line(Point(0, 2), Point(10, 2))),
+    slots=(Slot("a", Point(1, 1), Direction.E, (4, 1)), Slot("b", Point(6, 1), Direction.E, (3, 1))),
+    stretch=(Stretch("x", 3), Stretch("x", 7.5)),
+)
+sized_table = fitted_table(row, "y", [{"a": "AB"}, {"a": "ABiAB"}], sized, 2)
+assert body_box(sized_table).width > body_box(table(row, 2, "y")).width
+```
+
 A symbol set declares wire styles in `library.toml` as `[[wire]]` with `id`, `weight` (`normal` or
 `thick`) and `style` (`solid` or `dashed`). `wire(library, style_id, points)` returns an
 element-kind symbol of one open polyline in that style; an unknown id raises `UnknownNameError`. The
