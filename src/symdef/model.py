@@ -260,6 +260,7 @@ class LibraryConfig:
     font_files: tuple[str, str] | None = None
     font_name: str = ""
     font_heights: Mapping[str, float] = MappingProxyType({})
+    font_text_block: str = "cap"
 
     def __post_init__(self) -> None:
         """Copy `lines` and `font_heights` into read-only mappings."""
