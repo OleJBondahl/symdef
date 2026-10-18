@@ -10,7 +10,7 @@ from symdef.errors import (
     UnknownSymbolError,
 )
 from symdef.files import load_bundle, load_library
-from symdef.fitted import fitted_table
+from symdef.fitted import fitted_symbol, fitted_table
 from symdef.font import FontMetrics, text_width
 from symdef.fontmeasure import measure_font
 from symdef.geometry import (
@@ -53,7 +53,7 @@ from symdef.model import (
 )
 from symdef.orient import orient, orient_box, orient_direction, orient_point, translate
 from symdef.repeat import pole_pitch, pole_port, repeat
-from symdef.slottext import TextPlacement, slot_text
+from symdef.slottext import TextPlacement, slot_lines, slot_text
 from symdef.stretch import stretch
 from symdef.svg import to_fragment, to_svg
 from symdef.svg_mm import to_fragment_mm
@@ -119,6 +119,7 @@ __all__ = [
     "WireStyle",
     "body_box",
     "ceil_divisions",
+    "fitted_symbol",
     "fitted_table",
     "from_divisions",
     "keepout_box",
@@ -137,6 +138,7 @@ __all__ = [
     "pole_port",
     "repeat",
     "slot_box",
+    "slot_lines",
     "slot_text",
     "slots_box",
     "snap",

@@ -130,7 +130,7 @@ def test_mm_never_measures_the_string(content):
     out = mm({"n": content})
     found = list(ET.fromstring(out).iter("text"))  # noqa: S314
     if content:
-        assert len(found) == 1
+        assert len(found) == len(content.split("\n"))
         assert found[0].attrib["font-size"] == "2"
     else:
         assert not found

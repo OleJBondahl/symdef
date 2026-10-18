@@ -123,7 +123,7 @@ SECTION_11_SIGNATURES = {
     ],
     "write_build": positional("library", "root"),
     "stale_build": positional("library", "root"),
-    "wire": positional("library", "style_id", "points"),
+    "wire": [*positional("library", "style_id", "points"), ("closed", "KEYWORD_ONLY", "False")],
     "table": [
         *positional("row", "n", "axis"),
         ("head", "POSITIONAL_OR_KEYWORD", "None"),

@@ -1,7 +1,7 @@
 """Where a string drawn in a slot sits, and the room it takes there."""
 
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from types import MappingProxyType
 from typing import Literal
 
@@ -86,17 +86,74 @@ def _span(anchor: Anchor, at: float, length: float) -> tuple[float, float]:
             return at - length, at
 
 
-def text_box(slot: Slot, text: str, height: float, font: FontMetrics | None) -> Box:
-    """Return the extent of a string drawn in a slot: its measured width by one cap height.
+# Rows of a multi-line text sit this many cap heights apart: one cap height and half of one more.
+LINE_PITCH = 1.5
 
-    An upright text runs east from `start`, a turned one runs up from it; the caps stand above the
-    baseline, and a turned text's caps stand to the west of it.
+
+def stack_shifts(slot: Slot, count: int) -> tuple[float, ...]:
+    """Return each of `count` lines' shift from a single line's baseline, in cap heights (D95).
+
+    Lines stack south, or east when the slot is turned (west to east). The block is centred on the
+    slot point across its stacking direction, except that it grows away from the point on the
+    side the text already leaves it: N grows up, S down, and a turned W grows west, a turned E east.
     """
-    placement = slot_text(slot, text, height, font)
-    width, cap = text_width(font, text, height), cap_height(font, height)
+    last = count - 1
+    side = slot.side
+    if side is (Direction.W if slot.turn else Direction.N):
+        rows = [i - last for i in range(count)]
+    elif side is (Direction.E if slot.turn else Direction.S):
+        rows = list(range(count))
+    else:
+        rows = [i - last / 2 for i in range(count)]
+    return tuple(LINE_PITCH * r for r in rows)
+
+
+def slot_lines(
+    slot: Slot, text: str, height: float, font: FontMetrics | None
+) -> tuple[TextPlacement, ...]:
+    """Return one placement for each newline-separated line of a text, one row per line (D95).
+
+    The first line is `slot_text`'s placement moved by `stack_shifts`; a one-line text gives
+    exactly `slot_text`. The rows are `LINE_PITCH` cap heights apart.
+    """
+    first = slot_text(slot, text, height, font)
+    cap = cap_height(font, height)
+    across = first.turned
+    return tuple(
+        replace(
+            first,
+            point=Point(
+                first.point.x + (shift * cap if across else 0.0),
+                first.point.y + (0.0 if across else shift * cap),
+            ),
+        )
+        for shift in stack_shifts(slot, len(text.split("\n")))
+    )
+
+
+def _line_box(placement: TextPlacement, width: float, cap: float) -> Box:
+    """Return the box of one line drawn at its placement."""
     x, y = placement.point.x, placement.point.y
     if placement.turned:
         low, high = _span(placement.anchor, -y, width)
         return Box(Point(x - cap, -high), Point(x, -low))
     left, right = _span(placement.anchor, x, width)
     return Box(Point(left, y - cap), Point(right, y))
+
+
+def text_box(slot: Slot, text: str, height: float, font: FontMetrics | None) -> Box:
+    """Return the extent of a string drawn in a slot: the union of its lines' boxes.
+
+    A line is its measured width by one cap height. An upright line runs east from `start`, a
+    turned one runs up from it; the caps stand above the baseline, and a turned text's caps stand
+    to the west of it.
+    """
+    cap = cap_height(font, height)
+    lines = text.split("\n")
+    placed = slot_lines(slot, text, height, font)
+    return Box.union(
+        *(
+            _line_box(p, text_width(font, t, height), cap)
+            for p, t in zip(placed, lines, strict=True)
+        )
+    )
