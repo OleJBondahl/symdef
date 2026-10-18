@@ -15,7 +15,7 @@ from symdef.gallery import readme, sample_texts
 from symdef.geometry import Arc, Box, Circle, Element, Line, Point, Polyline, Text, Weight
 from symdef.model import Library, Slot, Stretch, Symbol, nodes_of
 from symdef.svg import to_svg
-from symdef.units import DEFAULT_GRID
+from symdef.units import DEFAULT_GRID, Grid
 
 _SCHEMA_VERSION = 1
 
@@ -198,14 +198,27 @@ def _font(font: FontMetrics) -> dict[str, Any]:
     return data
 
 
+def _grid(grid: Grid) -> dict[str, Any]:
+    """Return the bundle's `grid` object; `stretch_split` only when it is not "weight"."""
+    data: dict[str, Any] = {
+        "module_mm": grid.module_mm,
+        "divisions_per_module": grid.divisions_per_module,
+        "wire_pitch": grid.wire_pitch,
+        "wire_pitch_fine": grid.wire_pitch_fine,
+    }
+    if grid.stretch_split != "weight":
+        data["stretch_split"] = grid.stretch_split
+    return data
+
+
 def bundle_to_data(library: Library) -> dict[str, Any]:
     """Return the bundle: the schema version, the standard and every symbol, by number (D7).
 
     A library with wire styles adds the `wires` array; one with a font adds the `font` object
     (the font's fields and an `advances` object); a grid other than the default adds the `grid`
-    object (`module_mm`, `divisions_per_module` and the two wire pitches); one with line widths adds
-    the `lines` object (millimetres by weight name); one with none of these
-    has none of the keys.
+    object (`module_mm`, `divisions_per_module`, the two wire pitches, and `stretch_split` when
+    "whole"); one with line widths adds the `lines` object (millimetres by weight name); one with
+    none of these has none of the keys.
     """
     data: dict[str, Any] = {
         "schema": _SCHEMA_VERSION,
@@ -222,12 +235,7 @@ def bundle_to_data(library: Library) -> dict[str, Any]:
     if library.font is not None:
         data["font"] = _font(library.font)
     if library.grid != DEFAULT_GRID:
-        data["grid"] = {
-            "module_mm": library.grid.module_mm,
-            "divisions_per_module": library.grid.divisions_per_module,
-            "wire_pitch": library.grid.wire_pitch,
-            "wire_pitch_fine": library.grid.wire_pitch_fine,
-        }
+        data["grid"] = _grid(library.grid)
     if library.lines:
         data["lines"] = {w.name.lower(): library.lines[w] for w in Weight if w in library.lines}
     return data

@@ -2,6 +2,7 @@
 
 from collections.abc import Callable, Mapping
 from dataclasses import replace
+from math import floor
 from typing import Literal
 
 from symdef.boxes import body_box, element_box
@@ -9,10 +10,12 @@ from symdef.errors import InvalidValueError
 from symdef.geometry import Arc, Circle, Direction, Element, Line, Point, Polyline, Text
 from symdef.model import Slot, Stretch, Symbol
 from symdef.stretch_slot import stretch_slot
+from symdef.units import Grid
 
 type Axis = Literal["x", "y"]
 
 _MARKING = "marking."
+_WHOLE_TOL = 1e-9  # a growth within this of a whole division counts as whole
 # A named port stands on an edge parallel to the axis: its outward normal is across the axis.
 _EDGE_NORMALS: dict[str, tuple[Direction, Direction]] = {
     "x": (Direction.N, Direction.S),
@@ -80,13 +83,34 @@ def _move(point: Point, axis: Axis, shift: Callable[[float], float]) -> Point:
     return _add(point, axis, delta) if delta else point
 
 
-def _shift(cuts: tuple[Stretch, ...], delta: float) -> Callable[[float], float]:
+def _whole_shares(
+    cuts: tuple[Stretch, ...], delta: float, grid: Grid, name: str
+) -> tuple[float, ...]:
+    """Return each cut's share in whole divisions: near cuts floor their weighted share."""
+    divisions = delta / grid.division
+    if abs(divisions - round(divisions)) > _WHOLE_TOL:
+        msg = (
+            f"{name}: the growth {delta} is not a whole number of divisions of {grid.division}; "
+            "pass a length that is a whole number of divisions"
+        )
+        raise InvalidValueError(msg)
+    total, whole = sum(c.weight for c in cuts), round(divisions)
+    near = [floor(whole * c.weight / total + _WHOLE_TOL) for c in cuts[:-1]]
+    return tuple(n * grid.division for n in (*near, whole - sum(near)))
+
+
+def _shift(
+    cuts: tuple[Stretch, ...], delta: float, grid: Grid | None = None, name: str = ""
+) -> Callable[[float], float]:
     """Return the shift of a coordinate: the shares of the cuts it lies beyond, summed.
 
     One cut takes `delta` whole, so a single-cut result is the 0.9.0 one to the byte.
     """
     total = sum(c.weight for c in cuts)
-    shares = (delta,) if len(cuts) == 1 else tuple(delta * c.weight / total for c in cuts)
+    if grid is not None and grid.stretch_split == "whole":
+        shares = _whole_shares(cuts, delta, grid, name)
+    else:
+        shares = (delta,) if len(cuts) == 1 else tuple(delta * c.weight / total for c in cuts)
 
     def shift(coord: float) -> float:
         return sum((share for c, share in zip(cuts, shares, strict=True) if coord > c.at), 0.0)
@@ -143,7 +167,12 @@ def _check_offsets(
 
 
 def stretch(
-    symbol: Symbol, axis: Axis, length: float, offsets: Mapping[str, float] | None = None
+    symbol: Symbol,
+    axis: Axis,
+    length: float,
+    offsets: Mapping[str, float] | None = None,
+    *,
+    grid: Grid | None = None,
 ) -> Symbol:
     """Return the symbol grown along an axis to a body extent of `length`.
 
@@ -153,13 +182,16 @@ def stretch(
     cut's share; a slot box across one grows the same way. `offsets` then places each named port
     at its coordinate along the axis, with its bound lead and its `marking.<port>` slot; the port
     must stand on an edge parallel to the axis, on the 1 M wiring grid, inside the stretched body.
-    The result has no stretch on that axis.
+    The result has no stretch on that axis. With a `grid` whose `stretch_split` is "whole" (D97),
+    the growth must be a whole number of divisions and splits in whole divisions: each cut but the
+    last, by position along the axis, takes the floor of its weighted share, the last the rest.
 
     Args:
         symbol: A symbol in base orientation with a stretch on `axis`.
         axis: "x" or "y".
         length: The new body extent along the axis, in module units; the natural extent at least.
         offsets: Port id to coordinate along the axis, or None.
+        grid: The library's grid, or None for the weighted split.
 
     Returns:
         An ordinary symbol; orient it afterwards.
@@ -167,7 +199,8 @@ def stretch(
     Raises:
         InvalidValueError: If the symbol has no stretch on the axis, `length` is below the natural
             extent, a circle, arc or text crosses a cut, an offset names no port or a port on
-            another edge, or an offset lies outside the stretched body or off the grid.
+            another edge, or an offset lies outside the stretched body or off the grid, or the grid
+            splits in whole divisions and the growth is not a whole number of them.
     """
     cuts = tuple(sorted((s for s in symbol.stretch if s.axis == axis), key=lambda s: s.at))
     if not cuts:
@@ -179,7 +212,7 @@ def stretch(
         msg = f"the length {length} is below the natural extent {natural}"
         raise InvalidValueError(msg)
     _check_offsets(symbol, axis, low, length, offsets or {})
-    shift = _shift(cuts, length - natural)
+    shift = _shift(cuts, length - natural, grid, symbol.name)
     stretched = replace(
         symbol,
         elements=tuple(_stretch_element(e, axis, cuts, shift) for e in symbol.elements),

@@ -9,6 +9,7 @@ from symdef.model import Slot, Symbol, nodes_of
 from symdef.orient import translate
 from symdef.repeat import MAX_REPEAT, pole_elements, pole_parts
 from symdef.stretch import Axis, stretch
+from symdef.units import Grid
 
 _MARKING = "marking."
 
@@ -36,7 +37,9 @@ def _offset(axis: Axis, distance: float) -> tuple[float, float]:
     return (distance, 0) if axis == "x" else (0, distance)
 
 
-def table(row: Symbol, n: int, axis: Axis, head: Symbol | None = None) -> Symbol:
+def table(
+    row: Symbol, n: int, axis: Axis, head: Symbol | None = None, *, grid: Grid | None = None
+) -> Symbol:
     """Return `n` rows placed one after another along an axis, as an ordinary symbol.
 
     Row k (from 1) is the row translated by `k - 1` times its body extent along the axis. Ports,
@@ -54,6 +57,7 @@ def table(row: Symbol, n: int, axis: Axis, head: Symbol | None = None) -> Symbol
         n: The row count, from 1 to `MAX_REPEAT`.
         axis: "x" or "y".
         head: A symbol placed once before the rows, or None.
+        grid: The library's grid, passed to the head's `stretch`, or None.
 
     Returns:
         The table, carrying the row's name, kind, status, reference and lint allowances.
@@ -69,7 +73,7 @@ def table(row: Symbol, n: int, axis: Axis, head: Symbol | None = None) -> Symbol
     step = box.width if axis == "x" else box.height
     rows = tuple(translate(row, *_offset(axis, (k - 1) * step)) for k in range(1, n + 1))
     if head is not None and any(s.axis == axis for s in head.stretch):
-        head = stretch(head, axis, n * step)
+        head = stretch(head, axis, n * step, grid=grid)
     if head is None:
         head_elements, head_ports, head_nodes, head_paths, head_slots = ((),) * 5
     else:
