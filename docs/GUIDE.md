@@ -308,8 +308,8 @@ assert [p.position.x for p in narrow.ports] == [4, 5]
 ```
 
 A port with `pattern = true` is one port that repeats along its edge. Give a symbol one such port
-as the only port of its edge, with a cut on that edge's axis (x for N and S, y for E and W); the
-rule `port-pattern` checks both, and that the port is in no node or path. `n` is given at the call
+on its edge (named ports may share the edge, D108), with a cut on that edge's axis (x for N and S, y for E and W); the
+rule `port-pattern` checks both, that the edge has one pattern port, and that the port is in no node or path. `n` is given at the call
 and runs from 1 to `MAX_REPEAT`. The order is `stretch_to_ports`, then `stretch`, then
 `pattern_ports(symbol, edge, n)`: copy `k` of port `p` is `k.p`, a pitch after copy `k-1`, and it
 brings its bound lead and its `marking.k.p` slot (D104). An edge with no pattern port behaves as in
@@ -341,6 +341,14 @@ assert [p.position.x for p in four.ports] == [1, 2, 3, 4]
 assert [s.id for s in four.slots] == [f"marking.{k}.p" for k in (1, 2, 3, 4)]
 ```
 
+Both calls take keyword-only `pitch` (module units, a whole multiple of the wire pitch) or `positions` (n coordinates along the edge, each gap a whole multiple of the wire pitch, all inside the body), never both (D107). On an edge that also holds named ports, `stretch_to_ports` returns offsets for all of them: ports left of the pattern port stay, the pattern port takes the first coordinate, ports right of it move by the run's growth (D108). `pattern_ports` raises if a copy lies less than a wire pitch from a named port.
+
+```python
+length, offsets = stretch_to_ports(bar, "x", Direction.S, 3, pitch=2)
+wide = pattern_ports(stretch(bar, "x", length, offsets), Direction.S, 3, pitch=2)
+assert [p.position.x for p in wide.ports] == [1, 3, 5]
+```
+
 A frame is a symbol with a stretch on both axes and a label slot at a corner;
 `stretch(stretch(frame, "x", 120), "y", 80)` makes it 120 by 80 (D53).
 
@@ -367,7 +375,14 @@ assert {"heading", "marking.2.1", "3.tag"} <= {s.id for s in cores.slots}
 assert body_box(cores).width == 128  # the head spans the four rows
 ```
 
-`fitted_table(row, axis, texts, library, text_height, *, head=None, head_texts=None)` returns the same table, with each column as wide as the widest text set in it (D94). `texts` holds one mapping of slot id to text for each row. The texts are set in `library.font` at `text_height`; the widest in each column, and the head's `head_texts`, are rounded up to whole grid divisions. A column's cut grows by that less the slot's own box, never below zero, so the row's pads stay. The library needs a font, and a text whose slot has no cut across its box raises `InvalidValueError`.
+`row` may be a sequence of `n` unlike rows, each stepped by its own body extent. Keyword-only `gaps` (n-1 numbers, extra space after rows 1 to n-1) or `positions` (the coordinate of each row's low edge, never overlapping) replace the even step, and `head_align` ("start", "center" or "end") sets how the narrower of the head and the rows sits in the wider; a head wider than its rows is then kept as it is (D109).
+
+```python
+gapped = table(row, 3, "x", gaps=(1, 2))
+assert body_box(gapped).width == body_box(table(row, 3, "x")).width + 3
+```
+
+`fitted_table(row, axis, texts, library, text_height, *, head=None, head_texts=None, fit="cross")` returns the same table, with each column as wide as the widest text set in it (D94). `texts` holds one mapping of slot id to text for each row. The texts are set in `library.font` at `text_height`; the widest in each column, and the head's `head_texts`, are rounded up to whole grid divisions. A column's cut grows by that less the slot's own box, never below zero, so the row's pads stay. The library needs a font, and a text whose slot has no cut across its box raises `InvalidValueError`. With `fit="step"` the rows grow along `axis` instead, so each row's step holds its widest text and the marking boxes of neighbouring rows never overlap; use it for a table whose texts run along the stepping axis, such as pins on an N or S edge. The head's texts, which may have several lines, then fit the head along both axes (D109).
 
 ```python
 from symdef import (

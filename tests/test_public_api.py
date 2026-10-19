@@ -111,6 +111,8 @@ SECTION_11_SIGNATURES = {
                 "stretch_split='weight')"
             ),
         ),
+        ("pitch", "KEYWORD_ONLY", "None"),
+        ("positions", "KEYWORD_ONLY", "None"),
     ],
     "slot_box": [
         *positional("slot"),
@@ -156,6 +158,9 @@ SECTION_11_SIGNATURES = {
         *positional("row", "n", "axis"),
         ("head", "POSITIONAL_OR_KEYWORD", "None"),
         ("grid", "KEYWORD_ONLY", "None"),
+        ("gaps", "KEYWORD_ONLY", "None"),
+        ("positions", "KEYWORD_ONLY", "None"),
+        ("head_align", "KEYWORD_ONLY", "None"),
     ],
 }
 
