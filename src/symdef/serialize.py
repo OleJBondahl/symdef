@@ -13,7 +13,7 @@ from symdef.boxes import body_box, keepout_box
 from symdef.font import FontMetrics
 from symdef.gallery import readme, sample_texts
 from symdef.geometry import Arc, Box, Circle, Element, Line, Point, Polyline, Text, Weight
-from symdef.model import Library, Slot, Stretch, Symbol, nodes_of
+from symdef.model import Library, Port, Slot, Stretch, Symbol, nodes_of
 from symdef.svg import to_svg
 from symdef.units import DEFAULT_GRID, Grid
 
@@ -28,6 +28,19 @@ type JsonValue = bool | int | float | str | list[JsonValue] | dict[str, JsonValu
 def _point(point: Point) -> list[float]:
     """Write a point as `[x, y]`."""
     return [point.x, point.y]
+
+
+def _port_data(port: Port) -> dict[str, Any]:
+    """Write a port as a table; `pattern` appears only when true, keeping older output as it was."""
+    data: dict[str, Any] = {
+        "id": port.id,
+        "at": _point(port.position),
+        "dir": port.direction.name,
+        "description": port.description,
+    }
+    if port.pattern:
+        data["pattern"] = True
+    return data
 
 
 def _box(box: Box) -> list[list[float]]:
@@ -143,15 +156,7 @@ def symbol_to_data(symbol: Symbol) -> dict[str, Any]:
         "kind": symbol.kind.value,
         "status": symbol.status.value,
         "reference": reference,
-        "ports": [
-            {
-                "id": port.id,
-                "at": _point(port.position),
-                "dir": port.direction.name,
-                "description": port.description,
-            }
-            for port in symbol.ports
-        ],
+        "ports": [_port_data(port) for port in symbol.ports],
         "nodes": [
             {"ports": list(node.ports)}
             if node.potential is None
