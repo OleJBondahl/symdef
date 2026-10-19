@@ -1,5 +1,5 @@
 schema = 1
-name = "Pattern port sharing its edge with another port"
+name = "Two pattern ports on one edge"
 kind = "element"
 status = "unverified"
 reference = { standard = "IEC 60617", number = "S00001" }
@@ -8,18 +8,20 @@ stretch = [{ axis = "x", at = 1 }]
 
 ports = [
   { id = "p", at = [0, -2], dir = "N", pattern = true },
-  { id = "q", at = [2, -2], dir = "N" },
+  { id = "q", at = [2, -2], dir = "N", pattern = true },
   { id = "z", at = [0, 2], dir = "S" },
+  { id = "y", at = [2, 2], dir = "S" },
 ]
 
 paths = [
-  { from = "q", to = "z", kind = "conductor" },
+  { from = "z", to = "y", kind = "conductor" },
 ]
 
 elements = [
   { line = [[0, -2], [0, -1]], port = "p" },
   { line = [[2, -2], [2, -1]], port = "q" },
   { line = [[0, 2], [0, 1]], port = "z" },
+  { line = [[2, 2], [2, 1]], port = "y" },
   { line = [[0, -1], [2, -1]] },
   { line = [[0, 1], [2, 1]] },
   { line = [[0, -1], [0, 1]] },

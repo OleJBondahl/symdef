@@ -77,25 +77,23 @@ def repeat(symbol: Symbol, n: int) -> Symbol:
     are prefixed `<k>.`; every node is listed explicitly, `potential` kept. Marking slots
     (`marking.in` becomes
     `marking.<k>.in`) repeat per pole; `tag`, `value` and any other slot come from pole 1 only.
-    Only pole 1's path keeps `through`. Pole 1's anchors become the result's anchors, and if one
+    Only pole 1's path keeps `through`; a symbol with no through path repeats just the same, its
+    poles all without one (D106). Pole 1's anchors become the result's anchors, and if one
     is `link` and `n > 1` a dashed line joins pole 1's `link` to pole n's. `pole_pitch` becomes
     `n * pitch`; everything else is carried over.
 
     Args:
-        symbol: A symbol in base orientation with a through path.
+        symbol: A symbol in base orientation.
         n: The pole count, at least 1.
 
     Returns:
         The repeated symbol; with `n = 1` it is the symbol with renamed ports and slots.
 
     Raises:
-        InvalidValueError: If `n` is below 1, or no path of the symbol has `through`.
+        InvalidValueError: If `n` is below 1.
     """
     if n < 1:
         msg = f"the pole count must be at least 1, got {n}"
-        raise InvalidValueError(msg)
-    if not any(p.through for p in symbol.paths):
-        msg = "the symbol has no through path to repeat"
         raise InvalidValueError(msg)
     pitch = pole_pitch(symbol)
     poles = tuple(translate(symbol, (k - 1) * pitch, 0) for k in range(1, n + 1))

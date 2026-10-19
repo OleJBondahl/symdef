@@ -1614,3 +1614,34 @@ Cost if wrong: additive. A pattern with other ports on its edge, and nodes or pa
 Decided: symdef 0.23.0 holds D104 (edge port pattern) and nothing else.
 Why: work order SYMDEF-0-23, ruling R134.
 Cost if wrong: a later release adds more; nothing here blocks it.
+
+## D106: `repeat` of a symbol with no through path
+
+Decided: `repeat` (and the composite file's `repeat` key) no longer refuses a symbol with no through path. Pole 1's path keeps `through` only if it had it, so a symbol with none gives poles with none. The `schema` finding "repeat needs a part with a through path" (D17) goes.
+Why: designer ruling R153 item 7; the limit sat in symdef (`repeat.py`, `resolve.py`), not only in Fransys.
+Cost if wrong: a repeat of a symbol meant to carry a through path no longer warns; lint `through-missing` still reports a kind = symbol file that lacks one.
+
+## D107: `pitch` and `positions` for a pattern port
+
+Decided: `pattern_ports` and `stretch_to_ports` take keyword-only `pitch` (module units, a whole multiple of the wire pitch, at least one) or `positions` (n coordinates along the edge, strictly increasing, each gap a whole multiple of the wire pitch, inside the body). Both together raise. Copy k then stands at the first coordinate plus (k-1) pitches, or at `positions[k-1]`; its lead and marking slot move with it. `stretch_to_ports` grows the length by the last coordinate less the declared one. The default is the wire pitch, so every call that gives neither is unchanged. Positions replace stretch offsets for the copies: the order stays `stretch_to_ports`, `stretch`, `pattern_ports`.
+Why: designer ruling R153 item 1 (marking text between neighbours, spreading to meet columns).
+Cost if wrong: additive keywords. Positions off the wire-pitch multiple are refused; a finer pitch would be a further option.
+
+## D108: named ports and one pattern port on an edge
+
+Decided: lint `port-pattern` allows named ports on the pattern port's edge and instead reports two pattern ports on one edge. `stretch_to_ports` on such an edge counts only pattern copies and returns offsets for all of the edge's ports: left of the pattern port they keep their coordinate, right of it they move by the run's growth. `pattern_ports` raises if a copy is less than one wire pitch from a named port of the edge.
+Why: designer ruling R153 item 2 (a supply's plus, minus and sig beside a run of outputs).
+Cost if wrong: the 0.23 rule text changes; a symbol that relied on the old refusal now lints clean.
+
+## D109: tables of unlike rows, gaps, alignment and a step that fits its text
+
+Decided: `table` takes a symbol or a sequence of n rows (each placed with its body low edge at a running cursor and stepped by its own extent; equal rows give exactly today's offsets), keyword-only `gaps` (n-1 extra spaces) or `positions` (each row's low edge, not overlapping; never both) and `head_align` ("start", "center", "end": the narrower of head and rows sits in the wider; a head wider than the rows is not stretched then). Rows keep their ports numbered `k.<id>` as `pole_port` numbers poles. `fitted_table` takes `fit`: "cross" is unchanged; "step" grows the rows along the stepping axis to their widest text and fits the head's texts along both axes, so a table whose texts run along the stepping axis has marking boxes that never overlap. The implementation sits in `table_rows.py`.
+Why: designer ruling R153 item 6; cable and connector drawings.
+Cost if wrong: additive keywords. A turned (orient) table is fitted before it is turned; slot text boxes do not turn, so the step is fitted in the unturned frame.
+
+## D110: the 0.24 release scope
+
+Decided: symdef 0.24.0 holds D106 to D109 (R153 items 7, 1, 2, 6) and nothing else. Items 3, 4, 5 and 8 of R153 are the second half and are not in this release.
+Why: work order SYMDEF-0-24, R153: the first half is released when ready.
+Also in 0.24.0: lint rule `port-pattern` ignores a node that is only the pattern port itself, the implicit single-port node a built bundle writes, so `symdef check` passes on its reload; a node or path naming it with another port is still refused.
+Cost if wrong: a later release adds the rest.
