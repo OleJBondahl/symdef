@@ -1,4 +1,4 @@
-"""`port-pattern`: a pattern port must stand alone on its edge, on a stretchable axis, unwired."""
+"""`port-pattern`: one pattern port per edge, on a stretchable axis, unwired."""
 
 from symdef.geometry import Direction
 from symdef.lint.registry import quote, rule_finding
@@ -12,10 +12,14 @@ def _problem(symbol: Symbol, port: Port) -> str | None:
     name = quote(port.id)
     edge = port.direction.name
     axis = _AXIS[port.direction]
-    if any(p is not port and p.direction is port.direction for p in symbol.ports):
+    other = next(
+        (p for p in symbol.ports if p is not port and p.pattern and p.direction is port.direction),
+        None,
+    )
+    if other is not None:
         return (
-            f"the pattern port {name} shares edge {edge} with another port; "
-            f"keep it the only port on that edge"
+            f"the pattern port {name} shares edge {edge} with the pattern port "
+            f"{quote(other.id)}; keep one pattern port per edge"
         )
     if not any(cut.axis == axis for cut in symbol.stretch):
         return (
@@ -35,9 +39,10 @@ def _problem(symbol: Symbol, port: Port) -> str | None:
 def port_pattern(symbol: Symbol) -> tuple[Finding, ...]:
     """Report each pattern port that cannot expand cleanly (D104).
 
-    Three faults, one finding each: another port on the same edge, no `stretch` cut on the edge's
-    axis (N and S edges run along x, E and W along y), or the port named in an explicit node or a
-    path. One finding per port, at `ports[i]`, the first fault only.
+    Three faults, one finding each: a second pattern port on the same edge (named ports may share
+    it), no `stretch` cut on the edge's axis (N and S edges run along x, E and W along y), or the
+    port named in an explicit node or a path. One finding per port, at `ports[i]`, the first fault
+    only.
     """
     found: list[Finding] = []
     for index, port in enumerate(symbol.ports):
