@@ -148,14 +148,25 @@ def test_a_pattern_port_is_not_reported_isolated_but_the_same_port_without_the_f
     assert isolated(card(wide(2), flag=False)) == ["ports[0]", "ports[1]"]
 
 
-def test_a_pattern_port_sharing_its_edge_is_reported():
+def test_a_second_pattern_port_on_the_edge_is_reported():
     source = card(wide(2))
-    other = Port("q", Point(2, 2), S)
-    (finding,) = port_pattern(plain_symbol(**{**vars_of(source), "ports": (*source.ports, other)}))
-    assert finding.location == "ports[1]"
-    assert finding.message == (
-        "the pattern port 'p' shares edge S with another port; keep it the only port on that edge"
+    other = Port("q", Point(2, 2), S, pattern=True)
+    first, second = port_pattern(
+        plain_symbol(**{**vars_of(source), "ports": (*source.ports, other)})
     )
+    assert (first.location, second.location) == ("ports[1]", "ports[2]")
+    assert first.message == (
+        "the pattern port 'p' shares edge S with the pattern port 'q'; "
+        "keep one pattern port per edge"
+    )
+    assert second.message.startswith("the pattern port 'q' shares edge S with the pattern port 'p'")
+
+
+def test_a_pattern_port_with_named_neighbours_on_its_edge_is_clean():
+    source = card(wide(2))
+    named = (Port("q", Point(2, 2), S), Port("r", Point(0, 2), S))
+    out = plain_symbol(**{**vars_of(source), "ports": (*source.ports, *named)})
+    assert port_pattern(out) == ()
 
 
 def test_a_pattern_port_without_a_cut_on_its_axis_is_reported():
@@ -181,6 +192,132 @@ def test_a_pattern_port_named_in_a_node_or_path_is_reported(wiring):
     )
 
 
+def test_a_pattern_port_in_a_two_port_node_is_refused_with_its_text():
+    source = card(wide(2))
+    (finding,) = port_pattern(plain_symbol(**{**vars_of(source), "nodes": (Node(("p", "top")),)}))
+    assert finding.message == (
+        "the pattern port 'p' is named in a node or a path; "
+        "leave it out, as its copies are numbered after expansion"
+    )
+
+
+def test_a_built_then_reloaded_symbol_with_one_pattern_port_per_edge_is_clean():
+    data = symbol_to_data(card(wide(2)))
+    assert {"ports": ["p"]} in data["nodes"]
+    assert port_pattern(symbol_from_data(data)) == ()
+
+
 def vars_of(symbol) -> dict:
     """The symbol's fields as keywords."""
     return {name: getattr(symbol, name) for name in symbol.__slots__}
+
+
+def spans(out, edge_ids):
+    """The (id, coordinate along x) of the ports with these ids."""
+    return [(p.id, p.position.x) for p in out.ports if p.id in edge_ids]
+
+
+@pytest.mark.parametrize("n", [1, 3, MAX_REPEAT])
+def test_a_double_pitch_spaces_the_copies_two_wire_pitches_apart(n):
+    out = pattern_ports(card(1 + (n - 1) * 2 * PITCH), S, n, pitch=2 * PITCH)
+    ports = [p for p in out.ports if p.id != "top"]
+    assert [p.id for p in ports] == [f"{k}.p" for k in range(1, n + 1)]
+    assert [p.position.x for p in ports] == [1 + k * 2 * PITCH for k in range(n)]
+    leads = [e for e in out.elements if isinstance(e, Line)]
+    assert [e.start.x for e in leads] == [p.position.x for p in ports]
+    assert [s.position.x for s in out.slots[:n]] == [p.position.x for p in ports]
+
+
+def test_positions_place_each_copy_with_its_lead_and_slot():
+    coords = [0.5, 0.5 + PITCH, 0.5 + 3 * PITCH]
+    out = pattern_ports(card(wide(4)), S, 3, positions=coords)
+    ports = [p for p in out.ports if p.id != "top"]
+    assert [p.position.x for p in ports] == coords
+    assert [e.start.x for e in out.elements if isinstance(e, Line)] == coords
+    assert [s.position.x for s in out.slots[:3]] == coords
+
+
+def test_a_pitch_that_is_not_a_whole_multiple_raises():
+    with pytest.raises(InvalidValueError) as raised:
+        pattern_ports(card(wide(3)), S, 2, pitch=1.5 * PITCH)
+    assert str(raised.value) == (
+        f"card: the pitch {1.5 * PITCH:g} is not a whole multiple of the wire pitch {PITCH:g}; "
+        f"use {PITCH:g}, {2 * PITCH:g}, {3 * PITCH:g} and so on"
+    )
+
+
+def test_a_pitch_below_the_wire_pitch_raises():
+    with pytest.raises(InvalidValueError, match="is not a whole multiple of the wire pitch"):
+        pattern_ports(card(wide(3)), S, 2, pitch=PITCH / 2)
+
+
+def test_pitch_with_positions_raises():
+    with pytest.raises(InvalidValueError) as raised:
+        pattern_ports(card(wide(3)), S, 2, pitch=PITCH, positions=[1, 1 + PITCH])
+    assert str(raised.value) == "card: gives both pitch and positions; give one of them"
+
+
+def test_positions_of_the_wrong_length_raise():
+    with pytest.raises(InvalidValueError) as raised:
+        pattern_ports(card(wide(3)), S, 3, positions=[1, 1 + PITCH])
+    assert str(raised.value) == "card: positions holds 2 coordinates for n=3 copies; give exactly 3"
+
+
+def test_positions_that_do_not_increase_raise():
+    with pytest.raises(InvalidValueError) as raised:
+        pattern_ports(card(wide(3)), S, 2, positions=[1 + PITCH, 1])
+    assert str(raised.value) == (
+        f"card: positions {[1 + PITCH, 1]!r} do not increase; "
+        f"list the copies from low to high along the edge"
+    )
+
+
+def test_a_position_gap_that_is_not_a_whole_multiple_raises():
+    with pytest.raises(InvalidValueError) as raised:
+        pattern_ports(card(wide(3)), S, 2, positions=[0.5, 0.5 + 1.5 * PITCH])
+    assert str(raised.value) == (
+        f"card: the gap between positions {1.5 * PITCH:g} is not a whole multiple of the wire "
+        f"pitch {PITCH:g}; use {PITCH:g}, {2 * PITCH:g}, {3 * PITCH:g} and so on"
+    )
+
+
+def test_positions_past_the_high_side_raise():
+    with pytest.raises(InvalidValueError, match="stretch it first"):
+        pattern_ports(card(wide(2)), S, 2, positions=[1, 1 + 4 * PITCH])
+
+
+def test_positions_before_the_low_side_raise():
+    with pytest.raises(InvalidValueError) as raised:
+        pattern_ports(card(wide(3)), S, 2, positions=[-1, -1 + PITCH])
+    assert str(raised.value) == (
+        "card: the first copy of the pattern port 'p' on edge S lies at -1, "
+        "before the body's low side 0 along the x axis; move it inside"
+    )
+
+
+def mixed(width: float):
+    """The card with named ports 'plus' left of 'p' and 'sig' right of it, on the same edge."""
+    source = card(width)
+    named = (
+        Port("plus", Point(1 - PITCH, 2), S),
+        Port("sig", Point(1 + PITCH, 2), S),
+    )
+    return plain_symbol(**{**vars_of(source), "ports": (*source.ports, *named)})
+
+
+def test_copies_clear_of_the_named_ports_leave_them_untouched():
+    out = pattern_ports(mixed(wide(2)), S, 1)
+    assert spans(out, {"plus", "sig", "1.p"}) == [
+        ("1.p", 1),
+        ("plus", 1 - PITCH),
+        ("sig", 1 + PITCH),
+    ]
+
+
+def test_a_copy_within_one_wire_pitch_of_a_named_port_raises():
+    with pytest.raises(InvalidValueError) as raised:
+        pattern_ports(mixed(wide(3)), S, 2)
+    assert str(raised.value) == (
+        f"card: the copy '2.p' at {1 + PITCH:g} lies within one wire pitch {PITCH:g} "
+        f"of the port 'sig' at {1 + PITCH:g} on edge S; move the port or the copy"
+    )
