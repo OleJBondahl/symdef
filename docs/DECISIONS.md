@@ -1643,4 +1643,5 @@ Cost if wrong: additive keywords. A turned (orient) table is fitted before it is
 
 Decided: symdef 0.24.0 holds D106 to D109 (R153 items 7, 1, 2, 6) and nothing else. Items 3, 4, 5 and 8 of R153 are the second half and are not in this release.
 Why: work order SYMDEF-0-24, R153: the first half is released when ready.
+Also in 0.24.0: lint rule `port-pattern` ignores a node that is only the pattern port itself, the implicit single-port node a built bundle writes, so `symdef check` passes on its reload; a node or path naming it with another port is still refused.
 Cost if wrong: a later release adds the rest.
