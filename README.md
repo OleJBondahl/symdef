@@ -92,7 +92,8 @@ svg = to_svg(breaker, annotate=True, texts={"tag": "-Q1"})
 `keepout_box` is the body united with its bound leads; a slot is a text slot and never enlarges
 it. `only_ports(symbol, ports)` keeps the listed ports with their leads and marking slots and drops
 the rest, and `stretch_to_ports(symbol, axis, edge, n)` gives the `length` and `offsets` that
-`stretch` takes to put `n` ports of an edge on the wire pitch; the guide has an example of each.
+`stretch` takes to put `n` ports of an edge on the wire pitch. A port marked `pattern` repeats `n`
+times along its edge, `pattern_ports` expands it; the guide has an example of each.
 
 `write_build` writes `build/` and `src/<package>/bundle.json` under the repo; `stale_build` lists
 the files that differ from what it would write, so a test can fail when a committed build is out

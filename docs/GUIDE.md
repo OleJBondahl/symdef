@@ -307,6 +307,40 @@ narrow = stretch(two, "x", length, offsets)
 assert [p.position.x for p in narrow.ports] == [4, 5]
 ```
 
+A port with `pattern = true` is one port that repeats along its edge. Give a symbol one such port
+as the only port of its edge, with a cut on that edge's axis (x for N and S, y for E and W); the
+rule `port-pattern` checks both, and that the port is in no node or path. `n` is given at the call
+and runs from 1 to `MAX_REPEAT`. The order is `stretch_to_ports`, then `stretch`, then
+`pattern_ports(symbol, edge, n)`: copy `k` of port `p` is `k.p`, a pitch after copy `k-1`, and it
+brings its bound lead and its `marking.k.p` slot (D104). An edge with no pattern port behaves as in
+D102. An N or S pattern edge shares the x axis with a stretch for the box's texts: pass the longer
+of the two lengths to `stretch`, with the offsets of both. `pattern_ports` raises `InvalidValueError`
+for `n` outside 1 to `MAX_REPEAT`, an edge with no pattern port, or a body too short for the copies.
+
+```python
+from symdef import Port, Slot, Stretch, pattern_ports
+
+bar = replace(
+    card,
+    elements=(
+        Polyline((Point(0, 0), Point(2, 0), Point(2, 2), Point(0, 2)), closed=True),
+        Line(Point(1, 2), Point(1, 3), port="p"),
+    ),
+    ports=(Port("p", Point(1, 3), Direction.S, pattern=True),),
+    slots=(Slot("marking.p", Point(1, 3), Direction.S, (1, 1)),),
+    nodes=(),
+    paths=(),
+    stretch=(Stretch("x", 0.5),),
+    body=None,
+    keepout=None,
+)
+length, offsets = stretch_to_ports(bar, "x", Direction.S, 4)
+four = pattern_ports(stretch(bar, "x", length, offsets), Direction.S, 4)
+assert [p.id for p in four.ports] == ["1.p", "2.p", "3.p", "4.p"]
+assert [p.position.x for p in four.ports] == [1, 2, 3, 4]
+assert [s.id for s in four.slots] == [f"marking.{k}.p" for k in (1, 2, 3, 4)]
+```
+
 A frame is a symbol with a stretch on both axes and a label slot at a corner;
 `stretch(stretch(frame, "x", 120), "y", 80)` makes it 120 by 80 (D53).
 
