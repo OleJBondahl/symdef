@@ -149,7 +149,8 @@ def port_isolated(symbol: Symbol) -> tuple[Finding, ...]:
     """Warn for every port in no path, in no multi-port node, whose node has no potential.
 
     A multi-port node is a declared node that lists two or more different existing ports. A port
-    listed by two nodes takes the first. One finding per port, at `ports[i]`.
+    listed by two nodes takes the first. A pattern port is exempt: it is wired as its copies.
+    One finding per port, at `ports[i]`.
     """
     known = {port.id for port in symbol.ports}
     in_path = {port_id for path in symbol.paths for port_id in (path.from_port, path.to_port)}
@@ -169,7 +170,8 @@ def port_isolated(symbol: Symbol) -> tuple[Finding, ...]:
             f"ports[{index}]",
         )
         for index, port in enumerate(symbol.ports)
-        if port.id not in in_path
+        if not port.pattern
+        and port.id not in in_path
         and port.id not in joined
         and nodes[first_node[port.id]].potential is None
     )

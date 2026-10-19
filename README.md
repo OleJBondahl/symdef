@@ -56,7 +56,7 @@ The key ideas:
 ## What is here
 
 The data model and `orient`, the boxes and `repeat`, the TOML reader with its JSON Schema
-(`src/symdef/schema/symbol.schema.json`), the composition resolver, 36 lint rules, plain and annotated SVG,
+(`src/symdef/schema/symbol.schema.json`), the composition resolver, 37 lint rules, plain and annotated SVG,
 and the build (resolved JSON per symbol, the bundle, SVGs, a gallery README). Decisions the spec
 leaves open, and concerns about the spec, are in [docs/DECISIONS.md](docs/DECISIONS.md).
 
@@ -71,8 +71,8 @@ from symdef.lint import RULES
 
 library = load_library(root)  # raises LibraryError, listing every problem in the files
 contact = library.get("S00227")  # by number; iterating a library is sorted by number
-assert len(RULES) == 36  # the spec's 33 rules plus lead-off-port (D40), stretch-cut and element-outside-body (D98)
-findings = lint(contact)  # all 36 rules, geometric ones in all 8 orientations
+assert len(RULES) == 37  # the spec's 33 rules plus lead-off-port (D40), stretch-cut, element-outside-body (D98) and port-pattern (D104)
+findings = lint(contact)  # all 37 rules, geometric ones in all 8 orientations
 assert findings == ()  # the spec's make contact lints clean
 for finding in findings:  # each has .rule, .severity, .message, .location, .orientation
     print(finding.rule, finding.location, finding.message)
@@ -92,7 +92,8 @@ svg = to_svg(breaker, annotate=True, texts={"tag": "-Q1"})
 `keepout_box` is the body united with its bound leads; a slot is a text slot and never enlarges
 it. `only_ports(symbol, ports)` keeps the listed ports with their leads and marking slots and drops
 the rest, and `stretch_to_ports(symbol, axis, edge, n)` gives the `length` and `offsets` that
-`stretch` takes to put `n` ports of an edge on the wire pitch; the guide has an example of each.
+`stretch` takes to put `n` ports of an edge on the wire pitch. A port marked `pattern` repeats `n`
+times along its edge, `pattern_ports` expands it; the guide has an example of each.
 
 `write_build` writes `build/` and `src/<package>/bundle.json` under the repo; `stale_build` lists
 the files that differ from what it would write, so a test can fail when a committed build is out

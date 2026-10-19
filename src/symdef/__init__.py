@@ -2,6 +2,7 @@
 
 from symdef._version import LIBRARY_VERSION
 from symdef.boxes import body_box, keepout_box, slot_box, slots_box
+from symdef.edge_pattern import pattern_ports
 from symdef.errors import (
     InvalidValueError,
     LibraryError,
@@ -138,6 +139,7 @@ __all__ = [
     "orient_box",
     "orient_direction",
     "orient_point",
+    "pattern_ports",
     "pole_pitch",
     "pole_port",
     "repeat",

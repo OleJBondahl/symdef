@@ -1602,3 +1602,15 @@ Cost if wrong: additive. The margin rule (the symbol's own end margins) and "the
 Decided: symdef 0.22.0 holds D101 (keep-out), D102 (`only_ports` and `stretch_to_ports`) and nothing else. Designation corners as library data are not in 0.22.
 Why: designer ruling 2026-10-18: "Designation corners as library data are not in 0.22."
 Cost if wrong: a later release adds them; nothing here blocks it.
+
+## D104: an edge port pattern: `Port.pattern`, `pattern_ports`, rule `port-pattern`
+
+Decided: a port table may say `pattern = true` (`Port.pattern: bool = False`; the bundle writes the key only when true, so every other output is byte-identical). It is one port that stands for n along its edge. `pattern_ports(symbol, edge, n, *, grid=DEFAULT_GRID)` (new module `edge_pattern.py`) replaces it by n copies, copy k at the first coordinate plus (k-1) wire pitches along the edge's axis (x for N and S, y for E and W), id `pole_port(k, id)` (`k.<id>`, as `repeat` numbers poles), each with its bound lead and its `marking.k.<id>` slot; n runs 1 to `MAX_REPEAT`. The order is `stretch_to_ports`, `stretch`, `pattern_ports`: bound leads count in `body_box`, so expanding first would widen the natural extent and shorten the growth without any error. `pattern_ports` raises `InvalidValueError` if the last copy lies past the body's high side. `stretch_to_ports` on an edge with a pattern port takes n up to `MAX_REPEAT` and returns `{id: first}` and the length natural plus (n-1) pitches; other edges are unchanged. New lint rule `port-pattern` (ERROR, Ports; 37 rules): the pattern port is the only port on its edge, the symbol has a cut on the edge's axis, and no node or path names it. `port-isolated` skips a pattern port, since it is wired as its copies. `repeat` and `table` carry the flag through `replace` and are not otherwise changed. The spec's section 9 and change list carry the rule and the key.
+Why: designer ruling R134 (2026-10-19): a block box needs n ports per edge, n given at the call, not 16 or 24 declared per edge.
+Cost if wrong: additive. A pattern with other ports on its edge, and nodes or paths on a pattern port, are refused and could be allowed later by a further decision. The body-too-short check uses the high side only; a pattern whose first port lies left of the body is not checked.
+
+## D105: the 0.23 release scope
+
+Decided: symdef 0.23.0 holds D104 (edge port pattern) and nothing else.
+Why: work order SYMDEF-0-23, ruling R134.
+Cost if wrong: a later release adds more; nothing here blocks it.
