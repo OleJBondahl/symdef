@@ -2,6 +2,7 @@
 
 from collections.abc import Mapping, Sequence
 from dataclasses import replace
+from typing import Literal
 
 from symdef.boxes import body_box, slot_box
 from symdef.errors import InvalidValueError
@@ -14,6 +15,7 @@ from symdef.table import table
 from symdef.units import Grid, ceil_divisions, from_divisions
 
 _NOISE = 1e-9
+_FITS = ("cross", "step")
 
 
 def _along(box: Box, axis: Axis) -> float:
@@ -97,6 +99,76 @@ def _merge(*growths: Mapping[float, float]) -> dict[float, float]:
     return out
 
 
+def _fit_cross(  # noqa: PLR0913 - the row, axis, texts, library, height and the head pair
+    row: Symbol,
+    axis: Axis,
+    texts: Sequence[Mapping[str, str]],
+    library: Library,
+    height: float,
+    *,
+    heads: tuple[Symbol | None, Mapping[str, str] | None],
+) -> tuple[Symbol, Symbol | None]:
+    """Return the row and head grown across the stepping axis to their widest texts."""
+    head, head_texts = heads
+    cross: Axis = "y" if axis == "x" else "x"
+    growth = _merge(*(_growth(row, cross, t, library, height) for t in texts))
+    if head is not None and head_texts:
+        growth = _merge(growth, _growth(head, cross, head_texts, library, height))
+    if head is not None and any(s.axis == cross for s in head.stretch):
+        head = _grown(head, cross, growth, library.grid)
+    return _grown(row, cross, growth, library.grid), head
+
+
+def _fit_step(  # noqa: PLR0913 - the row, axis, texts, library, height and the head pair
+    row: Symbol,
+    axis: Axis,
+    texts: Sequence[Mapping[str, str]],
+    library: Library,
+    height: float,
+    *,
+    heads: tuple[Symbol | None, Mapping[str, str] | None],
+) -> tuple[Symbol, Symbol | None]:
+    """Return the row grown along the stepping axis, and the head fitted along both axes."""
+    head, head_texts = heads
+    cross: Axis = "y" if axis == "x" else "x"
+    step = _merge(*(_growth(row, axis, t, library, height) for t in texts))
+    if head is not None and head_texts:
+        across = _growth(head, cross, head_texts, library, height)
+        along = _growth(head, axis, head_texts, library, height)
+        head = _grown(_grown(head, cross, across, library.grid), axis, along, library.grid)
+        row = _grown(row, cross, across, library.grid)
+    return _grown(row, axis, step, library.grid), head
+
+
+def _check_args(  # noqa: PLR0913 - everything fitted_table checks
+    row: Symbol,
+    texts: Sequence[Mapping[str, str]],
+    library: Library,
+    text_height: float,
+    *,
+    head: Symbol | None,
+    head_texts: Mapping[str, str] | None,
+    fit: str,
+) -> None:
+    """Raise unless the library, height, fit, head and every text are usable."""
+    if library.font is None:
+        msg = "fitted_table needs a library with a font to measure the texts; load one with [font]"
+        raise InvalidValueError(msg)
+    if not text_height > 0:
+        msg = f"fitted_table needs a text height above zero, got {text_height!r}"
+        raise InvalidValueError(msg)
+    if head_texts and head is None:
+        msg = "head_texts needs a head to set them in; pass head= or drop head_texts"
+        raise InvalidValueError(msg)
+    if fit not in _FITS:
+        msg = f"fit must be 'cross' or 'step', got {fit!r}"
+        raise InvalidValueError(msg)
+    for row_texts in texts:
+        check_texts(row, row_texts)
+    if head is not None and head_texts:
+        check_texts(head, head_texts)
+
+
 def fitted_table(  # noqa: PLR0913 - the ruled signature: row, axis, texts, library, height and a head
     row: Symbol,
     axis: Axis,
@@ -106,6 +178,7 @@ def fitted_table(  # noqa: PLR0913 - the ruled signature: row, axis, texts, libr
     *,
     head: Symbol | None = None,
     head_texts: Mapping[str, str] | None = None,
+    fit: Literal["cross", "step"] = "cross",
 ) -> Symbol:
     """Return `table(row, len(texts), axis, head)` with each column as wide as its widest text.
 
@@ -116,6 +189,13 @@ def fitted_table(  # noqa: PLR0913 - the ruled signature: row, axis, texts, libr
     reserved extent, never below zero, so the row's own pads stay. The growth goes through
     `stretch`; the head grows at the same cuts when it has them. The result is an ordinary symbol.
 
+    With `fit="step"` the rows grow along `axis` instead, by the largest text extent along it, so
+    every row has the same step and no two rows' marking boxes overlap; a slot of the row needs a
+    `[[stretch]]` cut on `axis` across its box. The head's texts, which may span several lines,
+    then fit along both axes: across as above, and along `axis` at the head's own cut across the
+    slot, which leaves the head with no cut on `axis` for `table` to stretch. To fit a table
+    that is to be turned, fit it unturned with `fit="step"` and orient the result.
+
     Args:
         row: A symbol in base orientation, a slot and a cut across it for each column.
         axis: "x" or "y", the way the rows stack.
@@ -124,6 +204,7 @@ def fitted_table(  # noqa: PLR0913 - the ruled signature: row, axis, texts, libr
         text_height: The text height in module units, above zero.
         head: A symbol placed once before the rows, or None.
         head_texts: Slot id of the head to its text, or None; each counts in its column.
+        fit: "cross" to grow columns across `axis`, "step" to grow the rows along it.
 
     Returns:
         The table, as `table` returns it.
@@ -132,28 +213,14 @@ def fitted_table(  # noqa: PLR0913 - the ruled signature: row, axis, texts, libr
         UnknownNameError: If a text names a slot its symbol does not have.
         InvalidValueError: If the library has no font, `text_height` is not above zero, a text's
             slot has no cut across its box, the head lacks a cut where the rows grow, or the
-            row count is out of range.
+            row count is out of range, or `fit` is neither "cross" nor "step".
     """
-    if library.font is None:
-        msg = "fitted_table needs a library with a font to measure the texts; load one with [font]"
-        raise InvalidValueError(msg)
-    if not text_height > 0:
-        msg = f"fitted_table needs a text height above zero, got {text_height!r}"
-        raise InvalidValueError(msg)
-    if head_texts and head is None:
-        msg = "head_texts needs a head to set them in; pass head= or drop head_texts"
-        raise InvalidValueError(msg)
-    cross: Axis = "y" if axis == "x" else "x"
-    for row_texts in texts:
-        check_texts(row, row_texts)
-    growth = _merge(*(_growth(row, cross, t, library, text_height) for t in texts))
-    if head is not None and head_texts:
-        check_texts(head, head_texts)
-        growth = _merge(growth, _growth(head, cross, head_texts, library, text_height))
-    if head is not None and any(s.axis == cross for s in head.stretch):
-        head = _grown(head, cross, growth, library.grid)
-    grown = _grown(row, cross, growth, library.grid)
-    return table(grown, len(texts), axis, head, grid=library.grid)
+    _check_args(row, texts, library, text_height, head=head, head_texts=head_texts, fit=fit)
+    if fit == "step":
+        row, head = _fit_step(row, axis, texts, library, text_height, heads=(head, head_texts))
+    else:
+        row, head = _fit_cross(row, axis, texts, library, text_height, heads=(head, head_texts))
+    return table(row, len(texts), axis, head, grid=library.grid)
 
 
 def fitted_symbol(
