@@ -9,6 +9,7 @@ What changed in the public surface of each release: a name added, removed or mov
 - Changed: lint rule `port-pattern` no longer refuses named ports on a pattern port's edge; it refuses two pattern ports on one edge. `stretch_to_ports` on such an edge returns offsets for every port of the edge, and `pattern_ports` raises for a copy less than a wire pitch from a named port (D108).
 - Added: `table(row, n, axis, head=None, *, grid=None, gaps=None, positions=None, head_align=None)`: `row` may be a sequence of unlike rows; `gaps`, `positions` and `head_align` are new (D109).
 - Added: `fitted_table(..., fit="cross")`; `fit="step"` fits the step along the stepping axis (D109).
+- Changed: lint rule `port-pattern` ignores the single-port node that the bundle writes for a lone pattern port; `symdef check` no longer fails on the reloaded bundle (D110).
 
 ## 0.23.0
 

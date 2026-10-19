@@ -192,6 +192,21 @@ def test_a_pattern_port_named_in_a_node_or_path_is_reported(wiring):
     )
 
 
+def test_a_pattern_port_in_a_two_port_node_is_refused_with_its_text():
+    source = card(wide(2))
+    (finding,) = port_pattern(plain_symbol(**{**vars_of(source), "nodes": (Node(("p", "top")),)}))
+    assert finding.message == (
+        "the pattern port 'p' is named in a node or a path; "
+        "leave it out, as its copies are numbered after expansion"
+    )
+
+
+def test_a_built_then_reloaded_symbol_with_one_pattern_port_per_edge_is_clean():
+    data = symbol_to_data(card(wide(2)))
+    assert {"ports": ["p"]} in data["nodes"]
+    assert port_pattern(symbol_from_data(data)) == ()
+
+
 def vars_of(symbol) -> dict:
     """The symbol's fields as keywords."""
     return {name: getattr(symbol, name) for name in symbol.__slots__}
