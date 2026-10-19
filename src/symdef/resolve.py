@@ -99,8 +99,6 @@ def _prepare(
         if not 1 <= count <= MAX_REPEAT:
             message = f"repeat must be between 1 and {MAX_REPEAT}"
             return None, (rule_finding("schema", message, where),)
-        if not any(path.through for path in base.paths):
-            return None, (rule_finding("schema", "repeat needs a part with a through path", where),)
         symbol = repeat(base, count)
     return orient(symbol, Orientation(part.get("orient", "R0"))), ()
 

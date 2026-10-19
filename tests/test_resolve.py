@@ -970,11 +970,17 @@ class TestFileRules:
         assert resolution.findings == {}
         assert len(resolution.symbols["S00094"].ports) == 128
 
-    def test_repeat_of_a_part_without_a_through_path_is_a_schema_finding(self):
-        top = composite("S00094", 'parts = [{ as = "a", use = "S00013", repeat = 2 }]\n')
+    def test_repeat_of_a_part_without_a_through_path_repeats_it(self):
+        top = composite(
+            "S00094",
+            'parts = [{ as = "a", use = "S00013", repeat = 2 }]\n'
+            'ports = { p = "a.1.in", q = "a.1.out", r = "a.2.in", s = "a.2.out" }\n',
+        )
         resolution = resolve(TWO_PORT_PLAIN, top)
-        assert located(resolution, "S00094") == [("schema", "/parts/0/repeat")]
-        assert "through" in resolution.findings["S00094"][0].message
+        assert resolution.findings == {}
+        paths = resolution.symbols["S00094"].paths
+        assert len(paths) == 2
+        assert not any(p.through for p in paths)
 
     def test_repeat_of_one_does_not_fire(self):
         top = composite(
