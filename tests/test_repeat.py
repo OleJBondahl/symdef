@@ -315,13 +315,15 @@ class TestPreconditions:
         with pytest.raises(InvalidValueError, match=r"pole count|through path"):
             repeat(s227, n)
 
-    def test_a_symbol_without_a_through_path_is_rejected(self):
-        with pytest.raises(InvalidValueError, match=r"pole count|through path"):
-            repeat(bare(paths=(Path("in", "out", "conductor"),)), 2)
+    def test_a_symbol_without_a_through_path_repeats_with_no_through_path(self):
+        result = repeat(bare(paths=(Path("in", "out", "conductor"),)), 3)
+        assert [p.from_port for p in result.paths] == ["1.in", "2.in", "3.in"]
+        assert [p.through for p in result.paths] == [False, False, False]
 
-    def test_a_symbol_without_paths_is_rejected(self):
-        with pytest.raises(InvalidValueError, match=r"pole count|through path"):
-            repeat(bare(paths=()), 1)
+    def test_a_symbol_without_paths_repeats(self):
+        result = repeat(bare(paths=()), 2)
+        assert result.paths == ()
+        assert len(result.ports) == 2 * len(bare(paths=()).ports)
 
 
 @st.composite
