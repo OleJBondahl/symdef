@@ -2,6 +2,12 @@
 
 What changed in the public surface of each release: a name added, removed or moved, and a type that widened. Every change to `surface.toml` has a line here. The reasons are in [the decisions](DECISIONS.md).
 
+## 0.23.0
+
+- Added: `pattern_ports(symbol, edge, n, *, grid=DEFAULT_GRID)`, the symbol with the pattern port of `edge` expanded into `n` ports (1 to `MAX_REPEAT`) on the wire pitch, ids `k.<id>`, each with its bound lead and `marking.k.<id>` slot; it raises `InvalidValueError` naming the symbol, the edge and `n` (D104).
+- Added: `Port.pattern` (TOML `pattern = true`, bundle key only when true) and lint rule `port-pattern` (ERROR, Ports): a pattern port shares its edge, has no cut on the edge's axis, or is in a node or path; 37 rules. `port-isolated` skips a pattern port (D104).
+- Changed: `stretch_to_ports` on an edge with a pattern port takes any `n` up to `MAX_REPEAT`; every other edge is unchanged (D104).
+
 ## 0.22.0
 
 - Changed: `keepout_box` is the body united with the bound leads (`Line`s with a `port`); a slot is a text slot and no longer enlarges it. A caller that read the keep-out as the room of the labels reads `slot_box`; `Measure.keepout` still holds the slots. The resolved JSON `keepout_box` moves with it (D101).

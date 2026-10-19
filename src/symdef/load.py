@@ -224,7 +224,13 @@ _REFERENCE = _table(
     required=("standard", "number"),
 )
 _PORT = _table(
-    {"id": _string, "at": _POINT, "dir": _DIRECTION, "description": _string},
+    {
+        "id": _string,
+        "at": _POINT,
+        "dir": _DIRECTION,
+        "description": _string,
+        "pattern": _boolean,
+    },
     required=("id", "at", "dir"),
 )
 _NODE = _table(
@@ -520,7 +526,13 @@ def symbol_from_data(data: Mapping[str, Any]) -> Symbol:
         ),
         elements=tuple(_element_from_data(e) for e in data.get("elements", ())),
         ports=tuple(
-            Port(p["id"], _point(p["at"]), Direction[p["dir"]], p.get("description", ""))
+            Port(
+                p["id"],
+                _point(p["at"]),
+                Direction[p["dir"]],
+                p.get("description", ""),
+                p.get("pattern", False),
+            )
             for p in (ports if isinstance(ports, list) else ())
         ),
         nodes=tuple(Node(tuple(n["ports"]), n.get("potential")) for n in data.get("nodes", ())),

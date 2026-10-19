@@ -42,12 +42,15 @@ class Port:
         position: Where a wire meets the symbol, in module units.
         direction: The outward normal: the side of the body box the port sits on.
         description: Free text, empty if none.
+        pattern: True when the port stands for n ports repeated along its edge at the wire pitch;
+            `pattern_ports` expands it.
     """
 
     id: str
     position: Point
     direction: Direction
     description: str = ""
+    pattern: bool = False
 
 
 @dataclass(frozen=True, slots=True)

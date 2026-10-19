@@ -19,6 +19,7 @@ from symdef.lint.declared import element_outside_body
 from symdef.lint.exemptions import allow_unknown, allow_unused, exempt
 from symdef.lint.file import symbol_id_findings
 from symdef.lint.geometry import degenerate, off_drawing_grid, stretch_cut, text_too_large
+from symdef.lint.pattern import port_pattern
 from symdef.lint.ports import (
     lead_off_port,
     port_duplicate_id,
@@ -64,6 +65,7 @@ CHECKS: Mapping[str, Check] = MappingProxyType(
         "port-lane-clear": port_lane_clear,
         "port-spacing": port_spacing,
         "port-position-shared": port_position_shared,
+        "port-pattern": port_pattern,
         "lead-off-port": lead_off_port,
         "node-invalid": node_invalid,
         "path-invalid": path_invalid,

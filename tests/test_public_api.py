@@ -176,7 +176,7 @@ SECTION_11_FIELDS = {
     "Circle": ["center", "radius", "fill", "weight"],
     "Arc": ["center", "radius", "start_deg", "end_deg", "weight", "style"],
     "Text": ["content", "position", "height", "weight"],
-    "Port": ["id", "position", "direction", "description"],
+    "Port": ["id", "position", "direction", "description", "pattern"],
     "Node": ["ports", "potential"],
     "Path": ["from_port", "to_port", "kind", "through"],
     "Anchor": ["id", "position", "direction"],

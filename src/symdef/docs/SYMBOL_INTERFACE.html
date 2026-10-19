@@ -41,6 +41,7 @@ with a dated entry in the change list below and in <code>docs/DECISIONS.md</code
 <h2 id="changes">Change list</h2>
 <table>
 <tr><th>Date</th><th>Version</th><th>Change</th></tr>
+<tr><td>2026-10-19</td><td>0.23.0</td><td>New port key <code>pattern</code> (boolean): a port that stands for n ports repeated along its edge at the wire pitch, and the new function <code>pattern_ports(symbol, edge, n, *, grid)</code> that expands it into ports <code>k.&lt;id&gt;</code> with their bound leads and <code>marking.k.&lt;id&gt;</code> slots. New lint rule <code>port-pattern</code> makes 37 rules (designer ruling R134).</td></tr>
 <tr><td>2026-10-18</td><td>0.22.0</td><td><code>keepout_box</code> is the body box united with the bound leads (<code>Line</code>s with a <code>port</code>); slots stay text slots and no longer enlarge it (D101). New <code>only_ports(symbol, ports)</code> keeps the listed ports with their leads and <code>marking.&lt;port&gt;</code> slots and drops the rest. New <code>stretch_to_ports(symbol, axis, edge, n, *, grid=DEFAULT_GRID)</code> returns the <code>(length, offsets)</code> that <code>stretch</code> takes so that <code>edge</code> carries <code>n</code> ports on the wire pitch (D102).</td></tr>
 <tr><td>2026-10-18</td><td>0.21.0</td><td><code>text_tag(content, point, height_mm, *, anchor, font_family, turn=False, weight=Weight.NORMAL, tint=None, muted=None)</code> returns one <code>&lt;text&gt;</code> in millimetres at a baseline point, and <code>corner_text(box, corner, height, font)</code> returns the <code>TextPlacement</code> a box corner (<code>NW</code>, <code>NE</code>, <code>SW</code>, <code>SE</code>) gives a text: the text hangs inside the box on that corner (D100).</td></tr>
 <tr><td>2026-10-18</td><td>0.21.0</td><td><code>wire(library, style_id, points, *, closed=False, lanes=1, pitch=None)</code> draws <code>lanes</code> parallel polylines in one symbol: lane 0 on the points, lane k moved k * <code>pitch</code> (module units, default the grid's <code>wire_pitch</code>) towards +y on a horizontal run and +x on a vertical run, mitred at corners. <code>lanes=1</code> is unchanged; <code>lanes</code> below 1, <code>pitch</code> of 0 or less and a closed wire with several lanes raise <code>InvalidValueError</code> (D99).</td></tr>
@@ -164,7 +165,7 @@ Generic consumers should chain symbols using the through path's <code>from</code
 <tr><td><code>kind</code></td><td><code>symbol</code> | <code>element</code> | <code>qualifier</code></td><td>yes</td><td><code>symbol</code> is placeable on its own. <code>element</code> and <code>qualifier</code> exist to be used as parts; slot and through-path rules do not apply to them.</td></tr>
 <tr><td><code>status</code></td><td><code>unverified</code> | <code>verified</code></td><td>yes</td><td><code>verified</code> only after the geometry is compared with the standard's own drawing.</td></tr>
 <tr><td><code>reference</code></td><td>table</td><td>yes</td><td><code>standard</code>, <code>number</code>, optional <code>edition</code>, <code>form</code>. Identity is <code>number</code>; it equals the file stem.</td></tr>
-<tr><td><code>ports</code></td><td>array of tables, or a rename map in composites</td><td>no</td><td>Atomic: <code>id</code>, <code>at</code>, <code>dir</code> (<code>N E S W</code>), optional <code>description</code>. Composite: <code>{ new_id = "part.port" }</code>.</td></tr>
+<tr><td><code>ports</code></td><td>array of tables, or a rename map in composites</td><td>no</td><td>Atomic: <code>id</code>, <code>at</code>, <code>dir</code> (<code>N E S W</code>), optional <code>description</code> and optional <code>pattern</code> (boolean, default false: the port stands for n copies along its edge; see <code>pattern_ports</code>). Composite: <code>{ new_id = "part.port" }</code>.</td></tr>
 <tr><td><code>nodes</code></td><td>array of tables</td><td>no</td><td><code>ports</code> (list of ids) and optional <code>potential</code>. See section 5.</td></tr>
 <tr><td><code>paths</code></td><td>array of tables</td><td>no</td><td><code>from</code>, <code>to</code>, <code>kind</code>, optional <code>through</code>. See section 5.</td></tr>
 <tr><td><code>anchors</code></td><td>array of tables</td><td>no</td><td><code>id</code>, <code>at</code>, <code>dir</code>. Attachment points for composition.</td></tr>
@@ -465,13 +466,14 @@ Data repo gates require zero findings of either severity, so a warning is simply
 <tr><td><code>text-too-large</code></td><td>a text element is taller than 1 M</td></tr>
 <tr><td><code>stretch-cut</code></td><td>a circle, arc or text crosses a stretch cut, a cut lies outside <code>body_min &lt;= at &lt; body_max</code> on its axis, or two cuts on one axis lie at the same <code>at</code></td></tr>
 <tr><td><code>element-outside-body</code></td><td>a symbol declares its <code>body</code> and a line, polyline, circle or arc extends outside it (a text is left to <code>text-outside-body</code>)</td></tr>
-<tr><td rowspan="8">Ports</td><td><code>port-duplicate-id</code></td><td>two ports share an id</td></tr>
+<tr><td rowspan="9">Ports</td><td><code>port-duplicate-id</code></td><td>two ports share an id</td></tr>
 <tr><td><code>port-off-wiring-grid</code></td><td>a port position is not a multiple of 1 M</td></tr>
 <tr><td><code>port-off-geometry</code></td><td>a port is not at a line or polyline endpoint, on a circle or arc, or on a closed outline</td></tr>
 <tr><td><code>port-on-body-edge</code></td><td>a port is not on the body-box side matching its direction</td></tr>
 <tr><td><code>port-lane-clear</code></td><td>an element or slot box overlaps a port's wire lane (section 8)</td></tr>
 <tr><td><code>port-spacing</code></td><td>two ports with the same <code>dir</code> are not a multiple of 2 M apart along their side</td></tr>
 <tr><td><code>port-position-shared</code></td><td>two ports of different nodes share a position</td></tr>
+<tr><td><code>port-pattern</code></td><td>a port marked <code>pattern</code> shares its edge with another port, the symbol has no <code>stretch</code> cut on the edge's axis, or the port is named in a node or a path</td></tr>
 <tr><td><code>lead-off-port</code></td><td>a line's <code>port</code> names a port that does not exist, or the line does not reach the port's position along its facing axis</td></tr>
 <tr><td rowspan="6">Connectivity</td><td><code>node-invalid</code></td><td>a node names an unknown port, or a port is listed in two nodes</td></tr>
 <tr><td><code>path-invalid</code></td><td>a path names an unknown port, joins two ports of one node, or duplicates another path between the same nodes</td></tr>
@@ -510,7 +512,7 @@ Data repo gates require zero findings of either severity, so a warning is simply
 <pre><code>Point(x, y)   Box(min, max)   Direction: N E S W   Centre: C   Orientation: R0 .. MR270
 Vocabulary(path_kinds, potentials, links)
 Line | Polyline | Circle | Arc | Text                      = Element
-Port(id, position, direction, description)
+Port(id, position, direction, description, pattern)
 Node(ports, potential)          Path(from_port, to_port, kind, through)
 Anchor(id, position, direction) Slot(id, position, side, box)
 Reference(standard, number, edition, form)
