@@ -4,6 +4,7 @@ from symdef.boxes import body_box
 from symdef.errors import InvalidValueError
 from symdef.geometry import Direction
 from symdef.model import Port, Symbol
+from symdef.repeat import MAX_REPEAT
 from symdef.stretch import _EDGE_NORMALS, Axis
 from symdef.units import DEFAULT_GRID, Grid, from_divisions
 
@@ -25,10 +26,11 @@ def _edge_ports(symbol: Symbol, axis: Axis, edge: Direction, n: int) -> list[Por
         )
         raise InvalidValueError(msg)
     ports = sorted((p for p in symbol.ports if p.direction is edge), key=lambda p: _along(p, axis))
-    if not 1 <= n <= len(ports):
+    limit = MAX_REPEAT if any(p.pattern for p in ports) else len(ports)
+    if not 1 <= n <= limit:
         msg = (
             f"{symbol.name}: edge {edge.name} cannot carry n={n} ports; "
-            f"it declares {len(ports)}; ask for 1 to {len(ports)}"
+            f"it declares {limit}; ask for 1 to {limit}"
         )
         raise InvalidValueError(msg)
     return ports
@@ -46,10 +48,13 @@ def stretch_to_ports(
     those give, never below the natural extent, so `stretch(symbol, axis, length, offsets,
     grid=grid)` is valid. Call `only_ports` first so the edge holds only the ports you wire.
 
+    An edge whose port is a pattern (`pattern_ports`) takes any n up to MAX_REPEAT: the offsets
+    hold that one port, and the length grows by n-1 pitches. Run `stretch`, then `pattern_ports`.
+
     Raises:
         InvalidValueError: If the symbol has no stretch on the axis, `edge` is not parallel to
-            the axis, or n is below 1 or above the ports declared on the edge; the message names
-            the symbol, the edge, n and the declared count.
+            the axis, or n is below 1 or above the ports declared on the edge (MAX_REPEAT on a
+            pattern edge); the message names the symbol, the edge, n and that count.
     """
     ports = _edge_ports(symbol, axis, edge, n)
     pitch = from_divisions(grid, grid.wire_pitch)
