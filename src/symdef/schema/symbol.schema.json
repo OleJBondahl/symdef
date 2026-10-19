@@ -104,7 +104,8 @@
         "id": { "type": "string" },
         "at": { "$ref": "#/$defs/point" },
         "dir": { "$ref": "#/$defs/direction" },
-        "description": { "type": "string" }
+        "description": { "type": "string" },
+        "pattern": { "type": "boolean" }
       }
     },
     "node": {
