@@ -655,7 +655,7 @@ assert custom.grid.module_mm == 2.0 and custom.font.name == "DejaVu Sans Condens
 
 ## Measuring in whole divisions, and drawing where it was measured
 
-`measure(symbol, orientation, library, texts=None, text_height=None, *, attach=None)` returns a `Measure`: the body
+`measure(symbol, orientation, library, texts=None, text_height=None, *, attach=None, stretch=None)` returns a `Measure`: the body
 box, keepout box, slot boxes and ports of the symbol turned to `orientation`, as `GridBox` and
 `GridPort` values in whole divisions of `library.grid`. Boxes round outward; a port off the grid
 raises `InvalidValueError`. `to_placed_fragment(symbol, orientation, at, library, ...)` draws the
@@ -665,6 +665,8 @@ turned symbol inside one `translate` read from a `GridPoint`, so the caller conv
 `attach={slot_id: symbol}` makes room for a symbol drawn at a slot, such as a contact table beside a
 coil: its keep-out box hangs on the turned slot's point and side, as a slot's box does, and joins `slots[slot_id]` and `keepout`.
 A key that is not a slot id raises `UnknownNameError`. Build the symbol with `table(row, n, "y")`.
+
+`stretch={axis: length}` measures the symbol as `stretch` would make it, without building it. Each axis is stretched by its length with `grid=library.grid`; the order of the axes does not change the result. The stretched symbol is then turned to `orientation`. So `measure(card, o, library, stretch={"x": 112}) == measure(stretch(card, "x", 112, grid=library.grid), o, library)` (D111). `length` is in module units, as for `stretch`, and raises what `stretch` raises. To draw the stretched symbol, call `stretch`.
 
 ```python
 from symdef import GridPoint, Orientation, measure, to_placed_fragment

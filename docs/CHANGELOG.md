@@ -2,6 +2,10 @@
 
 What changed in the public surface of each release: a name added, removed or moved, and a type that widened. Every change to `surface.toml` has a line here. The reasons are in [the decisions](DECISIONS.md).
 
+## 0.24.1
+
+- Added: `measure(..., *, attach=None, stretch=None)`; `stretch={axis: length}` measures the symbol as `stretch(symbol, axis, length, grid=library.grid)` would make it, without building it (D111).
+
 ## 0.24.0
 
 - Changed: `repeat` (and a part's `repeat` key) accepts a symbol with no through path; every pole then has none (D106).
