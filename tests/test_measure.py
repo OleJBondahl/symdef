@@ -8,11 +8,12 @@ from test_font import FONT
 
 from symdef.boxes import body_box, keepout_box, slot_box
 from symdef.errors import InvalidValueError, UnknownNameError
-from symdef.geometry import Box, Direction, Line, Point, Text, Weight
+from symdef.geometry import Box, Direction, Line, Point, Polyline, Text, Weight
 from symdef.gridmeasure import Measure, measure
 from symdef.gridtypes import GridBox, GridPoint, GridPort
-from symdef.model import Library, Port, Reference, Slot, Status, Symbol, SymbolKind
+from symdef.model import Library, Port, Reference, Slot, Status, Stretch, Symbol, SymbolKind
 from symdef.orient import Orientation, orient
+from symdef.stretch import stretch
 from symdef.table import table
 from symdef.units import Grid
 
@@ -208,3 +209,40 @@ def test_no_attach_changes_nothing():
 def test_an_unknown_attach_key_names_the_key_and_the_slots():
     with pytest.raises(UnknownNameError, match=r"nope.*table"):
         measure(COIL, Orientation.R0, EIGHT, attach={"nope": ROW})
+
+
+# D111: measure(stretch=) is measure of the stretched symbol, without building it.
+FRAME = replace(
+    build(
+        Polyline((Point(0, 0), Point(8, 0), Point(8, 8), Point(0, 8)), closed=True),
+        slots=(Slot("label", Point(1, 1), Direction.E, (4, 1)),),
+    ),
+    stretch=(Stretch("x", 4), Stretch("y", 4)),
+)
+
+
+@pytest.mark.parametrize("orientation", list(Orientation))
+@pytest.mark.parametrize("length", [9, 20, 33, 112])
+def test_measure_with_a_stretch_equals_measure_of_the_stretched_symbol(orientation, length):
+    for lib in (EIGHT, Library("S", "S", "", {}, font=FONT)):
+        for axis in ("x", "y"):
+            direct = measure(FRAME, orientation, lib, stretch={axis: length})
+            built = measure(stretch(FRAME, axis, length, grid=lib.grid), orientation, lib)
+            assert direct == built
+
+
+def test_the_axis_order_of_a_two_axis_stretch_does_not_change_the_measure():
+    xy = stretch(stretch(FRAME, "x", 33, grid=EIGHT.grid), "y", 20, grid=EIGHT.grid)
+    yx = stretch(stretch(FRAME, "y", 20, grid=EIGHT.grid), "x", 33, grid=EIGHT.grid)
+    for orientation in (Orientation.R0, Orientation.R90):
+        want = measure(xy, orientation, EIGHT)
+        assert measure(yx, orientation, EIGHT) == want
+        assert measure(FRAME, orientation, EIGHT, stretch={"x": 33, "y": 20}) == want
+        assert measure(FRAME, orientation, EIGHT, stretch={"y": 20, "x": 33}) == want
+
+
+def test_measure_with_a_stretch_raises_what_stretch_raises():
+    with pytest.raises(InvalidValueError):
+        measure(FRAME, Orientation.R0, EIGHT, stretch={"x": 2})
+    with pytest.raises(InvalidValueError):
+        measure(WIDE, Orientation.R0, EIGHT, stretch={"x": 20})

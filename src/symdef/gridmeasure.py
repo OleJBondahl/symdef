@@ -10,6 +10,8 @@ from symdef.geometry import Box, Direction
 from symdef.gridtypes import GridBox, GridPoint, GridPort
 from symdef.model import Library, Slot, Symbol
 from symdef.orient import Orientation, orient
+from symdef.stretch import Axis
+from symdef.stretch import stretch as stretch_symbol
 from symdef.svg import check_texts
 from symdef.units import ceil_divisions, to_divisions
 
@@ -74,6 +76,13 @@ def _slot_with_attached(
     return Box.union(box, placed)
 
 
+def _stretched(symbol: Symbol, lengths: Mapping[Axis, float] | None, library: Library) -> Symbol:
+    """Return the symbol stretched along each axis of `lengths` to its length (D111)."""
+    for axis, length in (lengths or {}).items():
+        symbol = stretch_symbol(symbol, axis, length, grid=library.grid)
+    return symbol
+
+
 def measure(  # noqa: PLR0913 - the ruled signature: symbol, view, library and three options
     symbol: Symbol,
     orientation: Orientation,
@@ -82,6 +91,7 @@ def measure(  # noqa: PLR0913 - the ruled signature: symbol, view, library and t
     text_height: float | None = None,
     *,
     attach: Mapping[str, Symbol] | None = None,
+    stretch: Mapping[Axis, float] | None = None,
 ) -> Measure:
     """Return the symbol turned to `orientation`, measured in divisions of `library.grid`.
 
@@ -91,10 +101,12 @@ def measure(  # noqa: PLR0913 - the ruled signature: symbol, view, library and t
     (at `text_height`). A slot with no string is its reserved box. A symbol in `attach` under a
     slot id has its keep-out box placed at the turned slot's point and side, as a slot's reserved
     box is, and united with that slot's box, so `slots[id]` and `keepout` hold it. The attached
-    box is never rotated, as a slot's box is not.
+    box is never rotated, as a slot's box is not. `stretch` maps an axis to a body length: the
+    symbol is stretched so (`grid=library.grid`) before it is turned (D111).
 
     Raises:
-        InvalidValueError: If `texts` is given without `text_height`, or a port is off the grid.
+        InvalidValueError: If `texts` is given without `text_height`, or a port is off the grid,
+            or `stretch()` refuses a length.
         UnknownNameError: If a key of `texts` or `attach` is not a slot id of the symbol.
     """
     if texts and text_height is None:
@@ -102,7 +114,7 @@ def measure(  # noqa: PLR0913 - the ruled signature: symbol, view, library and t
         raise InvalidValueError(msg)
     check_texts(symbol, texts)
     check_texts(symbol, dict.fromkeys(attach or {}, ""))
-    turned = orient(symbol, orientation)
+    turned = orient(_stretched(symbol, stretch, library), orientation)
     body = _extent(library, body_box(turned, library.font))
     slots = {
         s.id: _extent(library, _slot_with_attached(s, texts, text_height, library, attach))
