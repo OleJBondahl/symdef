@@ -1395,7 +1395,7 @@ Cost if wrong: additive; delete the module and the export to revert.
 Decided: `symdef.authoring` holds nine names: `build`, `check`, `init`, `lint`, `write_build`,
 `stale_build`, `RULES`, `finding_key` and `LibraryConfig`. They leave `symdef.__all__`; the two
 `__all__` sets are disjoint and `from symdef import build` raises `ImportError`. The rule: a name
-goes to the author door when no consumer-side call takes or returns it. a consumer's import census
+goes to the author door when no consumer-side call takes or returns it. A consumer's import census
 (2026-10-16) found no consumer import of these nine. `LibraryError` stays on the consumer door:
 `load_library` and `load_bundle` raise it. `Finding` and `Severity` stay there too, since they ride
 on `LibraryError.findings`; so does `Status`, a `Symbol` field a consumer building one sets. The
