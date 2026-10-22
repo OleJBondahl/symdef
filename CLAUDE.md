@@ -1,14 +1,8 @@
 # symdef: agent guide
 
-Standard-agnostic Python toolkit for graphical-symbol data. It reads TOML symbol files, resolves
-composition, lints the wiring contract, renders SVG, and builds a resolved JSON bundle plus an SVG gallery. Users drive it with `symdef init`, `symdef build` and `symdef check`, or through the Python API. Data packages hold only data and reuse this toolkit: `electrical-symbols` (a package
-of the a host application repo, `../a host application-dev`) now, ISO 14617 and ISA 5.1 later. Alpha,
-single owner.
+Standard-agnostic Python toolkit for graphical-symbol data. It reads TOML symbol files, resolves composition, lints the wiring contract, renders SVG, and builds a resolved JSON bundle plus an SVG gallery. Users drive it with `symdef init`, `symdef build` and `symdef check`, or through the Python API. Data packages hold only data and reuse this toolkit. Alpha, single owner.
 
-a host application is
-one user. It pins an exact PyPI version, and its `electrical-symbols` package is an IEC 60617
-data package. A change a host application needs lands here first, released as `vX.Y.Z` on PyPI, then
-a host application bumps its pin. No code, test or script here imports or names a a host application package.
+Consumers pin an exact PyPI version. A change a consumer needs lands here first, released as `vX.Y.Z` on PyPI, and the consumer then bumps its pin. No file in this repository names an application that uses it (`tests/test_standalone.py`).
 
 ## The spec decides
 
@@ -26,7 +20,7 @@ self-contradictory, do not edit it: implement it as written, record the concern 
 ## The work
 
 The toolkit the spec describes is built (spec sections 4 to 12). Work now arrives as a work
-order from the a host application workflow's orchestrator: a change a a host application package needs, a
+order from the workflow's orchestrator: a change a consumer needs, a
 bug, or a new public function, each recorded in `docs/DECISIONS.md`. Keep the public names of
 spec section 11 exactly as written; a new name gets a decision entry.
 
@@ -56,8 +50,8 @@ spec section 11 exactly as written; a new name gets a decision entry.
   the attribution line your session gives; work on a feature branch from `main`, never commit to
   `main` directly. The orchestrator reviews, merges, pushes and tags the release (`vX.Y.Z`,
   matching `version` in `pyproject.toml`); an implementer does not.
-- Never edit another repo. A change a host application needs because of yours goes in your hand-back.
-- User-facing files (README.md, `docs/`, the package's docs and docstrings) name no user of the toolkit, a host application included. They are complete on their own; the docs site holds everything a user needs (owner 2026-10-07).
+- Never edit another repo. A change a consumer needs because of yours goes in your hand-back.
+- No file here (code, tests, docs, README, DECISIONS, this file) names an application that uses the toolkit. User-facing files are complete on their own; the docs site holds everything a user needs (owner 2026-10-07, 2026-10-22).
 
 ## Done means
 
