@@ -603,7 +603,7 @@ Cost if wrong: a `schema` finding on `standard` in `parse_config` and `validate_
 Decided: every module-level function in a pure module carries `@deal.pure`, checked at import
 time, and `deal` is a runtime dependency of the package, not a dev dependency. No other
 third-party package is added to `src/`; `jsonschema` stays a dev-only dependency of the schema
-agreement test. This carries forward the reasoning of the Schematika v2 monorepo's decision 0008
+agreement test. This carries forward the reasoning of decision 0008 of the monorepo this toolkit came from
 from the interval this package spent as `packages/graphical-symbols` in that workspace, where a
 boundary test enforced `deal` as the package's only allowed third-party import; that test does not
 exist here, so this entry is the record now that the package is its own repository again.
@@ -619,7 +619,7 @@ read and write symbol source and build files as a build-time tool whose output i
 (`build/`, `src/graphical_symbols/bundle.json`-shaped output for a consumer, the gallery). No
 other module reads or writes a file; the pure core takes values and returns values.
 `scripts/fp_purity_gate.py` exempts `build.py` by name, the same way `tests/test_boundaries.py`
-in the Schematika v2 monorepo exempted it while this package lived there as
+in the monorepo this toolkit came from exempted it while this package lived there as
 `packages/graphical-symbols` (that workspace's decision 0009, which also recorded
 `electrical_symbols` reading its packaged `bundle.json` at import -- a fact about that package,
 not this one, and no longer this repository's concern).
@@ -640,7 +640,7 @@ dependency, or a built wheel. `tests/test_guide_package_data.py` proves the reso
 carries the guide's own `<title>` (not a byte count, which would break on every edit to the
 guide's prose and tests the wrong property).
 Why: `electrical-symbols` compares its data byte for byte against this guide's worked examples
-(its own D38, the "verbatim gate"), and until this toolkit left the Schematika v2 monorepo the two
+(its own D38, the "verbatim gate"), and until this toolkit left the monorepo it came from the two
 packages shared one copy through a sibling directory. Now they are two repositories; the toolkit's
 wheel never shipped `docs/`, so the sibling path stopped resolving. Moving the guide under the
 package directory keeps exactly one copy, and it is the toolkit's own, which is the only copy a
@@ -660,7 +660,7 @@ sample texts: the function takes no `texts` parameter at all, so a slot's sample
 reach a fragment, not merely because no fixture happens to exercise it. It applies no transform,
 scale or orientation of its own; the caller places it in its own coordinate system. Exported from
 `graphical_symbols.__init__` alongside `to_svg`.
-Why: `schematika_render` (the Schematika v2 monorepo's render package) assembles a page out of
+Why: a consumer's render package assembles a page out of
 several placed symbols and needs each one as a reusable piece it positions and scales itself, not
 a whole standalone document; the guide (`SYMBOL_INTERFACE.html`) defines only the standalone
 `to_svg` document and is silent on an embeddable fragment.
@@ -716,11 +716,11 @@ documentation site: `README.md` (install, one worked example, the concepts), `do
 `docs/GUIDE.md` serve users). Every public name in `__all__` carries a short Google-style
 docstring. The Python examples of the README and `docs/GUIDE.md` are run by
 `tests/test_readme.py`, so they cannot drift. The docs may name the toolkit's users; the rule
-that nothing names a Schematika package covers code, tests and scripts (designer 2026-10-01).
+that nothing names a consumer package covers code, tests and scripts (designer 2026-10-01).
 The release that carries this is `v0.3.0`; consumers install by exact git tag (`uv add
 "graphical-symbols @ git+https://github.com/OleJBondahl/graphical-symbols@v0.3.0"`). The package
 is not published to PyPI for now.
-Why: the toolkit is consumed by an exact tag already (D38's package data, Schematika's pin), a
+Why: the toolkit is consumed by an exact tag already (D38's package data, a consumer's pin), a
 site or an index would add upkeep with no reader today, and the tests keep the examples true.
 `CLAUDE.md` stays the one home of the agent rules: a draft `AGENTS.md` that restated them
 disagreed with `CLAUDE.md` about `docs/` on the day it was written.
@@ -1395,7 +1395,7 @@ Cost if wrong: additive; delete the module and the export to revert.
 Decided: `symdef.authoring` holds nine names: `build`, `check`, `init`, `lint`, `write_build`,
 `stale_build`, `RULES`, `finding_key` and `LibraryConfig`. They leave `symdef.__all__`; the two
 `__all__` sets are disjoint and `from symdef import build` raises `ImportError`. The rule: a name
-goes to the author door when no consumer-side call takes or returns it. Fransys's import census
+goes to the author door when no consumer-side call takes or returns it. a consumer's import census
 (2026-10-16) found no consumer import of these nine. `LibraryError` stays on the consumer door:
 `load_library` and `load_bundle` raise it. `Finding` and `Severity` stay there too, since they ride
 on `LibraryError.findings`; so does `Status`, a `Symbol` field a consumer building one sets. The
@@ -1430,7 +1430,7 @@ exempt through `lint_allow`) at load, so a library with an off-pitch port does n
 gains `heights`, a read-only map from a name to a capital height in millimetres, read from
 `[font.heights]` and carried by the bundle (written only when not empty). symdef does not interpret
 the names. `measure` is unchanged and takes no `module_mm`.
-Why: Fransys's GRID-HOME needs the pitches and the text heights as library data. A default of 8/4
+Why: a consumer's GRID-HOME needs the pitches and the text heights as library data. A default of 8/4
 with 8 divisions is 1 M and 0.5 M; a library with 4 divisions and no pitch keys gets a standard
 pitch of 2 M.
 Cost if wrong: additive for a library that sets nothing; the loader check is new for one that has
@@ -1506,7 +1506,7 @@ of `Measure.keepout`. As with a slot's box, only the point and side are turned w
 does. An empty or absent `attach` returns exactly what `measure` returned before. The caller builds the attached symbol
 with `table(row, n, "y")`, and tiers as `table(that, tiers, "y")`.
 Why: designer ruling 2026-10-16 (SYMDEF-LAYER Part D Q1 a). The room for a coil's contact table is a drawn size, and
-symdef owns drawn sizes (owner 2026-10-16), so the Fransys layer only copies fields.
+symdef owns drawn sizes (owner 2026-10-16), so the consumer's layer only copies fields.
 Cost if wrong: additive; a new keyword with a default.
 
 
@@ -1618,7 +1618,7 @@ Cost if wrong: a later release adds more; nothing here blocks it.
 ## D106: `repeat` of a symbol with no through path
 
 Decided: `repeat` (and the composite file's `repeat` key) no longer refuses a symbol with no through path. Pole 1's path keeps `through` only if it had it, so a symbol with none gives poles with none. The `schema` finding "repeat needs a part with a through path" (D17) goes.
-Why: designer ruling R153 item 7; the limit sat in symdef (`repeat.py`, `resolve.py`), not only in Fransys.
+Why: designer ruling R153 item 7; the limit sat in symdef (`repeat.py`, `resolve.py`), not only in a consumer.
 Cost if wrong: a repeat of a symbol meant to carry a through path no longer warns; lint `through-missing` still reports a kind = symbol file that lacks one.
 
 ## D107: `pitch` and `positions` for a pattern port
@@ -1651,3 +1651,9 @@ Cost if wrong: a later release adds the rest.
 Decided: `measure` gains keyword-only `stretch`, a mapping from an axis to a body length in module units. Each axis is stretched as `stretch(symbol, axis, length, grid=library.grid)` does, then the symbol is turned and measured, so the result equals measuring the stretched symbol. The order of the axes does not change the result (a test holds both orders). It takes no `offsets`: a caller who must place ports calls `stretch`. No new public name.
 Why: work order STRETCH-MEASURE, designer rulings R450 and R450.3: a consumer that only sizes a stretched symbol should not build a drawn symbol.
 Cost if wrong: an additive keyword; a later `offsets` would be a further option.
+
+## D112: no file names an application that uses the toolkit
+
+Decided: no tracked file (code, tests, docs, README, DECISIONS, CLAUDE.md) names an application that uses symdef; a consumer is "a consumer". `tests/test_standalone.py` lowercases every word of every tracked file and fails on a word whose SHA-256 is in its list of application-name hashes (both names, plural forms; a possessive splits into the name and "s"). The test spells neither name. Git history is unchanged. No package data changes, so no release.
+Why: designer ruling R459 (owner 2026-10-22): the toolkit is shared standalone, and the application keeps its name to itself.
+Cost if wrong: a new application name needs its hash in the test's list.
