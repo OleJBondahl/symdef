@@ -1645,3 +1645,9 @@ Decided: symdef 0.24.0 holds D106 to D109 (R153 items 7, 1, 2, 6) and nothing el
 Why: work order SYMDEF-0-24, R153: the first half is released when ready.
 Also in 0.24.0: lint rule `port-pattern` ignores a node that is only the pattern port itself, the implicit single-port node a built bundle writes, so `symdef check` passes on its reload; a node or path naming it with another port is still refused.
 Cost if wrong: a later release adds the rest.
+
+## D111: `measure` takes a stretch
+
+Decided: `measure` gains keyword-only `stretch`, a mapping from an axis to a body length in module units. Each axis is stretched as `stretch(symbol, axis, length, grid=library.grid)` does, then the symbol is turned and measured, so the result equals measuring the stretched symbol. The order of the axes does not change the result (a test holds both orders). It takes no `offsets`: a caller who must place ports calls `stretch`. No new public name.
+Why: work order STRETCH-MEASURE, designer rulings R450 and R450.3: a consumer that only sizes a stretched symbol should not build a drawn symbol.
+Cost if wrong: an additive keyword; a later `offsets` would be a further option.
