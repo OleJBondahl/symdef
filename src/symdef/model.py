@@ -1,6 +1,6 @@
 """The symbol data model: frozen values, deliberately without validation."""
 
-from collections.abc import Iterator, Mapping
+from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
 from types import MappingProxyType
@@ -241,6 +241,11 @@ class WireStyle:
     style: Style
 
 
+def _frozen_dash(dash: Mapping[str, Sequence[float]]) -> Mapping[str, tuple[float, ...]]:
+    """Return the dash patterns as a read-only mapping of tuples."""
+    return MappingProxyType({name: tuple(pattern) for name, pattern in dash.items()})
+
+
 @dataclass(frozen=True, slots=True)
 class LibraryConfig:
     """The standard-specific settings from `library.toml`.
@@ -248,7 +253,8 @@ class LibraryConfig:
     `required_slots` is `[rules] required_slots`: slot ids every `kind = "symbol"` file carries,
     where `marking.<port>` stands for one slot per port. `wires` is the `[[wire]]` tables. `font` is
     the `[font]` table, or None when the library declares none; `grid` is the `[grid]` table,
-    or today's grid (2.5 mm, 8 divisions) when it declares none. `lines` is the `[lines]` table.
+    or today's grid (2.5 mm, 8 divisions) when it declares none. `lines` is the `[lines]` table and
+    `dash` the `[dash]` table.
     `font_files` is the (regular, bold) paths of the `[font]` files form, relative to the folder
     holding `library.toml`, `font_name` its name and `font_heights` its `heights`; then `font`
     is None until the files are read.
@@ -264,14 +270,16 @@ class LibraryConfig:
     font: FontMetrics | None = None
     grid: Grid = DEFAULT_GRID
     lines: Mapping[Weight, float] = MappingProxyType({})
+    dash: Mapping[str, tuple[float, ...]] = MappingProxyType({})
     font_files: tuple[str, str] | None = None
     font_name: str = ""
     font_heights: Mapping[str, float] = MappingProxyType({})
     font_text_block: str = "cap"
 
     def __post_init__(self) -> None:
-        """Copy `lines` and `font_heights` into read-only mappings."""
+        """Copy `lines`, `dash` and `font_heights` into read-only mappings."""
         object.__setattr__(self, "lines", MappingProxyType(dict(self.lines)))
+        object.__setattr__(self, "dash", _frozen_dash(self.dash))
         object.__setattr__(self, "font_heights", MappingProxyType(dict(self.font_heights)))
 
 
@@ -282,7 +290,7 @@ class Library:
     Iterating yields the symbols sorted by reference number; `len` is their count. `font` is the
     metrics text is measured with, or None, which measures 0.6 em per character; `grid` is the
     drawing grid; `lines` is the stroke width in millimetres of each `Weight`, empty when the
-    library declares none.
+    library declares none; `dash` is the named dash patterns in millimetres, empty when none.
     """
 
     standard: str
@@ -295,10 +303,12 @@ class Library:
     font: FontMetrics | None = None
     grid: Grid = DEFAULT_GRID
     lines: Mapping[Weight, float] = MappingProxyType({})
+    dash: Mapping[str, tuple[float, ...]] = MappingProxyType({})
 
     def __post_init__(self) -> None:
-        """Copy `lines` into a read-only mapping."""
+        """Copy `lines` and `dash` into read-only mappings."""
         object.__setattr__(self, "lines", MappingProxyType(dict(self.lines)))
+        object.__setattr__(self, "dash", _frozen_dash(self.dash))
 
     def with_settings(
         self,
@@ -307,8 +317,11 @@ class Library:
         font: tuple[bytes, bytes] | None = None,
         heights: Mapping[str, float] | None = None,
         lines: Mapping[Weight, float] | None = None,
+        dash: Mapping[str, Sequence[float]] | None = None,
     ) -> Library:
         """Return this library with a validated replace of its grid module, font, heights, lines.
+
+        `dash` replaces the whole `[dash]` table, in millimetres.
 
         See `symdef.settings.with_settings`; `font` is the bytes of a regular and a bold TTF.
 
@@ -317,7 +330,9 @@ class Library:
         """
         from symdef.settings import with_settings  # deferred: settings imports this module
 
-        return with_settings(self, module_mm=module_mm, font=font, heights=heights, lines=lines)
+        return with_settings(
+            self, module_mm=module_mm, font=font, heights=heights, lines=lines, dash=dash
+        )
 
     def get(self, number: str) -> Symbol:
         """Return the symbol with this reference number.

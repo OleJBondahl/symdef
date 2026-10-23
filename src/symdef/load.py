@@ -10,13 +10,15 @@ keeps all later arithmetic total.
 import json
 import re
 import tomllib
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import replace
 from types import MappingProxyType
 from typing import Any
 
+from symdef.dash import dash_problems, pattern_problem
 from symdef.font import FontMetrics
 from symdef.geometry import (
+    TEXT_WEIGHTS,
     Arc,
     Box,
     Circle,
@@ -637,7 +639,8 @@ def _advances(value: object, location: str) -> list[Finding]:
 
 
 _ADVANCE_TABLES = _table(
-    {w.name.lower(): _advances for w in Weight}, required=tuple(w.name.lower() for w in Weight)
+    {w.name.lower(): _advances for w in TEXT_WEIGHTS},
+    required=tuple(w.name.lower() for w in TEXT_WEIGHTS),
 )
 _TEXT_BLOCK = _enum("cap", "grid")
 _FONT_FIELDS = ("units_per_em", "cap_height", "ascent", "descent", "default_advance")
@@ -791,6 +794,29 @@ def lines_from_data(data: Mapping[str, Any]) -> Mapping[Weight, float]:
     return MappingProxyType({Weight[key.upper()]: width for key, width in data.items()})
 
 
+def _dash_table(value: object, location: str) -> list[Finding]:
+    """Check the `dash` table: for each name an even count of lengths above zero, two or four."""
+    found = _map_of(_array(_positive))(value, location)
+    if isinstance(value, dict):
+        for name, pattern in value.items():
+            problem = pattern_problem(name, pattern) if isinstance(pattern, list) else None
+            if problem:
+                found.append(_finding(_child(location, name), problem))
+    return found
+
+
+def dash_from_data(data: Mapping[str, Any]) -> Mapping[str, tuple[float, ...]]:
+    """Build the dash patterns of a checked `[dash]` table or a bundle's `dash` object."""
+    return MappingProxyType({name: tuple(pattern) for name, pattern in data.items()})
+
+
+def dash_findings(
+    symbols: Iterable[Symbol], wires: Iterable[WireStyle], dash: Mapping[str, Any]
+) -> list[Finding]:
+    """Return a finding at `/dash` for each style in use whose pattern the table lacks."""
+    return [_finding("/dash", m) for m in dash_problems(symbols, wires, dash)]
+
+
 _BUNDLE = _table(
     {
         "schema": _schema_version,
@@ -800,6 +826,7 @@ _BUNDLE = _table(
         "font": _FONT,
         "grid": _grid_table,
         "lines": _lines_table,
+        "dash": _dash_table,
     },
     required=("schema", "standard", "symbols"),
 )
@@ -836,6 +863,10 @@ def validate_bundle(data: object) -> tuple[Finding, ...]:
                         f"must equal the symbol's key {_short(key)!r}, got {_short(number)!r}",
                     )
                 )
+        if not found:
+            symbols = [symbol_from_data(s) for s in data["symbols"].values()]
+            wires = _wires_from_data(data.get("wires", []))
+            found = dash_findings(symbols, wires, data.get("dash", {}))
     return tuple(found)
 
 
@@ -861,6 +892,7 @@ def library_from_bundle(data: Mapping[str, Any]) -> Library:
         font=font_from_data(data["font"]) if "font" in data else None,
         grid=grid_from_data(data["grid"]) if "grid" in data else DEFAULT_GRID,
         lines=lines_from_data(data.get("lines", {})),
+        dash=dash_from_data(data.get("dash", {})),
     )
 
 
@@ -870,7 +902,7 @@ _RULES = _table({"required_slots": _array(_string)})
 
 
 def _tables_problems(data: Mapping[str, Any]) -> list[Finding]:
-    """Check the optional `[vocabulary]`, `[rules]`, `[[wire]]` `[font]`, `[grid]` and `[lines]`."""
+    """Check the optional tables: vocabulary, rules, wire, font, grid, lines and dash."""
     found: list[Finding] = []
     for key, check in (
         ("vocabulary", _VOCABULARY),
@@ -879,6 +911,7 @@ def _tables_problems(data: Mapping[str, Any]) -> list[Finding]:
         ("font", _font_table),
         ("grid", _grid_table),
         ("lines", _lines_table),
+        ("dash", _dash_table),
     ):
         if key in data:
             found += check(data[key], _child("", key))
@@ -901,9 +934,12 @@ def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
     The optional `[grid]` table (`module_mm`, `divisions_per_module`, a power of two, and the wire
     pitches `wire_pitch` and `wire_pitch_fine` in divisions) is the drawing grid; without it the
     grid is 2.5 mm, 8 divisions and pitches 8 and 4. The optional `[lines]` table gives the stroke
-    width in millimetres, a number above zero, of each weight name (`normal`, `thick`). Once it is
-    present, every weight a `[[wire]]` uses needs a width; an absent table is empty and checks
-    nothing.
+    width in millimetres, a number above zero, of each weight name (`normal`, `thick`, `rule`).
+    Once it is present, every weight a `[[wire]]` uses needs a width; an absent table is empty and
+    checks nothing.
+    The optional `[dash]` table maps a name to a dash pattern in millimetres, an even count of
+    lengths above zero; `dashed` has two and `dash_dot` four. Which of the two a library needs
+    is checked when its symbols are known.
 
     Args:
         text: The file's TOML text.
@@ -954,5 +990,6 @@ def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
         font_from_data(data["font"]) if _literal_font(data) else None,
         grid_from_data(data["grid"]) if "grid" in data else DEFAULT_GRID,
         lines_from_data(data.get("lines", {})),
+        dash_from_data(data.get("dash", {})),
         *_font_files(data),
     ), ()

@@ -8,7 +8,7 @@ from fontTools.ttLib import TTFont, TTLibError
 
 from symdef.errors import InvalidValueError
 from symdef.font import FontMetrics
-from symdef.geometry import Weight
+from symdef.geometry import TEXT_WEIGHTS
 
 # ASCII, Latin-1 (without the C1 controls), and the dashes, ellipsis, euro and ohm signs
 CODEPOINTS = (
@@ -97,6 +97,6 @@ def measure_font(regular: bytes, bold: bytes) -> FontMetrics:
         cap_height=_bounds(faces["regular"], "H", "regular")[1],
         ascent=cast("Any", faces["regular"]["OS/2"]).sTypoAscender,
         descent=-_bounds(faces["regular"], "p", "regular")[0],
-        advances={Weight.NORMAL: normal, Weight.THICK: thick},
+        advances=dict(zip(TEXT_WEIGHTS, (normal, thick), strict=True)),
         default_advance=max(normal.values()),
     )

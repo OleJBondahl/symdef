@@ -12,6 +12,7 @@ from roundtrip import normalised, round_trips
 
 from symdef.files import load_library
 from symdef.geometry import (
+    TEXT_WEIGHTS,
     Arc,
     Circle,
     Direction,
@@ -279,9 +280,9 @@ class TestSymbolToData:
 
 
 class TestBundleToData:
-    def test_it_has_exactly_the_three_keys_of_the_guide(self):
+    def test_it_has_the_three_keys_of_the_guide_and_the_dash_table_of_its_library(self):
         data = bundle_to_data(LIBRARY)
-        assert set(data) == {"schema", "standard", "symbols"}
+        assert set(data) == {"schema", "standard", "symbols", "dash"}
         assert data["schema"] == 1
         assert data["standard"] == "IEC 60617"
 
@@ -372,7 +373,7 @@ _radii = st.integers(1, 32).map(lambda n: n / 8)
 _angles = st.integers(0, 71).map(lambda n: n * 5.0)
 _ids = st.text("abc12", min_size=1, max_size=3)
 _names = st.text(max_size=6)
-_weights = st.sampled_from(Weight)
+_weights = st.sampled_from(TEXT_WEIGHTS)  # a symbol element never has Weight.RULE
 _styles = st.sampled_from(Style)
 _fills = st.sampled_from([Fill.NONE, Fill.SOLID])
 _directions = st.sampled_from(Direction)

@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from types import MappingProxyType
 
 from symdef.errors import InvalidValueError
-from symdef.geometry import Weight
+from symdef.geometry import TEXT_WEIGHTS, Weight
 
 # What a text measures when a library declares no font: 0.6 em per character, cap height 0.72 em.
 DEFAULT_ADVANCE_EM = 0.6
@@ -22,7 +22,8 @@ class FontMetrics:
         cap_height: Height of a capital letter above the baseline, in font units.
         ascent: Height of the tallest glyph above the baseline, in font units.
         descent: Depth of the lowest glyph below the baseline, in font units.
-        advances: One table per `Weight`: the advance width of each character, in font units.
+        advances: One table per text weight (`TEXT_WEIGHTS`): the advance of each character, in
+            font units.
         default_advance: The advance of a character a table does not list.
         heights: Capital heights in millimetres by name, such as `smallest` or `body`. The
             names are the library's own; symdef does not interpret them. Empty when none.
@@ -43,14 +44,14 @@ class FontMetrics:
     text_block: str = "cap"
 
     def __post_init__(self) -> None:
-        """Copy `advances` and `heights` into read-only mappings; every `Weight` needs a table."""
+        """Copy `advances` and `heights` into read-only mappings; each text weight needs a table."""
         if not self.family:
             object.__setattr__(self, "family", self.name)
-        missing = [w.name for w in Weight if w not in self.advances]
+        missing = [w.name for w in TEXT_WEIGHTS if w not in self.advances]
         if missing:
             msg = f"font {self.name!r} has no advance table for {', '.join(missing)}; add one each"
             raise InvalidValueError(msg)
-        tables = {w: MappingProxyType(dict(self.advances[w])) for w in Weight}
+        tables = {w: MappingProxyType(dict(self.advances[w])) for w in TEXT_WEIGHTS}
         object.__setattr__(self, "advances", MappingProxyType(tables))
         object.__setattr__(self, "heights", MappingProxyType(dict(self.heights)))
 

@@ -9,3 +9,7 @@ links = ["mechanical_link"]
 
 [rules]
 required_slots = ["tag", "marking.<port>"]
+
+[dash]
+dashed = [1.25, 0.625]
+dash_dot = [2.5, 0.625, 0.15625, 0.625]

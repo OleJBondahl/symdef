@@ -11,6 +11,7 @@ from symdef.fontmeasure import measure_font
 from symdef.lint.registry import rule_finding
 from symdef.lint.textbody import text_outside_body
 from symdef.load import (
+    dash_findings,
     is_file_stem,
     library_from_bundle,
     parse_config,
@@ -116,6 +117,9 @@ def load_library(root: Path) -> Library:
     problems += font_problems + tuple(f for stem in sorted(per_file) for f in per_file[stem])
     if problems:
         raise LibraryError(problems)
+    missing = dash_findings(resolution.symbols.values(), config.wires, config.dash)
+    if missing:
+        raise LibraryError(_named("library.toml", tuple(missing)))
     library = Library(
         config.standard,
         config.title,
@@ -127,6 +131,7 @@ def load_library(root: Path) -> Library:
         font,
         config.grid,
         config.lines,
+        config.dash,
     )
     if font is not None:
         overflow = tuple(

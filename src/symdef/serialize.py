@@ -12,7 +12,18 @@ from typing import Any
 from symdef.boxes import body_box, keepout_box
 from symdef.font import FontMetrics
 from symdef.gallery import readme, sample_texts
-from symdef.geometry import Arc, Box, Circle, Element, Line, Point, Polyline, Text, Weight
+from symdef.geometry import (
+    TEXT_WEIGHTS,
+    Arc,
+    Box,
+    Circle,
+    Element,
+    Line,
+    Point,
+    Polyline,
+    Text,
+    Weight,
+)
 from symdef.model import Library, Port, Slot, Stretch, Symbol, nodes_of
 from symdef.svg import to_svg
 from symdef.units import DEFAULT_GRID, Grid
@@ -203,7 +214,7 @@ def _font(font: FontMetrics) -> dict[str, Any]:
         "ascent": font.ascent,
         "descent": font.descent,
         "default_advance": font.default_advance,
-        "advances": {w.name.lower(): dict(sorted(font.advances[w].items())) for w in Weight},
+        "advances": {w.name.lower(): dict(sorted(font.advances[w].items())) for w in TEXT_WEIGHTS},
     }
     if font.heights:
         data["heights"] = dict(sorted(font.heights.items()))
@@ -232,7 +243,8 @@ def bundle_to_data(library: Library) -> dict[str, Any]:
     (the font's fields and an `advances` object); a grid other than the default adds the `grid`
     object (`module_mm`, `divisions_per_module`, the two wire pitches, and `stretch_split` when
     "whole"); one with line widths adds the `lines` object (millimetres by weight name); one with
-    none of these has none of the keys.
+    dash patterns adds the `dash` object (millimetres by name); one with none of these has none
+    of the keys.
     """
     data: dict[str, Any] = {
         "schema": _SCHEMA_VERSION,
@@ -252,6 +264,8 @@ def bundle_to_data(library: Library) -> dict[str, Any]:
         data["grid"] = _grid(library.grid)
     if library.lines:
         data["lines"] = {w.name.lower(): library.lines[w] for w in Weight if w in library.lines}
+    if library.dash:
+        data["dash"] = {name: list(library.dash[name]) for name in sorted(library.dash)}
     return data
 
 
