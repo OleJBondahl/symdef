@@ -696,6 +696,48 @@ Every error symdef raises derives from `SymdefError` (`InvalidValueError`, `Unkn
 `UnknownSymbolError`, `LibraryError`). None subclasses `ValueError`, `KeyError` or `OSError`, so catch
 `SymdefError`. See [the changelog](CHANGELOG.md) for what moved in each release.
 
+## The text root of a tag slot
+
+`tag_roots(symbol, orientation, library, *, gap, marking_height)` returns four `TextRoot` values, in
+whole divisions of `library.grid`, in the frame `measure` uses (y down). The order is top-left,
+bottom-left, top-right, bottom-right. A `TextRoot(x, y, h, v)` is a point where a text starts: `h` is
+its horizontal alignment there (`"right"` means the text extends to the left of the point) and `v`
+its vertical one (`"baseline"`, or `"top"` for a text that hangs below the point).
+
+The top-left root is the text root of the symbol's `tag` slot. When a port leaves the top edge of the
+body, the point is `gap` to the left of the leftmost such port and level with the baseline on which
+symdef sets a text in that port's `marking.<port>` slot; if that point lies inside the body, it is
+lifted to the body's top edge. When no port leaves the top edge, the point is the body's left edge,
+`gap` above its top edge. When the `tag` slot lies wholly inside the body, all four roots are that
+slot's start edge and baseline. The other three roots reflect the first through the body's centre,
+left-right, top-bottom or both, and each reflection swaps `"right"` with `"left"` or `"baseline"` with
+`"top"`, so a reflected text hangs away from the body as the original does.
+
+`gap` is in pole units: it is multiplied by `pole_pitch(symbol)` and by `library.grid.divisions_per_module`,
+and rounded to the nearest whole division, halves up. `marking_height` is the height `slot_text` takes;
+it sets the baseline of a `marking.<port>` slot, and of a `tag` slot inside the body. A symbol with no
+`tag` slot raises `UnknownNameError`; a negative `gap`, or a `marking_height` not above zero, raises
+`InvalidValueError`.
+
+```python
+from symdef import (
+    Direction, Grid, Library, Line, Orientation, Point, Port, Reference, Slot, Status, Symbol,
+    SymbolKind, TextRoot, tag_roots,
+)
+
+corners = [Point(-2, 4), Point(2, 4), Point(2, 12), Point(-2, 12)]
+frame = tuple(Line(a, b) for a, b in zip(corners, [*corners[1:], corners[0]]))
+marked = Symbol(
+    "marked", SymbolKind.SYMBOL, Status.UNVERIFIED, Reference("X", "1"), frame,
+    ports=(Port("1", Point(0, 4), Direction.N),),
+    slots=(Slot("tag", Point(3, 8), Direction.E, (1, 1)), Slot("marking.1", Point(0, 3), Direction.N, (1, 1))),
+)
+whole = Library("S", "S", "", {}, grid=Grid(divisions_per_module=1, wire_pitch=1, wire_pitch_fine=1))
+roots = tag_roots(marked, Orientation.R0, whole, gap=0.5, marking_height=2)
+assert roots[0] == TextRoot(-2, 3, "right", "baseline")
+assert roots[3] == TextRoot(2, 13, "left", "top")
+```
+
 ## Turning and small accessors
 
 `orient_point`, `orient_direction` and `orient_box(box, orientation)` turn a point, a direction and

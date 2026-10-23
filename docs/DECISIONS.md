@@ -1657,3 +1657,17 @@ Cost if wrong: an additive keyword; a later `offsets` would be a further option.
 Decided: no tracked file (code, tests, docs, README, DECISIONS, CLAUDE.md) names an application that uses symdef; a consumer is "a consumer". `tests/test_standalone.py` lowercases every word of every tracked file and fails on a word whose SHA-256 is in its list of application-name hashes (both names, plural forms; a possessive splits into the name and "s"). The test spells neither name. Git history is unchanged. No package data changes, so no release.
 Why: designer ruling R459 (owner 2026-10-22): the toolkit is shared standalone, and the application keeps its name to itself.
 Cost if wrong: a new application name needs its hash in the test's list.
+
+## D113: `tag_roots` and `TextRoot`
+
+Decided: new `tag_roots(symbol, orientation, library, *, gap, marking_height)` returns four `TextRoot(x, y, h, v)` (top-left, bottom-left, top-right, bottom-right), in whole divisions of `library.grid`, in the frame `measure` uses; it lives in `tagroots.py`. Gaps in the spec, settled:
+- Signature: the turn is an `Orientation` and the grid and font come from `library`, as in `measure`.
+- `marking_height` is the height `slot_text` takes, in its unit. symdef still does not interpret height names (D73, D93).
+- "Top edge" means a port whose turned direction is N; the leftmost has the least x. The root's y is the baseline `slot_text` gives its `marking.<port>` slot (the one function, so the two cannot drift), rounded to the nearest division, halves up. A turned marking slot gives the y of its anchor point.
+- The gap in divisions is `floor(gap * pole_pitch(symbol) * divisions_per_module + 0.5)`, halves up (a test pins 2.5 to 3).
+- The clamp: if the point (root x, baseline) has `body.min.x <= x <= body.max.x` and `body.min.y < y < body.max.y`, y is the body's top edge.
+- A top port with no `marking.<port>` slot gives y at the body's top edge, `h = "right"`.
+- A `tag` slot (its measured box) wholly inside the body gives its own root in all four entries: x at its box's start edge (the max x for side W, with `h = "right"`; the min x otherwise, with `h = "left"`) and y at the baseline `slot_text` gives it at `marking_height`, `v = "baseline"`.
+- No `tag` slot raises `UnknownNameError` naming the symbol; a negative `gap` or a `marking_height` not above zero raises `InvalidValueError`.
+Why: designer rulings R464 and its amendments of 2026-10-23: a consumer needs the root of a tag as data of the symbol, so it does no arithmetic on pins and slots itself.
+Cost if wrong: additive; a later keyword can change a rounding or the tag-slot rule, which moves the roots a consumer reads.
