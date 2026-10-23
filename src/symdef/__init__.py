@@ -55,6 +55,7 @@ from symdef.model import (
 )
 from symdef.orient import orient, orient_box, orient_direction, orient_point, translate
 from symdef.repeat import pole_pitch, pole_port, repeat
+from symdef.shapes_mm import line_mm, outline_mm, rect_mm
 from symdef.slottext import TextPlacement, slot_lines, slot_text
 from symdef.stretch import stretch
 from symdef.stretch_ports import stretch_to_ports
@@ -131,6 +132,7 @@ __all__ = [
     "from_divisions",
     "keepout_box",
     "leads",
+    "line_mm",
     "load_bundle",
     "load_library",
     "measure",
@@ -142,9 +144,11 @@ __all__ = [
     "orient_box",
     "orient_direction",
     "orient_point",
+    "outline_mm",
     "pattern_ports",
     "pole_pitch",
     "pole_port",
+    "rect_mm",
     "repeat",
     "slot_box",
     "slot_lines",

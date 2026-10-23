@@ -10,8 +10,23 @@ from symdef.slottext import Anchor, TextPlacement
 from symdef.svg import _num, check_colour, slot_text_tag
 
 type Corner = Literal["NW", "NE", "SW", "SE"]
+type At = Literal["baseline", "top", "centre"]
 
 _ANCHOR: dict[str, Anchor] = {"W": "start", "E": "end"}
+
+
+def _baseline_shift(at: At, font: FontMetrics | None, height_mm: float) -> float:
+    """Return how far the baseline sits from the point for `at`, across the line (D117)."""
+    if at == "baseline":
+        return 0.0
+    if at not in ("top", "centre"):
+        msg = f"text_tag: at {at!r} is not valid; use 'baseline', 'top' or 'centre'"
+        raise InvalidValueError(msg)
+    if font is None:
+        msg = f"text_tag: at={at!r} needs the font's ascent; pass font= or use at='baseline'"
+        raise InvalidValueError(msg)
+    ascent = font.ascent / font.units_per_em * height_mm
+    return ascent if at == "top" else ascent - height_mm / 2
 
 
 def text_tag(  # noqa: PLR0913 - one free text tag is these things
@@ -25,18 +40,31 @@ def text_tag(  # noqa: PLR0913 - one free text tag is these things
     weight: Weight = Weight.NORMAL,
     tint: str | None = None,
     muted: str | None = None,
+    classes: str = "",
+    at: At = "baseline",
+    font: FontMetrics | None = None,
 ) -> str:
-    """Return one SVG `<text>` fragment in millimetres, anchored at the baseline point `point`.
+    """Return one SVG `<text>` fragment in millimetres, anchored at `point`.
 
     `height_mm` is the font size. `anchor` says which end of the text sits on `point`. `turn`
-    rotates the text -90 degrees about `point`. `Weight.THICK` is `font-weight="bold"`. The fill
-    is `muted` when given, else `tint`, else black; each is `#rgb`, `#rrggbb` or a colour name.
-    `font_family` is escaped here for the attribute. Raises `InvalidValueError` for a bad colour.
+    rotates the text -90 degrees about the baseline point. `Weight.THICK` is `font-weight="bold"`.
+    The fill is `muted` when given, else `tint`, else black; each is `#rgb`, `#rrggbb` or a colour
+    name. `font_family` is escaped here for the attribute. `classes` is the element's `class`,
+    left out when empty.
+
+    `at` says what `point` is across the line. `baseline` (the default) is the baseline. `top` is
+    the top of the em box, so the baseline lies `ascent` below it (right of it when turned).
+    `centre` is the middle of the em box, so the baseline lies `ascent - height_mm / 2` below
+    it; with `turn` the text then reads upward centred on `point`. `top` and `centre` take
+    `ascent` from `font`. Raises `InvalidValueError` for a bad colour, an `at` that is not one of
+    the three, and `top` or `centre` with no `font`.
     """
     check_colour("tint", tint)
     check_colour("muted", muted)
+    shift = _baseline_shift(at, font, height_mm)
+    x, y = (point.x + shift, point.y) if turn else (point.x, point.y + shift)
     return slot_text_tag(
-        (_num(point.x), _num(point.y)),
+        (_num(x), _num(y)),
         _num(height_mm),
         anchor=anchor,
         fill=muted or tint or "#000",
@@ -44,6 +72,7 @@ def text_tag(  # noqa: PLR0913 - one free text tag is these things
         content=content,
         turn=turn,
         bold=weight is Weight.THICK,
+        classes=classes,
     )
 
 
