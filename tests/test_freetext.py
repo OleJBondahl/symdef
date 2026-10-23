@@ -172,4 +172,11 @@ def test_top_and_centre_need_a_font_and_an_unknown_at_raises():
         ):
             text_tag("K1", Point(0, 0), 4, anchor="start", font_family=FAMILY, at=at)
     with pytest.raises(InvalidValueError, match="at 'bottom' is not valid"):
-        text_tag("K1", Point(0, 0), 4, anchor="start", font_family=FAMILY, at="bottom")  # type: ignore[arg-type]
+        text_tag(
+            "K1",
+            Point(0, 0),
+            4,
+            anchor="start",
+            font_family=FAMILY,
+            at="bottom",  # ty: ignore[invalid-argument-type] - a bad value
+        )

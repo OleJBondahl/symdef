@@ -634,6 +634,61 @@ tag = text_tag("K1", placed.point, 2.5, anchor=placed.anchor, font_family="Sans"
 assert tag.startswith('<text x="30" y="24" font-size="2.5" text-anchor="end"')
 ```
 
+`text_tag` also takes `classes` (the element's `class`, left out when empty) and `at`, which says
+what `point` is across the line: `"baseline"` (the default), `"top"` (the top of the em box, so the
+baseline lies `ascent` below it, or to the right of it when `turn` is set) or `"centre"` (the middle
+of the em box; with `turn` the text reads upward centred on the point). `top` and `centre` take the
+ascent from `font=`, a `FontMetrics`, and raise `InvalidValueError` without one (D117).
+
+## Bare shapes in millimetres
+
+`rect_mm(box, *, library, weight, stroke, fill, dash=None, classes="")`,
+`outline_mm(box, *, library, weight, stroke, dash=None, classes="")` and
+`line_mm(a, b, *, library, weight, stroke, dash=None, classes="")` each return one SVG element
+(`outline_mm`, when dashed, four) in millimetres on an absolute sheet. `box` is `(x, y, width,
+height)`. The width is `library.lines[weight]` and has no default; `dash` is a key of `library.dash`
+or `None`; `stroke` and `fill` are written as you give them, each `#rgb`, `#rrggbb` or a colour
+name, and the shapes read no stylesheet. A dashed outline is four lines drawn left to right and top
+down (top, bottom, left, right), so the dashes of facing edges start at the same corner. A
+polyline wire is `wire(library, style_id, points)` through `to_fragment_mm`, as above. Every number
+is printed with at most four decimals (half-even), by symdef alone (D117, D118). The `<svg>` root
+and its margin are yours to write.
+
+```python
+import xml.etree.ElementTree as ET
+
+from dataclasses import replace
+
+from symdef import Point, Style, Weight, WireStyle, load_library, line_mm, outline_mm, text_tag, to_fragment_mm, wire
+
+regular = (fonts / "DejaVuSansCondensed.ttf").read_bytes()
+bold = (fonts / "DejaVuSansCondensed-Bold.ttf").read_bytes()
+shapes = replace(
+    load_library(root).with_settings(
+        lines={Weight.NORMAL: 0.25, Weight.THICK: 0.5, Weight.RULE: 0.18},
+        dash={"dashed": [1.25, 0.625], "dash_dot": [2.5, 0.625, 0.15625, 0.625], "long": [4, 1]},
+        font=(regular, bold),
+    ),
+    wires=(WireStyle("core", Weight.NORMAL, Style.SOLID),),
+)
+body = outline_mm((0, 0, 40, 20), library=shapes, weight=Weight.NORMAL, stroke="#000", dash="long")
+body += line_mm((0, 8), (40, 8), library=shapes, weight=Weight.THICK, stroke="#000")
+body += text_tag(
+    "K1", Point(2, 1), 3.4, anchor="start", font_family="Sans", at="top", font=shapes.font
+)
+body += text_tag(
+    "UP", Point(38, 14), 3.4, anchor="middle", font_family="Sans", turn=True, at="centre",
+    font=shapes.font, classes="label",
+)
+body += to_fragment_mm(
+    wire(shapes, "core", [(1, 12), (6, 12), (6, 18)]), module_mm=1.0, font_family="Sans",
+    font_mm=3.4, cap_ratio=0.72, library=shapes,
+)
+sheet = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="-0.125 -0.125 40.25 20.25">{body}</svg>'
+assert len(ET.fromstring(sheet).findall(".//{*}line")) == 5
+assert 'stroke-dasharray="4 1"' in sheet and 'stroke-width="0.5"' in sheet
+```
+
 ## A consumer's font, grid and line widths
 
 `[font]` may name the font files instead of listing metrics; `symdef build` measures them into the
