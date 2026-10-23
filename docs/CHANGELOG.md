@@ -2,6 +2,13 @@
 
 What changed in the public surface of each release: a name added, removed or moved, and a type that widened. Every change to `surface.toml` has a line here. The reasons are in [the decisions](DECISIONS.md).
 
+## 0.26.0
+
+- Added: `Weight.RULE` (0.072 module, 0.18 mm at the default module) and the `[lines] rule` key; a wire style may have weight `rule`, a symbol element may not (D115).
+- Added: the `[dash]` table and `Library.dash`, `LibraryConfig.dash`: named dash patterns in mm. `dashed` (two lengths) and `dash_dot` (four) are required by a library that uses that style; the load fails naming the key. The bundle gains an optional `dash` object (D115).
+- Added: `Library.with_settings(dash=)`, which replaces the whole table (D115).
+- Added: `to_fragment_mm(..., library=None)`; `weights_mm` and `dash_mm` become optional and default to `library.lines` and `library.dash` (D116).
+
 ## 0.25.0
 
 - Added: `tag_roots(symbol, orientation, library, *, gap, marking_height)` and `TextRoot(x, y, h, v)`: the text root of a symbol's tag slot and its three reflections through the body centre, in whole divisions of the library's grid (D113).

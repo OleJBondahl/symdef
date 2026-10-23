@@ -227,6 +227,23 @@ transform. Coordinates and radii are multiplied by `module_mm`. Stroke widths co
 millimetres. Use it when a drawing must show each size exactly as given. `to_svg` and
 `to_fragment` keep their output.
 
+Pass `library=` and leave `weights_mm` and `dash_mm` out, and the widths come from `library.lines`
+and the dashes from `library.dash`, so one `with_settings` call changes every line drawn (D116):
+
+```python
+from symdef import Weight, load_library, to_fragment_mm
+
+library = load_library(root)
+thin = library.with_settings(lines={Weight.NORMAL: 0.13, Weight.THICK: 0.26, Weight.RULE: 0.1})
+svg = to_fragment_mm(
+    thin.get("S00227"), module_mm=2.5, font_family="Inter", font_mm=2.0, cap_ratio=0.72, library=thin
+)
+assert 'stroke-width="0.13"' in svg
+```
+
+A width or pattern you pass wins over the library's. `to_fragment` and `to_svg` keep their fixed
+weights.
+
 ## Declaring the body
 
 A symbol's body is the box its elements span, so a frame drawn as a polyline sets it. A symbol that
@@ -622,7 +639,9 @@ assert tag.startswith('<text x="30" y="24" font-size="2.5" text-anchor="end"')
 `[font]` may name the font files instead of listing metrics; `symdef build` measures them into the
 bundle. `files` are paths relative to `library.toml`. No TTF holds the text sizes, so `heights`,
 the capital heights in millimetres by name, are written beside `files`. `[lines]` gives each weight a width in
-millimetres, and a `[[wire]]` weight needs one.
+millimetres (`normal`, `thick` and `rule`), and a `[[wire]]` weight needs one. `[dash]` names dash patterns in
+millimetres. A library that uses the `dashed` style needs `dashed = [dash, gap]`, and one that uses
+`dash_dot` needs `dash_dot = [dash, gap, dot, gap]`; any other name is data you read yourself.
 
 ```toml
 [font]
@@ -633,10 +652,15 @@ heights = { smallest = 1.8, body = 2.5, heading = 3.5, large = 5.0 }
 [lines]
 normal = 0.25
 thick = 0.5
+rule = 0.18
+
+[dash]
+dashed = [1.25, 0.625]
+dash_dot = [2.5, 0.625, 0.15625, 0.625]
 ```
 
 `measure_font(regular, bold)` does the same on bytes, and `Library.with_settings` returns a library
-with a new module, font, text heights or line widths. It checks each value, then runs the check
+with a new module, font, text heights, line widths or dash patterns. It checks each value, then runs the check
 `text-outside-body` over every symbol (a fixed text anchored in the body must fit inside it, measured with the font) and raises `InvalidValueError` naming a hit, as `load_library` does for the library's own font. `fonts` below is the
 folder that holds the two files.
 
