@@ -588,7 +588,7 @@ body = 2.5
 
 With no `[font]`, `Library.font` is `None` and a text measures 0.6 em per character and a capital
 0.72 em tall, as before. `text_width(font, text, height, weight=Weight.NORMAL)` is the width of a
-string; `body_box(symbol, font)`, `keepout_box(symbol, font)` and `slot_box(slot, text, height,
+string; `em_height(font, cap)` is the text height whose capital is `cap` tall, so a drawing stated in capital heights converts once, here; `body_box(symbol, font)`, `keepout_box(symbol, font)` and `slot_box(slot, text, height,
 font, grid)` measure with it. `slot_text(slot, text, height, font, grid)` returns a `TextPlacement(point, anchor,
 turned)`: where the string sits for the slot's side.
 

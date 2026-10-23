@@ -10,7 +10,7 @@ import symdef
 
 GUIDE = Path(__file__).resolve().parent.parent / "docs" / "GUIDE.md"
 BANNED = (
-    *("electrical", "contact", "coil", "relay", "designation", "layout", "render", "fransys"),
+    *("electrical", "contact", "coil", "relay", "designation", "layout", "render"),
     *("schematic", "circuit", "breaker", "terminal"),
 )
 

@@ -1671,3 +1671,9 @@ Decided: new `tag_roots(symbol, orientation, library, *, gap, marking_height)` r
 - No `tag` slot raises `UnknownNameError` naming the symbol; a negative `gap` or a `marking_height` not above zero raises `InvalidValueError`.
 Why: designer rulings R464 and its amendments of 2026-10-23: a consumer needs the root of a tag as data of the symbol, so it does no arithmetic on pins and slots itself.
 Cost if wrong: additive; a later keyword can change a rounding or the tag-slot rule, which moves the roots a consumer reads.
+
+## D114: `em_height`, the inverse of the capital height
+
+Decided: new top-level `em_height(font, cap) -> float` in `font.py`, beside `cap_height`: the text height (em size) whose capital is `cap` tall, in the same unit; `cap * units_per_em / font.cap_height`, or `cap / 0.72` with no font. `cap_height(font, em_height(font, c)) == c` within rounding. It rides 0.25.0; the version stays.
+Why: designer ruling: the conversion from capital height to em size happens once, in symdef's font measure, never in a consumer.
+Cost if wrong: additive; a font with `cap_height` 0 cannot occur (a `[font]` table requires a positive one).
