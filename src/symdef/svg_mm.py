@@ -19,7 +19,7 @@ from symdef.geometry import (
     arc_point,
     arc_sweep,
 )
-from symdef.model import Symbol
+from symdef.model import Library, Symbol
 from symdef.slottext import stack_shifts
 from symdef.svg import (
     _FULL_TURN,
@@ -41,8 +41,8 @@ class _Mm(NamedTuple):
 
     module: float
     weights: Mapping[Weight, float]
-    dash: tuple[float, float]
-    dash_dot: tuple[float, float, float, float] | None
+    dash: tuple[float, ...] | None
+    dash_dot: tuple[float, ...] | None
     family: str
     font: float
     cap_ratio: float
@@ -56,7 +56,10 @@ class _Mm(NamedTuple):
         """Return the stroke width of a weight in mm; a weight the caller left out raises."""
         if weight not in self.weights:
             have = ", ".join(w.name for w in self.weights)
-            msg = f"weights_mm has no width for {weight.name}; it has {have or 'none'}; add it"
+            msg = (
+                f"no width for {weight.name}; it has {have or 'none'}; "
+                "add it to weights_mm or pass a library with it in [lines]"
+            )
             raise UnknownNameError(msg)
         return _num(self.weights[weight])
 
@@ -91,10 +94,18 @@ class _Mm(NamedTuple):
             return f' stroke-dasharray="{normal} {normal}"'
         if style is Style.DASH_DOT:
             if self.dash_dot is None:
-                message = "dash_dot_mm is required to draw a dash_dot element"
+                message = (
+                    "dash_dot_mm is required to draw a dash_dot element; "
+                    "pass it or a library with a dash_dot pattern in [dash]"
+                )
                 raise InvalidValueError(message)
             return f' stroke-dasharray="{" ".join(_num(n) for n in self.dash_dot)}"'
         if style is Style.DASHED:
+            if self.dash is None:
+                message = (
+                    "no dash pattern for dashed; pass dash_mm or a library with dashed in [dash]"
+                )
+                raise UnknownNameError(message)
             return f' stroke-dasharray="{_num(self.dash[0])} {_num(self.dash[1])}"'
         return ""
 
@@ -183,8 +194,8 @@ def to_fragment_mm(  # noqa: PLR0913 - one physical size per keyword
     symbol: Symbol,
     *,
     module_mm: float,
-    weights_mm: Mapping[Weight, float],
-    dash_mm: tuple[float, float],
+    weights_mm: Mapping[Weight, float] | None = None,
+    dash_mm: tuple[float, float] | None = None,
     dash_dot_mm: tuple[float, float, float, float] | None = None,
     font_family: str,
     font_mm: float,
@@ -193,6 +204,7 @@ def to_fragment_mm(  # noqa: PLR0913 - one physical size per keyword
     muted: str | None = None,
     texts: Mapping[str, str] | None = None,
     required_slots: Sequence[str] = (),
+    library: Library | None = None,
 ) -> str:
     """Render a symbol as a `<g>` fragment in millimetres, with no `scale(`.
 
@@ -207,10 +219,12 @@ def to_fragment_mm(  # noqa: PLR0913 - one physical size per keyword
     Args:
         symbol: The symbol to render, already oriented and repeated by the caller.
         module_mm: Millimetres per module unit.
-        weights_mm: Stroke width in mm for each `Weight` the symbol uses.
-        dash_mm: Dash and gap lengths in mm of a dashed element.
-        dash_dot_mm: Dash, gap, dot and gap lengths in mm of a dash-dot element; None when the
-            symbol has none.
+        weights_mm: Stroke width in mm for each `Weight` the symbol uses. None takes
+            `library.lines`; given, it wins over the library as a whole.
+        dash_mm: Dash and gap lengths in mm of a dashed element. None takes
+            `library.dash["dashed"]`.
+        dash_dot_mm: Dash, gap, dot and gap lengths in mm of a dash-dot element. None takes
+            `library.dash["dash_dot"]`, and is then an error if a dash-dot element is drawn.
         font_family: CSS font family of the text, escaped here for the attribute.
         font_mm: Font size in mm of every text element.
         cap_ratio: Capital height as a fraction of the font size; the baseline sits half of it
@@ -229,14 +243,18 @@ def to_fragment_mm(  # noqa: PLR0913 - one physical size per keyword
             element carries `rotate(-90)` about its baseline point. It is never measured, shrunk
             or wrapped.
         required_slots: The slots the symbol must have a string for, as in `to_fragment`.
+        library: The library whose `lines` and `dash` give each size the caller leaves None, so
+            one call to `Library.with_settings` changes every width and dash drawn here.
 
     Returns:
         The `<g>...</g>` fragment text, ending with a single newline.
 
     Raises:
         UnknownNameError: A weight an element uses, or `Weight.NORMAL` when muted, is missing from
-            `weights_mm`; the key names it. Also a key of `texts` that is not a slot id of the
-            symbol, checked before anything is drawn, also for an empty string.
+            `weights_mm` (or from `library.lines` when that is used); the key names it. Also a
+            dashed element is drawn and neither `dash_mm` nor `library.dash["dashed"]` is there.
+            Also a key of `texts` that is not a slot id
+            of the symbol, checked before anything is drawn, also for an empty string.
         InvalidValueError: The tint or the muted colour is not a hex colour or a colour name, a
             dash-dot element is drawn and `dash_dot_mm` is None, or `texts` is given and misses a
             required slot; the message names it and the symbol.
@@ -244,7 +262,18 @@ def to_fragment_mm(  # noqa: PLR0913 - one physical size per keyword
     check_tint(tint)
     check_colour("muted", muted)
     check_texts(symbol, texts, required_slots)
-    mm = _Mm(module_mm, weights_mm, dash_mm, dash_dot_mm, font_family, font_mm, cap_ratio, muted)
+    own_widths = {} if library is None else library.lines
+    dash = {} if library is None else library.dash
+    mm = _Mm(
+        module_mm,
+        own_widths if weights_mm is None else weights_mm,
+        dash.get("dashed") if dash_mm is None else dash_mm,
+        dash.get("dash_dot") if dash_dot_mm is None else dash_dot_mm,
+        font_family,
+        font_mm,
+        cap_ratio,
+        muted,
+    )
     lines = [
         group_open(muted),
         *(_element(mm, e, tint) for e in symbol.elements),

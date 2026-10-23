@@ -18,7 +18,7 @@ WIRES = (
     WireStyle("trunk", Weight.THICK, Style.SOLID),
     WireStyle("wire", Weight.NORMAL, Style.SOLID),
 )
-LIBRARY = Library("IEC 60617", "IEC 60617", "", {}, wires=WIRES)
+LIBRARY = Library("IEC 60617", "IEC 60617", "", {}, wires=WIRES, dash={"dashed": (1.25, 0.625)})
 PATH = [(0, 0), (4, 0), (4, 6)]
 
 CONFIG = """standard = "IEC 60617"

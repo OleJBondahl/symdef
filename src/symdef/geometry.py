@@ -36,10 +36,18 @@ class Direction(Enum):
 
 
 class Weight(Enum):
-    """Line weight; the value is the stroke width in module units."""
+    """Line weight; the value is the stroke width in module units.
+
+    RULE is the thin rule weight of wire styles and the `[lines]` table (0.18 mm at the default
+    module); text and symbol elements do not use it.
+    """
 
     NORMAL = 0.1
     THICK = 0.2
+    RULE = 0.072
+
+
+TEXT_WEIGHTS = (Weight.NORMAL, Weight.THICK)
 
 
 class Fill(Enum):

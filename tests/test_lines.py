@@ -113,3 +113,24 @@ def test_a_bundle_with_a_bad_lines_object_is_invalid():
 def test_a_library_without_widths_writes_no_lines_key():
     assert "lines" not in bundle_to_data(bare({}))
     assert "lines" not in bundle_to_data(load_library(Path(__file__).parent / "fixtures" / "guide"))
+
+
+def test_rule_is_a_weight_of_lines_and_wire_styles():
+    parsed, findings = parse_config(config("[lines]\nrule = 0.18\n" + WIRE.format("rule")))
+    assert findings == ()
+    assert parsed is not None
+    assert dict(parsed.lines) == {Weight.RULE: 0.18}
+    assert parsed.wires[0].weight is Weight.RULE
+
+
+def test_a_rule_wire_without_a_rule_width_is_a_finding_naming_it():
+    (message,) = findings_of("[lines]\nnormal = 0.25\n" + WIRE.format("rule"))
+    assert "'rule'" in message
+
+
+def test_rule_is_not_a_weight_of_a_symbol_element():
+    from symdef.load import validate
+
+    data = {"line": [[0, 0], [1, 0]], "weight": "rule"}
+    findings = validate({"elements": [data]})
+    assert any(f.location == "/elements/0/weight" for f in findings)
