@@ -8,7 +8,7 @@ from test_build_load import CONFIG, data_repo
 
 from symdef.errors import LibraryError
 from symdef.files import load_library
-from symdef.geometry import Style, Weight
+from symdef.geometry import TEXT_WEIGHTS, Style, Weight
 from symdef.lines import lines_problems
 from symdef.load import library_from_bundle, parse_config, validate_bundle
 from symdef.model import Library, WireStyle
@@ -134,3 +134,7 @@ def test_rule_is_not_a_weight_of_a_symbol_element():
     data = {"line": [[0, 0], [1, 0]], "weight": "rule"}
     findings = validate({"elements": [data]})
     assert any(f.location == "/elements/0/weight" for f in findings)
+
+
+def test_text_weights_are_normal_and_thick_never_rule():
+    assert TEXT_WEIGHTS == (Weight.NORMAL, Weight.THICK)
