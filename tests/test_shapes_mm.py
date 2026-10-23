@@ -23,9 +23,24 @@ def lib(normal=0.25, thick=0.5, dash=None) -> Library:
     )
 
 
-def rect(library=None, **kw) -> str:
-    args = {"weight": Weight.NORMAL, "stroke": "#000", "fill": "none"} | kw
-    return rect_mm((1, 2, 3, 4), library=lib() if library is None else library, **args)
+def rect(  # noqa: PLR0913 - one keyword per attribute under test
+    library: Library | None = None,
+    *,
+    weight: Weight = Weight.NORMAL,
+    stroke: str = "#000",
+    fill: str = "none",
+    dash: str | None = None,
+    classes: str = "",
+) -> str:
+    return rect_mm(
+        (1, 2, 3, 4),
+        library=lib() if library is None else library,
+        weight=weight,
+        stroke=stroke,
+        fill=fill,
+        dash=dash,
+        classes=classes,
+    )
 
 
 def test_a_rect_writes_the_geometry_the_paint_and_the_library_width():
@@ -157,8 +172,8 @@ def test_a_bad_colour_cannot_inject_markup():
 
 def test_weight_is_required_on_every_shape():
     with pytest.raises(TypeError):
-        rect_mm((0, 0, 1, 1), library=lib(), stroke="#000", fill="none")  # type: ignore[call-arg]
+        rect_mm((0, 0, 1, 1), library=lib(), stroke="#000", fill="none")  # ty: ignore[missing-argument] - the weight is required
     with pytest.raises(TypeError):
-        line_mm((0, 0), (1, 1), library=lib(), stroke="#000")  # type: ignore[call-arg]
+        line_mm((0, 0), (1, 1), library=lib(), stroke="#000")  # ty: ignore[missing-argument] - the weight is required
     with pytest.raises(TypeError):
-        outline_mm((0, 0, 1, 1), library=lib(), stroke="#000")  # type: ignore[call-arg]
+        outline_mm((0, 0, 1, 1), library=lib(), stroke="#000")  # ty: ignore[missing-argument] - the weight is required

@@ -2,6 +2,11 @@
 
 What changed in the public surface of each release: a name added, removed or moved, and a type that widened. Every change to `surface.toml` has a line here. The reasons are in [the decisions](DECISIONS.md).
 
+## 0.27.0
+
+- Added: `rect_mm(box, *, library, weight, stroke, fill, dash=None, classes="")`, `outline_mm(box, *, library, weight, stroke, dash=None, classes="")` and `line_mm(a, b, *, library, weight, stroke, dash=None, classes="")`: one SVG element in mm each, the width from `library.lines`, the dash from `library.dash`, the paint as given (D117, D118).
+- Added: `text_tag(..., classes="", at="baseline", font=None)`: a `class` on the tag, and `top` or `centre` of the em box as the point, with the ascent from `font`; the defaults leave the output unchanged (D117).
+
 ## 0.26.0
 
 - Added: `Weight.RULE` (0.072 module, 0.18 mm at the default module) and the `[lines] rule` key; a wire style may have weight `rule`, a symbol element may not (D115).
