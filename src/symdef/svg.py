@@ -4,7 +4,7 @@ import math
 import re
 from collections.abc import Mapping, Sequence
 from dataclasses import replace
-from xml.sax.saxutils import escape
+from xml.sax.saxutils import escape, quoteattr
 
 from symdef.boxes import body_box, elements_box, keepout_box, slot_box
 from symdef.errors import InvalidValueError, UnknownNameError
@@ -386,17 +386,20 @@ def slot_text_tag(  # noqa: PLR0913 - one slot text tag is these things
     content: str,
     turn: bool = False,
     bold: bool = False,
+    classes: str = "",
 ) -> str:
     """Render one text at its baseline point; a turned one is rotated -90 about that point.
 
     `family` is the finished `font-family` attribute value, quotes included. `bold` adds
-    `font-weight="bold"` (D100); `text_tag` shares this code.
+    `font-weight="bold"` (D100); `classes` adds a leading `class` (D117); `text_tag` shares this
+    code.
     """
     x, y = at
+    cls = f" class={quoteattr(classes)}" if classes else ""
     rotate = f' transform="rotate(-90 {x} {y})"' if turn else ""
     weight = ' font-weight="bold"' if bold else ""
     return (
-        f'<text x="{x}" y="{y}" font-size="{size}" text-anchor="{anchor}" '
+        f'<text{cls} x="{x}" y="{y}" font-size="{size}" text-anchor="{anchor}" '
         f'fill="{fill}" stroke="none" font-family={family}{weight}{rotate}>'
         f"{_content(content)}</text>"
     )
