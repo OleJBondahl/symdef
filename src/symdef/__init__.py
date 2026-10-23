@@ -62,6 +62,7 @@ from symdef.svg import to_fragment, to_svg
 from symdef.svg_mm import to_fragment_mm
 from symdef.svg_placed import to_placed_fragment
 from symdef.table import table
+from symdef.tagroots import TextRoot, tag_roots
 from symdef.units import (
     DEFAULT_MODULE_MM,
     GRID_DIVISION,
@@ -115,6 +116,7 @@ __all__ = [
     "SymdefError",
     "Text",
     "TextPlacement",
+    "TextRoot",
     "UnknownNameError",
     "UnknownSymbolError",
     "Vocabulary",
@@ -151,6 +153,7 @@ __all__ = [
     "stretch",
     "stretch_to_ports",
     "table",
+    "tag_roots",
     "text_tag",
     "text_width",
     "to_divisions",

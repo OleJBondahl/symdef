@@ -2,6 +2,10 @@
 
 What changed in the public surface of each release: a name added, removed or moved, and a type that widened. Every change to `surface.toml` has a line here. The reasons are in [the decisions](DECISIONS.md).
 
+## 0.25.0
+
+- Added: `tag_roots(symbol, orientation, library, *, gap, marking_height)` and `TextRoot(x, y, h, v)`: the text root of a symbol's tag slot and its three reflections through the body centre, in whole divisions of the library's grid (D113).
+
 ## 0.24.1
 
 - Added: `measure(..., *, attach=None, stretch=None)`; `stretch={axis: length}` measures the symbol as `stretch(symbol, axis, length, grid=library.grid)` would make it, without building it (D111).

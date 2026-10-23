@@ -220,3 +220,12 @@ def test_the_signature_check_can_fail():
 
     for wrong in (to_svg_positional, to_svg_renamed, to_svg_no_default):
         assert shape(wrong) != SECTION_11_SIGNATURES["to_svg"]
+
+
+def test_tag_roots_has_the_signature_the_guide_gives():
+    assert shape(symdef.tag_roots) == [
+        *positional("symbol", "orientation", "library"),
+        ("gap", "KEYWORD_ONLY", "-"),
+        ("marking_height", "KEYWORD_ONLY", "-"),
+    ]
+    assert [f.name for f in dataclasses.fields(symdef.TextRoot)] == ["x", "y", "h", "v"]
