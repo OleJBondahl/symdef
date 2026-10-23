@@ -10,7 +10,7 @@ import pytest
 from symdef.boxes import body_box, keepout_box
 from symdef.errors import InvalidValueError, LibraryError
 from symdef.files import load_bundle, load_library
-from symdef.font import FontMetrics, cap_height, text_width
+from symdef.font import FontMetrics, cap_height, em_height, text_width
 from symdef.geometry import Box, Direction, Point, Text, Weight
 from symdef.load import library_from_bundle, parse_config, validate_bundle
 from symdef.model import Library, Reference, Slot, Status, Symbol, SymbolKind
@@ -267,3 +267,23 @@ def test_a_bundle_round_trips_the_font_family():
     loaded = library_from_bundle(data).font
     assert loaded is not None
     assert loaded.family == "Fam"
+
+
+def test_em_height_inverts_cap_height():
+    for font in (FONT, None):
+        for cap in (0.5, 1.8, 2.5, 7.0):
+            assert cap_height(font, em_height(font, cap)) == pytest.approx(cap, abs=1e-9)
+
+
+def test_em_height_of_a_known_font():
+    real = FontMetrics(
+        name="Known",
+        units_per_em=2048,
+        cap_height=1493,
+        ascent=1900,
+        descent=500,
+        advances={Weight.NORMAL: {}, Weight.THICK: {}},
+        default_advance=1000,
+    )
+    assert em_height(real, 1.8) == pytest.approx(2.469, abs=1e-3)
+    assert em_height(None, 0.72) == pytest.approx(1.0)

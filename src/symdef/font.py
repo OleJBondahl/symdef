@@ -75,3 +75,10 @@ def cap_height(font: FontMetrics | None, height: float) -> float:
     if font is None:
         return DEFAULT_CAP_EM * height
     return font.cap_height / font.units_per_em * height
+
+
+def em_height(font: FontMetrics | None, cap: float) -> float:
+    """Return the text height whose capital is `cap` tall: the exact inverse of `cap_height`."""
+    if font is None:
+        return cap / DEFAULT_CAP_EM
+    return cap * font.units_per_em / font.cap_height

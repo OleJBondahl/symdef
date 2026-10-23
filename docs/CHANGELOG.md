@@ -5,6 +5,7 @@ What changed in the public surface of each release: a name added, removed or mov
 ## 0.25.0
 
 - Added: `tag_roots(symbol, orientation, library, *, gap, marking_height)` and `TextRoot(x, y, h, v)`: the text root of a symbol's tag slot and its three reflections through the body centre, in whole divisions of the library's grid (D113).
+- Added: `em_height(font, cap)`: the text height whose capital is `cap` tall, the exact inverse of the capital height a font gives (D114).
 
 ## 0.24.1
 
