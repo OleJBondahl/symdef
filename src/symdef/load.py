@@ -55,7 +55,6 @@ from symdef.model import (
 )
 from symdef.units import (
     DEFAULT_GRID,
-    DEFAULT_OUTLINE_MARGIN,
     DEFAULT_WIRE_PITCH,
     DEFAULT_WIRE_PITCH_FINE,
     Grid,
@@ -786,7 +785,7 @@ def grid_from_data(data: Mapping[str, Any]) -> Grid:
         int(data.get("wire_pitch", DEFAULT_WIRE_PITCH)),
         int(data.get("wire_pitch_fine", DEFAULT_WIRE_PITCH_FINE)),
         data.get("stretch_split", "weight"),
-        int(data.get("outline_margin", DEFAULT_OUTLINE_MARGIN)),
+        int(data["outline_margin"]) if "outline_margin" in data else None,
     )
 
 

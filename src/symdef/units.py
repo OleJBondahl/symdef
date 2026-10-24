@@ -10,7 +10,6 @@ GRID_DIVISION: float = 0.125
 DEFAULT_DIVISIONS_PER_MODULE: int = 8
 DEFAULT_WIRE_PITCH: int = 8
 DEFAULT_WIRE_PITCH_FINE: int = 4
-DEFAULT_OUTLINE_MARGIN: int = 16
 
 
 def module_error(value: object) -> str | None:
@@ -49,7 +48,7 @@ def pitch_error(standard: object, fine: object) -> str | None:
 
 def margin_error(value: object) -> str | None:
     """Return why `value` is not a usable `outline_margin`, or None."""
-    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+    if value is not None and (isinstance(value, bool) or not isinstance(value, int) or value < 0):
         return f"outline_margin {value!r} is not a whole number of divisions; use 0 or more"
     return None
 
@@ -78,7 +77,7 @@ class Grid:
         stretch_split: How `stretch` shares a growth among several cuts: "weight" (by weight, the
             default) or "whole" (in whole divisions, near cuts floored; D97).
         outline_margin: How far, in divisions, a unit outline stands off the boxes it encloses,
-            on all four sides (D120).
+            on all four sides, or None when the library declares none (D120).
     """
 
     module_mm: float = DEFAULT_MODULE_MM
@@ -86,7 +85,7 @@ class Grid:
     wire_pitch: int = DEFAULT_WIRE_PITCH
     wire_pitch_fine: int = DEFAULT_WIRE_PITCH_FINE
     stretch_split: str = "weight"
-    outline_margin: int = DEFAULT_OUTLINE_MARGIN
+    outline_margin: int | None = None
 
     def __post_init__(self) -> None:
         """Raise `InvalidValueError` naming the value and fix, for a bad grid value."""

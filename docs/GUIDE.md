@@ -581,7 +581,7 @@ module_mm = 2.5            # above zero
 divisions_per_module = 8   # a power of two
 wire_pitch = 8             # divisions between wire lanes; every port sits on it
 wire_pitch_fine = 4        # must divide wire_pitch; no third pitch
-outline_margin = 16        # optional: divisions a unit outline stands off its contents, 0 or more
+outline_margin = 16        # optional, no default: divisions a unit outline stands off its contents
 
 [font]
 name = "Planted"           # a label, it changes no measure
