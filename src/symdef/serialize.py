@@ -233,8 +233,8 @@ def _grid(grid: Grid) -> dict[str, Any]:
     }
     if grid.stretch_split != "weight":
         data["stretch_split"] = grid.stretch_split
-    if grid.outline_margin is not None:
-        data["outline_margin"] = grid.outline_margin
+    if grid.declared_outline_margin is not None:
+        data["outline_margin"] = grid.declared_outline_margin
     return data
 
 

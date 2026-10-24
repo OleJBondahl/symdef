@@ -5,9 +5,12 @@ What changed in the public surface of each release: a name added, removed or mov
 ## 0.28.0
 
 - Changed (breaking): `FontMetrics.default_advance` is a `Mapping[Weight, float]`, one number per text weight, required for every weight like `advances`. `library.toml` takes `[font.default_advance]` with `normal` and `thick` (a single number is a schema finding); the bundle's `font.default_advance` is an object. `measure_font` derives each from its own face, and `text_width(..., weight=Weight.THICK)` charges the bold default for an unlisted character (D119).
-- Added: `[grid] outline_margin` and `Grid.outline_margin` (`int | None`, default `None`): the divisions a unit outline stands off the boxes it encloses. The bundle writes it only when set (D120).
+- Added: `[grid] outline_margin`, `Grid.declared_outline_margin` (`int | None`, default `None`) and `Grid.outline_margin` (`int`): the divisions a unit outline stands off the boxes it encloses. Reading `outline_margin` of a grid with none declared raises `InvalidValueError` naming the key and the fix. The bundle writes it only when set (D120).
 - Changed (breaking): `repeat(symbol, n, *, port_format)`: the template of a pole's port id with the fields `{k}` and `{port}` is required, and symdef keeps no default; a missing or malformed one raises `InvalidValueError`. A part's `repeat` key takes the format from the new top-level `port_format` key of `library.toml` (`LibraryConfig.port_format`), checked as a template with exactly `{k}` and `{port}`; a library that uses `repeat` without it fails to load with a `schema` finding at `repeat` naming the key (D123). `table`, `fitted_table`, `edge_pattern` and `pole_port` keep `<k>.` (D121).
 - Added: `sheet_svg(width_mm, height_mm, body, *, margin_mm) -> str`, the `<svg>` root in millimetres around a body, and `bold_layer(fragment) -> str`, one `<g font-weight="bold">` around a fragment (D122).
+- Migrate: replace `FontMetrics(..., default_advance=600)` with `default_advance={Weight.NORMAL: 600, Weight.THICK: 600}` and `default_advance = 600` in `[font]` with a `[font.default_advance]` table holding `normal = 600` and `thick = 600` (a library with `[font] files` needs nothing).
+- Migrate: replace `repeat(symbol, n)` with `repeat(symbol, n, port_format="{k}.{port}")`, which keeps today's ports `1.in`, `2.in`.
+- Migrate: a library whose part files use `repeat = N` adds `port_format = "{k}.{port}"` at the top level of `library.toml`, before its first table.
 
 ## 0.27.0
 

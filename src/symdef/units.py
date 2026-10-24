@@ -76,8 +76,9 @@ class Grid:
             `wire_pitch`. A library has these two pitches and no third.
         stretch_split: How `stretch` shares a growth among several cuts: "weight" (by weight, the
             default) or "whole" (in whole divisions, near cuts floored; D97).
-        outline_margin: How far, in divisions, a unit outline stands off the boxes it encloses,
-            on all four sides, or None when the library declares none (D120).
+        declared_outline_margin: How far, in divisions, a unit outline stands off the boxes it
+            encloses, on all four sides, or None when the library declares none (D120). Read the
+            margin through `outline_margin`, which raises when none is declared.
     """
 
     module_mm: float = DEFAULT_MODULE_MM
@@ -85,7 +86,7 @@ class Grid:
     wire_pitch: int = DEFAULT_WIRE_PITCH
     wire_pitch_fine: int = DEFAULT_WIRE_PITCH_FINE
     stretch_split: str = "weight"
-    outline_margin: int | None = None
+    declared_outline_margin: int | None = None
 
     def __post_init__(self) -> None:
         """Raise `InvalidValueError` naming the value and fix, for a bad grid value."""
@@ -94,10 +95,21 @@ class Grid:
             or divisions_error(self.divisions_per_module)
             or pitch_error(self.wire_pitch, self.wire_pitch_fine)
             or split_error(self.stretch_split)
-            or margin_error(self.outline_margin)
+            or margin_error(self.declared_outline_margin)
         )
         if error:
             raise InvalidValueError(error)
+
+    @property
+    def outline_margin(self) -> int:
+        """Return the unit outline's margin in divisions; raise when the library declares none."""
+        if self.declared_outline_margin is None:
+            msg = (
+                "this library declares no outline_margin; add `outline_margin = <divisions>` "
+                "under [grid] in library.toml (D120)"
+            )
+            raise InvalidValueError(msg)
+        return self.declared_outline_margin
 
     @property
     def division(self) -> float:

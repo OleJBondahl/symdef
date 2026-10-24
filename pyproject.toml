@@ -105,7 +105,7 @@ convention = "google"
 [tool.vulture]
 # Enum members that only downstream packages and the tests use (the guide's vocabulary), so
 # vulture, which scans src alone, sees no use. Names match globally: add one only when it is a
-# member of the public data model.
+# member of the public data model, or a property of it that consumers read (Grid.outline_margin).
 ignore_names = [
-    "THICK", "VERIFIED", "UNVERIFIED", "ELEMENT", "QUALIFIER",
+    "THICK", "VERIFIED", "UNVERIFIED", "ELEMENT", "QUALIFIER", "outline_margin",
 ]

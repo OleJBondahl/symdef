@@ -15,14 +15,21 @@ COARSE = "[grid]\nmodule_mm = 5\ndivisions_per_module = 4\n"
 
 
 def test_there_is_no_default_margin():
-    assert DEFAULT_GRID.outline_margin is None
-    assert Grid(outline_margin=0).outline_margin == 0
+    assert DEFAULT_GRID.declared_outline_margin is None
+    assert Grid(declared_outline_margin=0).outline_margin == 0
+
+
+def test_reading_an_undeclared_margin_raises_naming_the_key_the_file_and_the_fix():
+    with pytest.raises(InvalidValueError) as raised:
+        _ = DEFAULT_GRID.outline_margin
+    message = str(raised.value)
+    assert all(word in message for word in ("outline_margin", "[grid]", "library.toml"))
 
 
 @pytest.mark.parametrize("bad", [-1, 1.5, True, "8"])
 def test_a_margin_that_is_not_whole_divisions_of_zero_or_more_raises(bad):
     with pytest.raises(InvalidValueError, match=r"outline_margin .*0 or more"):
-        Grid(outline_margin=bad)
+        Grid(declared_outline_margin=bad)
 
 
 def test_library_toml_declares_the_margin_and_without_it_there_is_none():
@@ -30,7 +37,7 @@ def test_library_toml_declares_the_margin_and_without_it_there_is_none():
     assert findings == []
     assert parsed.grid.outline_margin == 24
     plain, _ = config(COARSE)
-    assert plain.grid.outline_margin is None
+    assert plain.grid.declared_outline_margin is None
 
 
 @pytest.mark.parametrize(
@@ -46,7 +53,7 @@ def test_the_bundle_writes_the_margin_only_when_the_library_declares_it_and_roun
     coarse = Grid(module_mm=5, divisions_per_module=4)
     plain = json.loads(to_json(bundle_to_data(library(coarse))))
     assert "outline_margin" not in plain["grid"]
-    data = json.loads(to_json(bundle_to_data(library(replace(coarse, outline_margin=24)))))
+    data = json.loads(to_json(bundle_to_data(library(replace(coarse, declared_outline_margin=24)))))
     assert data["grid"]["outline_margin"] == 24
     assert validate_bundle(data) == ()
     assert library_from_bundle(data).grid.outline_margin == 24
