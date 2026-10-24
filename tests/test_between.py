@@ -60,7 +60,7 @@ def betweens(symbol: model.Symbol) -> list:
 
 def test_a_between_element_is_drawn_in_every_row_but_the_last():
     base = row()
-    t = table(ticked(), 4, "x")
+    t = table(ticked(), 4, "x", port_format="{k}.{port}")
     assert len(betweens(t)) == 3
     assert len([e for e in t.elements if not getattr(e, "between", False)]) == 4 * len(
         base.elements
@@ -69,11 +69,11 @@ def test_a_between_element_is_drawn_in_every_row_but_the_last():
 
 @pytest.mark.parametrize(("n", "count"), [(1, 0), (2, 1)])
 def test_a_single_row_draws_none_and_two_rows_draw_one(n, count):
-    assert len(betweens(table(ticked(), n, "x"))) == count
+    assert len(betweens(table(ticked(), n, "x", port_format="{k}.{port}"))) == count
 
 
 def test_without_a_between_element_table_draws_every_element():
-    assert len(table(row(), 4, "x").elements) == 4 * len(row().elements)
+    assert len(table(row(), 4, "x", port_format="{k}.{port}").elements) == 4 * len(row().elements)
 
 
 def test_between_survives_orient_translate_stretch_and_repeat():

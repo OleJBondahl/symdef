@@ -50,7 +50,7 @@ def test_other_fields_are_unchanged():
 
 
 def test_a_table_row_is_named_by_its_prefixed_id():
-    two = table(device(), 2, "y")
+    two = table(device(), 2, "y", port_format="{k}.{port}")
     kept = leads(two, ("1.a",))
     assert [e.port for e in kept.elements if isinstance(e, Line) and e.port] == ["1.a"]
 
@@ -117,5 +117,5 @@ def test_only_ports_with_an_unknown_name_names_the_port_and_the_symbol():
 
 
 def test_only_ports_of_a_table_row_uses_the_prefixed_id():
-    kept = only_ports(table(device(), 2, "y"), ("1.a",))
+    kept = only_ports(table(device(), 2, "y", port_format="{k}.{port}"), ("1.a",))
     assert [p.id for p in kept.ports] == ["1.a"]

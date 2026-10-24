@@ -141,5 +141,5 @@ def test_turn_survives_repeat_table_stretch():
         paths=(Path("in", "out", "conductor", through=True),),
     )
     assert all(s.turn for s in repeat(symbol, 2, port_format="{k}.{port}").slots)
-    assert all(s.turn for s in table(symbol, 2, "y").slots)
+    assert all(s.turn for s in table(symbol, 2, "y", port_format="{k}.{port}").slots)
     assert all(s.turn for s in stretch(symbol, "x", 5).slots)

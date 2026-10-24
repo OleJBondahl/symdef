@@ -142,7 +142,7 @@ def test_table_and_repeat_keep_the_centre_side():
         paths=(Path("in", "out", "conductor", through=True),),
         slots=(Slot("marking.in", Point(3, 5), Centre.C, (4.0, 2.0)),),
     )
-    assert table(base, 2, "x").slots[1].side is Centre.C
+    assert table(base, 2, "x", port_format="{k}.{port}").slots[1].side is Centre.C
     assert repeat(base, 2, port_format="{k}.{port}").slots[0].side is Centre.C
 
 

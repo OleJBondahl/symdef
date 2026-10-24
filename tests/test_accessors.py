@@ -57,8 +57,9 @@ def test_pole_pitch_is_the_explicit_pitch():
     assert pole_pitch(symbol(pole_pitch=6)) == 6
 
 
-def test_pole_port_prefixes_the_pole_number():
-    assert pole_port(2, "in") == "2.in"
+def test_pole_port_fills_the_given_format():
+    assert pole_port(2, "in", "{k}.{port}") == "2.in"
+    assert pole_port(2, "in", "P{k}_{port}") == "P2_in"
 
 
 def test_nodes_of_is_public_and_adds_one_node_per_unlisted_port():

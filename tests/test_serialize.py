@@ -282,7 +282,7 @@ class TestSymbolToData:
 class TestBundleToData:
     def test_it_has_the_three_keys_of_the_guide_and_the_dash_table_of_its_library(self):
         data = bundle_to_data(LIBRARY)
-        assert set(data) == {"schema", "standard", "symbols", "dash"}
+        assert set(data) == {"schema", "standard", "symbols", "dash", "port_format"}
         assert data["schema"] == 1
         assert data["standard"] == "IEC 60617"
 

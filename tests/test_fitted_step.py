@@ -69,7 +69,7 @@ def check_clear(boxes, axis):
 @pytest.mark.parametrize("n", [1, 2, 3, MAX_REPEAT])
 def test_every_row_takes_the_widest_text_and_boxes_stay_clear(n):
     values = [MID if k == 0 else SHORT for k in range(n)]
-    t = fitted_table(ROW, "x", texts(*values), LIB, HEIGHT, fit="step")
+    t = fitted_table(ROW, "x", texts(*values), LIB, HEIGHT, fit="step", port_format="{k}.{port}")
     assert step_of(t, n) == 10 + up(MID) - 4
     for k in range(1, n + 1):
         box = slot_box(next(s for s in t.slots if s.id == f"marking.{k}.a"))
@@ -79,41 +79,49 @@ def test_every_row_takes_the_widest_text_and_boxes_stay_clear(n):
 
 
 def test_a_long_text_and_a_short_text_give_different_steps():
-    long = fitted_table(ROW, "x", texts(WIDE, SHORT), LIB, HEIGHT, fit="step")
-    short = fitted_table(ROW, "x", texts(MID, SHORT), LIB, HEIGHT, fit="step")
+    long = fitted_table(
+        ROW, "x", texts(WIDE, SHORT), LIB, HEIGHT, fit="step", port_format="{k}.{port}"
+    )
+    short = fitted_table(
+        ROW, "x", texts(MID, SHORT), LIB, HEIGHT, fit="step", port_format="{k}.{port}"
+    )
     assert step_of(long, 2) - step_of(short, 2) == up(WIDE) - up(MID)
     assert step_of(long, 2) > step_of(short, 2) > 6
 
 
 def test_the_y_axis_steps_a_turned_column():
-    t = fitted_table(COLUMN, "y", texts(MID, SHORT), LIB, HEIGHT, fit="step")
+    t = fitted_table(
+        COLUMN, "y", texts(MID, SHORT), LIB, HEIGHT, fit="step", port_format="{k}.{port}"
+    )
     assert step_of(t, 2, "y") == 10 + up(MID) - 4
     assert body_box(t).width == 2
     check_clear(marking_boxes(t, [MID, SHORT]), "y")
 
 
 def test_a_text_that_fits_asks_for_no_growth():
-    t = fitted_table(ROW, "x", texts("A", "A"), LIB, HEIGHT, fit="step")
-    plain = table(ROW, 2, "x", grid=GRID)
+    t = fitted_table(ROW, "x", texts("A", "A"), LIB, HEIGHT, fit="step", port_format="{k}.{port}")
+    plain = table(ROW, 2, "x", grid=GRID, port_format="{k}.{port}")
     assert t.elements == plain.elements
     assert t.slots == plain.slots
 
 
 def test_cross_is_the_default_and_unchanged():
     args = (ROW, "y", [{"marking.a": MID}] * 2, LIB, HEIGHT)
-    assert fitted_table(*args) == fitted_table(*args, fit="cross")
-    assert body_box(fitted_table(*args)).width == 10 + up(MID) - 4
+    assert fitted_table(*args, port_format="{k}.{port}") == fitted_table(
+        *args, fit="cross", port_format="{k}.{port}"
+    )
+    assert body_box(fitted_table(*args, port_format="{k}.{port}")).width == 10 + up(MID) - 4
 
 
 def test_a_row_without_the_cut_on_the_axis_cannot_step_grow():
     bare = build(*ROW.elements, slots=ROW.slots, cuts=(Stretch("y", 1),))
     with pytest.raises(InvalidValueError, match="no stretch cut across its box on the x axis"):
-        fitted_table(bare, "x", texts(MID), LIB, HEIGHT, fit="step")
+        fitted_table(bare, "x", texts(MID), LIB, HEIGHT, fit="step", port_format="{k}.{port}")
 
 
 def test_fit_is_cross_or_step():
     with pytest.raises(InvalidValueError, match="fit must be 'cross' or 'step', got 'both'"):
-        fitted_table(ROW, "x", texts(MID), LIB, HEIGHT, fit="both")  # ty: ignore[invalid-argument-type]  # a bad value on purpose
+        fitted_table(ROW, "x", texts(MID), LIB, HEIGHT, fit="both", port_format="{k}.{port}")  # ty: ignore[invalid-argument-type]  # a bad value on purpose
 
 
 def head_part(t, n_head_elements):
@@ -121,9 +129,19 @@ def head_part(t, n_head_elements):
 
 
 def test_head_texts_grow_the_head_along_the_axis_and_it_is_not_stretched():
-    short = fitted_table(ROW, "x", texts(SHORT, SHORT), LIB, HEIGHT, fit="step", head=HEAD)
+    short = fitted_table(
+        ROW, "x", texts(SHORT, SHORT), LIB, HEIGHT, fit="step", head=HEAD, port_format="{k}.{port}"
+    )
     long = fitted_table(
-        ROW, "x", texts(SHORT, SHORT), LIB, HEIGHT, fit="step", head=HEAD, head_texts={"h": WIDE}
+        ROW,
+        "x",
+        texts(SHORT, SHORT),
+        LIB,
+        HEIGHT,
+        fit="step",
+        head=HEAD,
+        head_texts={"h": WIDE},
+        port_format="{k}.{port}",
     )
     assert head_part(short, 2).width == 20  # stretched to span the two rows
     assert head_part(long, 2).width == 4 + up(WIDE)  # grown at its own cut, not stretched
@@ -145,6 +163,7 @@ def test_a_head_of_three_lines_is_taller_than_one_of_one_line_and_the_rows_agree
             fit="step",
             head=HEAD,
             head_texts={"h": text},
+            port_format="{k}.{port}",
         )
 
     one, three = build_with("AB"), build_with("AB\nAB\nAB")
@@ -155,7 +174,15 @@ def test_a_head_of_three_lines_is_taller_than_one_of_one_line_and_the_rows_agree
 
 def test_a_head_text_that_fits_leaves_the_head_to_be_stretched():
     t = fitted_table(
-        ROW, "x", texts(SHORT, SHORT), LIB, HEIGHT, fit="step", head=HEAD, head_texts={"h": "A"}
+        ROW,
+        "x",
+        texts(SHORT, SHORT),
+        LIB,
+        HEIGHT,
+        fit="step",
+        head=HEAD,
+        head_texts={"h": "A"},
+        port_format="{k}.{port}",
     )
     assert head_part(t, 2).width == 20
 
@@ -164,14 +191,24 @@ def test_the_head_needs_a_cut_across_its_slot_on_the_axis():
     bare = replace(HEAD, stretch=(Stretch("y", 1),))
     with pytest.raises(InvalidValueError, match="no stretch cut across its box on the x axis"):
         fitted_table(
-            ROW, "x", texts(SHORT), LIB, HEIGHT, fit="step", head=bare, head_texts={"h": WIDE}
+            ROW,
+            "x",
+            texts(SHORT),
+            LIB,
+            HEIGHT,
+            fit="step",
+            head=bare,
+            head_texts={"h": WIDE},
+            port_format="{k}.{port}",
         )
 
 
 def test_a_table_fitted_unturned_then_turned_keeps_its_step_on_the_turned_axis():
     """Fit along the step axis in the unturned frame, then orient the result (R270)."""
     values = [WIDE, SHORT, MID]
-    fitted = fitted_table(ROW, "x", texts(*values), LIB, HEIGHT, fit="step")
+    fitted = fitted_table(
+        ROW, "x", texts(*values), LIB, HEIGHT, fit="step", port_format="{k}.{port}"
+    )
     step = step_of(fitted, 3)
     check_clear(marking_boxes(fitted, values), "x")
     turned = orient(fitted, Orientation.R270)

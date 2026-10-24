@@ -89,7 +89,7 @@ def test_every_width_and_dash_of_a_wire_is_the_librarys(lines, dash, weight, sty
 @given(LINES, DASH, st.lists(ELEMENTS, min_size=1, max_size=3), st.integers(1, 4))
 def test_every_width_and_dash_of_a_table_is_the_librarys(lines, dash, elements, n):
     library = Library("s", "s", "", {}, lines=lines, dash=dash)
-    drawn = table(sym(*elements), n, "y")
+    drawn = table(sym(*elements), n, "y", port_format="{k}.{port}")
     assert tags(draw(drawn, library)) == expected(drawn.elements, library)
 
 

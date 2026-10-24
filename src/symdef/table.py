@@ -8,7 +8,14 @@ from symdef.errors import InvalidValueError
 from symdef.geometry import Element, Line, Polyline
 from symdef.model import Slot, Symbol, nodes_of
 from symdef.orient import translate
-from symdef.repeat import MAX_REPEAT, ROW_PORT_FORMAT, declared_union, pole_elements, pole_parts
+from symdef.repeat import (
+    MAX_REPEAT,
+    checked_port_format,
+    declared_union,
+    pole_elements,
+    pole_parts,
+    pole_port,
+)
 from symdef.stretch import Axis, stretch
 from symdef.table_rows import (
     HeadAlign,
@@ -24,20 +31,20 @@ from symdef.units import Grid
 _MARKING = "marking."
 
 
-def _row_elements(row: Symbol, k: int, n: int) -> tuple[Element, ...]:
+def _row_elements(row: Symbol, k: int, n: int, port_format: str) -> tuple[Element, ...]:
     """Return row `k` of `n`'s elements; a `between` element is left out of the last row."""
-    elements = pole_elements(row.elements, k, ROW_PORT_FORMAT)
+    elements = pole_elements(row.elements, k, port_format)
     if k < n:
         return elements
     return tuple(e for e in elements if not (isinstance(e, Line | Polyline) and e.between))
 
 
-def _row_slots(slots: tuple[Slot, ...], k: int) -> tuple[Slot, ...]:
-    """Return row `k`'s slots, all kept: `marking.<port>` becomes `marking.<k>.<port>`."""
+def _row_slots(slots: tuple[Slot, ...], k: int, port_format: str) -> tuple[Slot, ...]:
+    """Return row `k`'s slots, all kept and renamed by `port_format` like a port."""
     return tuple(
-        replace(s, id=f"{_MARKING}{k}.{s.id.removeprefix(_MARKING)}")
+        replace(s, id=_MARKING + pole_port(k, s.id.removeprefix(_MARKING), port_format))
         if s.id.startswith(_MARKING)
-        else replace(s, id=f"{k}.{s.id}")
+        else replace(s, id=pole_port(k, s.id, port_format))
         for s in slots
     )
 
@@ -100,6 +107,7 @@ def table(  # noqa: PLR0913 - the ruled signature: row, n, axis, head and the ke
     axis: Axis,
     head: Symbol | None = None,
     *,
+    port_format: str,
     grid: Grid | None = None,
     gaps: Sequence[float] | None = None,
     positions: Sequence[float] | None = None,
@@ -110,7 +118,7 @@ def table(  # noqa: PLR0913 - the ruled signature: row, n, axis, head and the ke
     Row k (from 1) is the row translated by `k - 1` times its body extent along the axis. `row` may
     be a sequence of `n` unlike symbols: each is placed so its body low edge on the axis meets a
     cursor that starts at row 1's low edge and advances by that row's own extent. Ports, paths,
-    nodes and bound leads are prefixed `<k>.`, as `repeat` does. Every slot of every row is
+    nodes and bound leads are renamed by `port_format`, as `repeat` does. Every slot of every row is
     kept: `marking.<port>` becomes `marking.<k>.<port>`, any other `<id>` becomes `<k>.<id>`. Row
     1's anchors become the result's anchors. The head keeps its own ids and comes first; if it has
     a stretch on the axis, it is stretched to span all `n` rows. The head is placed as authored,
@@ -129,6 +137,7 @@ def table(  # noqa: PLR0913 - the ruled signature: row, n, axis, head and the ke
         n: The row count, from 1 to `MAX_REPEAT`.
         axis: "x" or "y".
         head: A symbol placed once before the rows, or None.
+        port_format: The library's template of a row's port id, such as `"{k}.{port}"`; required.
         grid: The library's grid, passed to the head's `stretch`, or None.
         gaps: `n - 1` numbers of at least 0, the extra space after each row but the last.
         positions: `n` coordinates for the rows' low edges, or None; not with `gaps`.
@@ -143,6 +152,7 @@ def table(  # noqa: PLR0913 - the ruled signature: row, n, axis, head and the ke
             both are given, `head_align` is not one of the three, or the head's stretch cannot
             span the rows.
     """
+    port_format = checked_port_format(port_format)
     if not 1 <= n <= MAX_REPEAT:
         msg = f"the row count must be between 1 and {MAX_REPEAT}, got {n}"
         raise InvalidValueError(msg)
@@ -154,17 +164,21 @@ def table(  # noqa: PLR0913 - the ruled signature: row, n, axis, head and the ke
     else:
         head_elements, head_ports, head_nodes = head.elements, head.ports, nodes_of(head)
         head_paths, head_slots = head.paths, head.slots
-    parts = tuple(pole_parts(r, k, ROW_PORT_FORMAT) for k, r in enumerate(rows, start=1))
+    parts = tuple(pole_parts(r, k, port_format) for k, r in enumerate(rows, start=1))
     return replace(
         first,
         elements=head_elements
-        + tuple(e for k, r in enumerate(rows, start=1) for e in _row_elements(r, k, n)),
+        + tuple(
+            e for k, r in enumerate(rows, start=1) for e in _row_elements(r, k, n, port_format)
+        ),
         ports=head_ports + tuple(p for ports, _, _ in parts for p in ports),
         nodes=head_nodes + tuple(node for _, nodes, _ in parts for node in nodes),
         paths=head_paths + tuple(path for _, _, paths in parts for path in paths),
         anchors=rows[0].anchors,
         slots=head_slots
-        + tuple(s for k, r in enumerate(rows, start=1) for s in _row_slots(r.slots, k)),
+        + tuple(
+            s for k, r in enumerate(rows, start=1) for s in _row_slots(r.slots, k, port_format)
+        ),
         stretch=(),
         body=declared_union((*(() if head is None else (head.body,)), *(r.body for r in rows))),
         keepout=declared_union(

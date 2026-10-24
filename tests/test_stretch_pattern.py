@@ -26,7 +26,11 @@ def grown(source, edge, n):
     axis = "y" if edge is E else "x"
     source = cut_inside(source, axis)
     length, offsets = stretch_to_ports(source, axis, edge, n)
-    return length, offsets, pattern_ports(stretch(source, axis, length, offsets), edge, n)
+    return (
+        length,
+        offsets,
+        pattern_ports(stretch(source, axis, length, offsets), edge, n, port_format="{k}.{port}"),
+    )
 
 
 @pytest.mark.parametrize("n", [1, 2, 3, 4, 8, MAX_REPEAT])
@@ -72,7 +76,9 @@ def test_a_double_pitch_grows_the_body_and_places_the_copies(n):
     length, offsets = stretch_to_ports(source, "x", S, n, pitch=2 * PITCH)
     assert length == wide(1) + (n - 1) * 2 * PITCH
     assert offsets == {"p": 1}
-    result = pattern_ports(stretch(source, "x", length, offsets), S, n, pitch=2 * PITCH)
+    result = pattern_ports(
+        stretch(source, "x", length, offsets), S, n, pitch=2 * PITCH, port_format="{k}.{port}"
+    )
     assert [p.position.x for p in result.ports if p.id != "top"] == [
         1 + k * 2 * PITCH for k in range(n)
     ]
@@ -83,7 +89,9 @@ def test_positions_grow_the_body_to_the_last_position():
     coords = [2, 2 + 2 * PITCH]
     length, offsets = stretch_to_ports(source, "x", S, 2, positions=coords)
     assert (length, offsets) == (wide(1) + 1 + 2 * PITCH, {"p": 2})
-    result = pattern_ports(stretch(source, "x", length, offsets), S, 2, positions=coords)
+    result = pattern_ports(
+        stretch(source, "x", length, offsets), S, 2, positions=coords, port_format="{k}.{port}"
+    )
     assert [p.position.x for p in result.ports if p.id != "top"] == coords
 
 
@@ -110,7 +118,7 @@ def test_a_mixed_edge_keeps_the_gap_from_the_last_copy_to_the_named_port(n):
     grow = (n - 1) * PITCH
     assert offsets == {"plus": 1 - PITCH, "p": 1, "sig": 1 + PITCH + grow}
     assert length == wide(1) + 2 * PITCH + grow
-    result = pattern_ports(stretch(source, "x", length, offsets), S, n)
+    result = pattern_ports(stretch(source, "x", length, offsets), S, n, port_format="{k}.{port}")
     xs = dict(spans(result, {f"{k}.p" for k in range(1, n + 1)} | {"plus", "sig"}))
     assert sorted(xs) == sorted([*(f"{k}.p" for k in range(1, n + 1)), "plus", "sig"])
     assert xs["plus"] == 1 - PITCH

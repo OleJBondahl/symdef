@@ -176,6 +176,7 @@ def fitted_table(  # noqa: PLR0913 - the ruled signature: row, axis, texts, libr
     library: Library,
     text_height: float,
     *,
+    port_format: str,
     head: Symbol | None = None,
     head_texts: Mapping[str, str] | None = None,
     fit: Literal["cross", "step"] = "cross",
@@ -202,6 +203,7 @@ def fitted_table(  # noqa: PLR0913 - the ruled signature: row, axis, texts, libr
         texts: One mapping of slot id to text for each row; its length is the row count.
         library: The library whose font and grid measure the texts.
         text_height: The text height in module units, above zero.
+        port_format: The library's template of a row's port id, such as `"{k}.{port}"`.
         head: A symbol placed once before the rows, or None.
         head_texts: Slot id of the head to its text, or None; each counts in its column.
         fit: "cross" to grow columns across `axis`, "step" to grow the rows along it.
@@ -220,7 +222,7 @@ def fitted_table(  # noqa: PLR0913 - the ruled signature: row, axis, texts, libr
         row, head = _fit_step(row, axis, texts, library, text_height, heads=(head, head_texts))
     else:
         row, head = _fit_cross(row, axis, texts, library, text_height, heads=(head, head_texts))
-    return table(row, len(texts), axis, head, grid=library.grid)
+    return table(row, len(texts), axis, head, port_format=port_format, grid=library.grid)
 
 
 def fitted_symbol(

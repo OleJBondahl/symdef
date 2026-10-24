@@ -8,7 +8,7 @@ from symdef.boxes import body_box
 from symdef.errors import InvalidValueError
 from symdef.geometry import Direction, Element, Line, Point
 from symdef.model import Port, Slot, Symbol
-from symdef.repeat import MAX_REPEAT, pole_port
+from symdef.repeat import MAX_REPEAT, checked_port_format, pole_port
 from symdef.units import DEFAULT_GRID, Grid, from_divisions
 
 _MARKING = "marking."
@@ -110,16 +110,18 @@ def _check_extent(symbol: Symbol, axis: str, port: Port, coords: list[float]) ->
         raise InvalidValueError(msg)
 
 
-def _check_clash(symbol: Symbol, axis: str, port: Port, coords: list[float], wire: float) -> None:
+def _check_clash(
+    symbol: Symbol, axis: str, port: Port, copies: list[tuple[str, float]], wire: float
+) -> None:
     """Raise if a copy lies less than one wire pitch from a named port on the edge."""
     for other in symbol.ports:
         if other is port or other.direction is not port.direction:
             continue
         at = other.position.x if axis == "x" else other.position.y
-        for k, c in enumerate(coords, 1):
+        for name, c in copies:
             if abs(c - at) < wire - _TOL:
                 msg = (
-                    f"{symbol.name}: the copy {pole_port(k, port.id)!r} at {c:g} lies within one "
+                    f"{symbol.name}: the copy {name!r} at {c:g} lies within one "
                     f"wire pitch {wire:g} of the port {other.id!r} at {at:g} on edge "
                     f"{port.direction.name}; move the port or the copy"
                 )
@@ -127,7 +129,11 @@ def _check_clash(symbol: Symbol, axis: str, port: Port, coords: list[float], wir
 
 
 def _expand_leads(
-    elements: tuple[Element, ...], port_id: str, axis: str, shifts: list[tuple[int, float]]
+    elements: tuple[Element, ...],
+    port_id: str,
+    axis: str,
+    shifts: list[tuple[int, float]],
+    port_format: str,
 ) -> tuple[Element, ...]:
     """Return the elements with the lead bound to `port_id` replaced by one moved copy per shift."""
     out: list[Element] = []
@@ -138,7 +144,7 @@ def _expand_leads(
                     element,
                     start=_shift(element.start, axis, d),
                     end=_shift(element.end, axis, d),
-                    port=pole_port(k, port_id),
+                    port=pole_port(k, port_id, port_format),
                 )
                 for k, d in shifts
             ]
@@ -147,17 +153,22 @@ def _expand_leads(
     return tuple(out)
 
 
-def _copy_slot(slot: Slot, port_id: str, k: int, axis: str, delta: float) -> Slot:
+def _copy_slot(slot: Slot, k: int, axis: str, delta: float, fmt: str) -> Slot:
     """Return the marking slot for copy `k`, moved along the axis."""
     return replace(
-        slot, id=_MARKING + pole_port(k, port_id), position=_shift(slot.position, axis, delta)
+        slot,
+        id=_MARKING + pole_port(k, slot.id.removeprefix(_MARKING), fmt),
+        position=_shift(slot.position, axis, delta),
     )
 
 
-def _copy_port(port: Port, k: int, axis: str, delta: float) -> Port:
+def _copy_port(port: Port, k: int, axis: str, delta: float, fmt: str) -> Port:
     """Return copy `k` of the port, moved along the axis and no longer a pattern."""
     return replace(
-        port, id=pole_port(k, port.id), position=_shift(port.position, axis, delta), pattern=False
+        port,
+        id=pole_port(k, port.id, fmt),
+        position=_shift(port.position, axis, delta),
+        pattern=False,
     )
 
 
@@ -180,6 +191,7 @@ def pattern_ports(  # noqa: PLR0913 - the ruled signature: symbol, edge, n, grid
     edge: Direction,
     n: int,
     *,
+    port_format: str,
     grid: Grid = DEFAULT_GRID,
     pitch: float | None = None,
     positions: Sequence[float] | None = None,
@@ -187,10 +199,11 @@ def pattern_ports(  # noqa: PLR0913 - the ruled signature: symbol, edge, n, grid
     """Return the symbol with the pattern port of `edge` expanded into n ports along the edge.
 
     The port marked `pattern` becomes n copies along the edge (x for N and S, y for E and W): copy
-    k, counted from 1, is `k.<id>`. By default it stands k-1 wire pitches (`wire_pitch`, in module
-    units) past the original. `pitch` sets the step instead, a whole multiple of the wire pitch;
-    `positions` sets the n coordinates, strictly increasing, each gap a whole multiple of the wire
-    pitch, each inside the body. Give at most one of them. Each bound lead and `marking.<id>` slot
+    k, counted from 1, takes the id `port_format` makes of `k` and the id (the library's key). By
+    default it stands k-1 wire pitches (`wire_pitch`, in module units) past the original.
+    `pitch` sets the step instead, a whole multiple of the wire pitch; `positions` sets the n
+    coordinates, strictly increasing, each gap a whole multiple of the wire pitch, each inside the
+    body. Give at most one of them. Each bound lead and `marking.<id>` slot
     is copied and renamed per copy, and the originals go. Named ports on the edge stay put. Call
     it after `stretch`: expanding first would widen the body, as bound leads count in it.
 
@@ -199,24 +212,29 @@ def pattern_ports(  # noqa: PLR0913 - the ruled signature: symbol, edge, n, grid
             copy lies outside the body or within one wire pitch of a named port, or `pitch` or
             `positions` is malformed; the message names the symbol and the fix.
     """
+    port_format = checked_port_format(port_format)
     port = _pattern_port(symbol, edge, n)
     axis = "x" if edge in (Direction.N, Direction.S) else "y"
     first = port.position.x if axis == "x" else port.position.y
     coords = pattern_coords(symbol, first, n, grid, pitch, positions)
     _check_extent(symbol, axis, port, coords)
-    _check_clash(symbol, axis, port, coords, from_divisions(grid, grid.wire_pitch))
+    copies = [(pole_port(k, port.id, port_format), c) for k, c in enumerate(coords, 1)]
+    _check_clash(symbol, axis, port, copies, from_divisions(grid, grid.wire_pitch))
     shifts = [(k, c - first) for k, c in enumerate(coords, 1)]
     marking = _MARKING + port.id
     return replace(
         symbol,
         ports=_expand(
-            symbol.ports, lambda p: p is port, lambda p, k, d: _copy_port(p, k, axis, d), shifts
+            symbol.ports,
+            lambda p: p is port,
+            lambda p, k, d: _copy_port(p, k, axis, d, port_format),
+            shifts,
         ),
-        elements=_expand_leads(symbol.elements, port.id, axis, shifts),
+        elements=_expand_leads(symbol.elements, port.id, axis, shifts, port_format),
         slots=_expand(
             symbol.slots,
             lambda s: s.id == marking,
-            lambda s, k, d: _copy_slot(s, port.id, k, axis, d),
+            lambda s, k, d: _copy_slot(s, k, axis, d, port_format),
             shifts,
         ),
     )

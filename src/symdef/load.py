@@ -832,6 +832,15 @@ def dash_findings(
     return [_finding("/dash", m) for m in dash_problems(symbols, wires, dash)]
 
 
+def _port_format_key(value: object, location: str) -> list[Finding]:
+    """Check the library-wide `port_format`: a template with exactly `{k}` and `{port}` (D123)."""
+    try:
+        checked_port_format(value)
+    except InvalidValueError as error:
+        return [_finding(location, str(error))]
+    return []
+
+
 _BUNDLE = _table(
     {
         "schema": _schema_version,
@@ -842,6 +851,7 @@ _BUNDLE = _table(
         "grid": _grid_table,
         "lines": _lines_table,
         "dash": _dash_table,
+        "port_format": _port_format_key,
     },
     required=("schema", "standard", "symbols"),
 )
@@ -908,21 +918,13 @@ def library_from_bundle(data: Mapping[str, Any]) -> Library:
         grid=grid_from_data(data["grid"]) if "grid" in data else DEFAULT_GRID,
         lines=lines_from_data(data.get("lines", {})),
         dash=dash_from_data(data.get("dash", {})),
+        port_format=data.get("port_format"),
     )
 
 
 _VOCABULARY_LISTS = ("path_kinds", "potentials", "links")
 _VOCABULARY = _table(dict.fromkeys(_VOCABULARY_LISTS, _array(_string)))
 _RULES = _table({"required_slots": _array(_string)})
-
-
-def _port_format_key(value: object, location: str) -> list[Finding]:
-    """Check the library-wide `port_format`: a template with exactly `{k}` and `{port}` (D123)."""
-    try:
-        checked_port_format(value)
-    except InvalidValueError as error:
-        return [_finding(location, str(error))]
-    return []
 
 
 def _tables_problems(data: Mapping[str, Any]) -> list[Finding]:

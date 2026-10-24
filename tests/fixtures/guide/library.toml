@@ -1,6 +1,7 @@
 standard = "IEC 60617"
 title = "IEC 60617 symbols"
 number_pattern = '^S\d{5}$'
+port_format = "{k}.{port}"
 
 [vocabulary]
 path_kinds = ["conductor", "switch_open", "switch_closed", "impedance", "source", "diode"]

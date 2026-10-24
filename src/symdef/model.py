@@ -292,7 +292,8 @@ class Library:
     Iterating yields the symbols sorted by reference number; `len` is their count. `font` is the
     metrics text is measured with, or None, which measures 0.6 em per character; `grid` is the
     drawing grid; `lines` is the stroke width in millimetres of each `Weight`, empty when the
-    library declares none; `dash` is the named dash patterns in millimetres, empty when none.
+    library declares none; `dash` is the named dash patterns in millimetres, empty when none;
+    `port_format` is the template of a repeated pole's port id (D123), None when undeclared.
     """
 
     standard: str
@@ -306,6 +307,7 @@ class Library:
     grid: Grid = DEFAULT_GRID
     lines: Mapping[Weight, float] = MappingProxyType({})
     dash: Mapping[str, tuple[float, ...]] = MappingProxyType({})
+    port_format: str | None = None
 
     def __post_init__(self) -> None:
         """Copy `lines` and `dash` into read-only mappings."""

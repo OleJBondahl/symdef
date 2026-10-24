@@ -32,7 +32,7 @@ spec was silent, the choice is a numbered entry in [DECISIONS.md](DECISIONS.md) 
   template of a pole's port id, with the fields `{k}` and `{port}` (`"{k}.{port}"` gives `1.in`
   and `3.out`). It is required: symdef keeps no spelling of a pole prefix (D16, D121).
   In a part file the data op is `repeat = 3`; it takes the format from the library-wide top-level
-  key `port_format = "{k}.{port}"` of `library.toml` (D123), and a library that uses `repeat`
+  key `port_format = "{k}.{port}"` of `library.toml` (D123), which `Library.port_format` carries (and the bundle with it) for every caller of `repeat`, `table`, `fitted_table`, `pattern_ports` and `pole_port`, and a library that uses `repeat`
   without the key fails to load, the message naming the key. Spec section 7.
 
 Units are modules (1 M = `DEFAULT_MODULE_MM`, 2.5 mm) on a drawing grid of `GRID_DIVISION` (0.125) M,
@@ -57,6 +57,7 @@ src/<package>/bundle.json   generated: every symbol, resolved
 standard = "IEC 60617"
 title = "IEC 60617 symbols"
 number_pattern = '^S\d{5}$'
+port_format = "{k}.{port}"
 
 [vocabulary]
 path_kinds = ["conductor", "switch_open", "switch_closed", "impedance", "source", "diode"]
@@ -204,7 +205,7 @@ them (D31). `symdef check` reports the same files as `stale-build`, so a committ
 ## Serialized form
 
 Resolved JSON has the symbol's fields with composition flattened and the `lint_allow` list kept
-(D1, D11). The bundle is `{"schema": 1, "standard": ..., "symbols": {...}}` (D7). A library with wire styles adds `"wires": [...]` (D56).
+(D1, D11). The bundle is `{"schema": 1, "standard": ..., "symbols": {...}}` (D7). A library with wire styles adds `"wires": [...]` (D56); one with a `port_format` adds `"port_format": "..."` (D123).
 `load_bundle(path)` reads a `bundle.json` back into a `Library` without the TOML sources; it
 validates every symbol and requires the resolved form (D31). A package that ships a set
 loads its bundle this way at import.
@@ -214,7 +215,7 @@ loads its bundle this way at import.
 ```python
 from symdef import Orientation, orient, repeat, to_fragment, to_svg
 
-breaker = orient(repeat(contact, 3, port_format="{k}.{port}"), Orientation.R0)
+breaker = orient(repeat(contact, 3, port_format=library.port_format), Orientation.R0)
 svg = to_svg(breaker, annotate=True, texts={"tag": "-Q1"})
 group = to_fragment(breaker)
 ```
@@ -332,7 +333,7 @@ A port with `pattern = true` is one port that repeats along its edge. Give a sym
 on its edge (named ports may share the edge, D108), with a cut on that edge's axis (x for N and S, y for E and W); the
 rule `port-pattern` checks both, that the edge has one pattern port, and that the port is in no node or path. `n` is given at the call
 and runs from 1 to `MAX_REPEAT`. The order is `stretch_to_ports`, then `stretch`, then
-`pattern_ports(symbol, edge, n)`: copy `k` of port `p` is `k.p`, a pitch after copy `k-1`, and it
+`pattern_ports(symbol, edge, n, *, port_format)`: copy `k` of port `p` is `port_format` filled in (`k.p` for `"{k}.{port}"`), a pitch after copy `k-1`, and it
 brings its bound lead and its `marking.k.p` slot (D104). An edge with no pattern port behaves as in
 D102. An N or S pattern edge shares the x axis with a stretch for the box's texts: pass the longer
 of the two lengths to `stretch`, with the offsets of both. `pattern_ports` raises `InvalidValueError`
@@ -356,7 +357,7 @@ bar = replace(
     keepout=None,
 )
 length, offsets = stretch_to_ports(bar, "x", Direction.S, 4)
-four = pattern_ports(stretch(bar, "x", length, offsets), Direction.S, 4)
+four = pattern_ports(stretch(bar, "x", length, offsets), Direction.S, 4, port_format=library.port_format)
 assert [p.id for p in four.ports] == ["1.p", "2.p", "3.p", "4.p"]
 assert [p.position.x for p in four.ports] == [1, 2, 3, 4]
 assert [s.id for s in four.slots] == [f"marking.{k}.p" for k in (1, 2, 3, 4)]
@@ -366,16 +367,16 @@ Both calls take keyword-only `pitch` (module units, a whole multiple of the wire
 
 ```python
 length, offsets = stretch_to_ports(bar, "x", Direction.S, 3, pitch=2)
-wide = pattern_ports(stretch(bar, "x", length, offsets), Direction.S, 3, pitch=2)
+wide = pattern_ports(stretch(bar, "x", length, offsets), Direction.S, 3, pitch=2, port_format=library.port_format)
 assert [p.position.x for p in wide.ports] == [1, 3, 5]
 ```
 
 A frame is a symbol with a stretch on both axes and a label slot at a corner;
 `stretch(stretch(frame, "x", 120), "y", 80)` makes it 120 by 80 (D53).
 
-`table(row, n, axis, head=None)` makes `n` copies of a row, each stepped by the row's body extent
-along the axis (D54). Copy `k` prefixes its ports `<k>.`, renames `marking.<port>` to
-`marking.<k>.<port>` and any other slot `<id>` to `<k>.<id>`. A `head` keeps its own ids and, if it
+`table(row, n, axis, head=None, *, port_format)` makes `n` copies of a row, each stepped by the row's body extent
+along the axis (D54). Copy `k` renames its ports by `port_format`, as `repeat` does (`<k>.<port>` for `"{k}.{port}"`), `marking.<port>` to
+`marking.<k>.<port>` and any other slot `<id>` to `<k>.<id>`; every caller passes `library.port_format`. A `head` keeps its own ids and, if it
 has a stretch on the axis, is first stretched to the rows' total extent on that axis; without one it
 keeps its width. The head stays where it is authored, relative to row 1. The cap is 64 rows.
 
@@ -390,7 +391,7 @@ head = replace(
     slots=(Slot("heading", Point(2, -2), Direction.E, (6, 1)),),
     stretch=(Stretch("x", 16),),
 )
-cores = table(row, 4, "x", head=head)
+cores = table(row, 4, "x", head=head, port_format=library.port_format)
 assert {"1.1", "4.4"} <= {p.id for p in cores.ports}
 assert {"heading", "marking.2.1", "3.tag"} <= {s.id for s in cores.slots}
 assert body_box(cores).width == 128  # the head spans the four rows
@@ -399,11 +400,11 @@ assert body_box(cores).width == 128  # the head spans the four rows
 `row` may be a sequence of `n` unlike rows, each stepped by its own body extent. Keyword-only `gaps` (n-1 numbers, extra space after rows 1 to n-1) or `positions` (the coordinate of each row's low edge, never overlapping) replace the even step, and `head_align` ("start", "center" or "end") sets how the narrower of the head and the rows sits in the wider; a head wider than its rows is then kept as it is (D109).
 
 ```python
-gapped = table(row, 3, "x", gaps=(1, 2))
-assert body_box(gapped).width == body_box(table(row, 3, "x")).width + 3
+gapped = table(row, 3, "x", gaps=(1, 2), port_format=library.port_format)
+assert body_box(gapped).width == body_box(table(row, 3, "x", port_format=library.port_format)).width + 3
 ```
 
-`fitted_table(row, axis, texts, library, text_height, *, head=None, head_texts=None, fit="cross")` returns the same table, with each column as wide as the widest text set in it (D94). `texts` holds one mapping of slot id to text for each row. The texts are set in `library.font` at `text_height`; the widest in each column, and the head's `head_texts`, are rounded up to whole grid divisions. A column's cut grows by that less the slot's own box, never below zero, so the row's pads stay. The library needs a font, and a text whose slot has no cut across its box raises `InvalidValueError`. With `fit="step"` the rows grow along `axis` instead, so each row's step holds its widest text and the marking boxes of neighbouring rows never overlap; use it for a table whose texts run along the stepping axis, such as pins on an N or S edge. The head's texts, which may have several lines, then fit the head along both axes (D109).
+`fitted_table(row, axis, texts, library, text_height, *, port_format, head=None, head_texts=None, fit="cross")` returns the same table, with each column as wide as the widest text set in it (D94). `texts` holds one mapping of slot id to text for each row. The texts are set in `library.font` at `text_height`; the widest in each column, and the head's `head_texts`, are rounded up to whole grid divisions. A column's cut grows by that less the slot's own box, never below zero, so the row's pads stay. The library needs a font, and a text whose slot has no cut across its box raises `InvalidValueError`. With `fit="step"` the rows grow along `axis` instead, so each row's step holds its widest text and the marking boxes of neighbouring rows never overlap; use it for a table whose texts run along the stepping axis, such as pins on an N or S edge. The head's texts, which may have several lines, then fit the head along both axes (D109).
 
 ```python
 from symdef import (
@@ -423,8 +424,8 @@ row = Symbol(
     slots=(Slot("a", Point(1, 1), Direction.E, (4, 1)), Slot("b", Point(6, 1), Direction.E, (3, 1))),
     stretch=(Stretch("x", 3), Stretch("x", 7.5)),
 )
-sized_table = fitted_table(row, "y", [{"a": "AB"}, {"a": "ABiAB"}], sized, 2)
-assert body_box(sized_table).width > body_box(table(row, 2, "y")).width
+sized_table = fitted_table(row, "y", [{"a": "AB"}, {"a": "ABiAB"}], sized, 2, port_format=library.port_format)
+assert body_box(sized_table).width > body_box(table(row, 2, "y", port_format=library.port_format)).width
 ```
 
 `[font] text_block` picks how a text block is set. "cap" (the default) puts rows 1.5 cap heights apart with the block centred on its cap height. "grid" puts rows the text height rounded up to whole divisions apart, snaps the block top down to a division and the baseline an ascent below it; a centred text sits at the box's start edge plus half its divisions, floored (D96); `slot_lines`, `text_box` and `slot_box` take the library's `grid` for it (D95).
@@ -778,7 +779,7 @@ row = Symbol("row", SymbolKind.SYMBOL, Status.UNVERIFIED, Reference("K", "1"), (
 coil = replace(row, name="coil", elements=(Line(Point(0, 0), Point(4, 0)),),
                slots=(Slot("table", Point(4, 1), Direction.S, (1, 1)),))
 plain = measure(coil, Orientation.R0, library)
-with_table = measure(coil, Orientation.R0, library, attach={"table": table(row, 3, "y")})
+with_table = measure(coil, Orientation.R0, library, attach={"table": table(row, 3, "y", port_format=library.port_format)})
 assert with_table.slots["table"].max.y > plain.slots["table"].max.y
 assert with_table.keepout.max.y == with_table.slots["table"].max.y
 ```
@@ -834,7 +835,7 @@ assert roots[3] == TextRoot(2, 13, "left", "top")
 `orient_point`, `orient_direction` and `orient_box(box, orientation)` turn a point, a direction and
 a box about the symbol's origin as `orient` does: mirror x first, then clockwise quarter turns.
 `Box.union(*boxes)` joins boxes, `pole_pitch(symbol)` is the spacing `repeat` uses (the default
-included), `pole_port(k, port_id)` is a port's id in pole `k`, and `nodes_of(symbol)` lists every
+included), `pole_port(k, port_id, port_format)` is a port's id in pole `k`, and `nodes_of(symbol)` lists every
 node, the declared ones then one per unlisted port.
 
 `load_library` and `load_bundle` return a library whose `symbols` mapping is read-only: assigning

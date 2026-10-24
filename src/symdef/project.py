@@ -12,7 +12,7 @@ from symdef.files import (
 )
 from symdef.lint import lint
 from symdef.model import Finding, Library, Severity
-from symdef.repeat import ROW_PORT_FORMAT, repeat
+from symdef.repeat import repeat
 from symdef.serialize import package_folder, symbol_to_data
 from symdef.starter import starter_files
 
@@ -70,12 +70,12 @@ def build(root: Path) -> tuple[Path, ...]:
 def _through_repeats(library: Library) -> tuple[Finding, ...]:
     """Gate 3: every symbol with a through path also lints clean as `repeat(symbol, 3)`.
 
-    The format is the one spelling lint accepts for a prefixed port (D121).
+    The library's `port_format` names the repeated ports; a library that declares none has no gate.
     """
     found = []
-    for symbol in library:
+    for symbol in library if library.port_format is not None else ():
         if any(path.through for path in symbol.paths):
-            repeated = repeat(symbol, 3, port_format=ROW_PORT_FORMAT)
+            repeated = repeat(symbol, 3, port_format=library.port_format)
             number = symbol.reference.number
             found.extend(
                 _named(
@@ -133,6 +133,7 @@ def _bundle(library: Library, root: Path) -> tuple[Finding, ...]:
                 bundle.symbols,
                 library.vocabulary,
                 library.required_slots,
+                port_format=library.port_format,
             ),
             " in the bundle",
         ),
