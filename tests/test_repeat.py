@@ -63,14 +63,14 @@ def s230() -> Symbol:
 
 class TestOnePole:
     def test_ports_are_renamed_and_not_moved(self, s227):
-        result = repeat(s227, 1)
+        result = repeat(s227, 1, port_format="{k}.{port}")
         assert result.ports == (
             Port("1.in", Point(0, -2), N),
             Port("1.out", Point(0, 2), S),
         )
 
     def test_marking_slots_are_renamed_and_tag_kept(self, s227):
-        result = repeat(s227, 1)
+        result = repeat(s227, 1, port_format="{k}.{port}")
         assert result.slots == (
             Slot("tag", Point(-1.5, 0), W, (6, 1)),
             Slot("marking.1.in", Point(0.25, -1.5), E, (1.5, 1)),
@@ -79,13 +79,18 @@ class TestOnePole:
 
     def test_implicit_nodes_become_explicit(self, s227):
         assert s227.nodes == ()
-        assert repeat(s227, 1).nodes == (Node(("1.in",)), Node(("1.out",)))
+        assert repeat(s227, 1, port_format="{k}.{port}").nodes == (
+            Node(("1.in",)),
+            Node(("1.out",)),
+        )
 
     def test_through_path_stays_through(self, s227):
-        assert repeat(s227, 1).paths == (Path("1.in", "1.out", "switch_open", through=True),)
+        assert repeat(s227, 1, port_format="{k}.{port}").paths == (
+            Path("1.in", "1.out", "switch_open", through=True),
+        )
 
     def test_elements_anchors_and_kind_are_unchanged(self, s227):
-        result = repeat(s227, 1)
+        result = repeat(s227, 1, port_format="{k}.{port}")
         assert result.elements == s227.elements
         assert result.anchors == s227.anchors
         assert (result.name, result.kind, result.status, result.reference) == (
@@ -96,10 +101,10 @@ class TestOnePole:
         )
 
     def test_pole_pitch_is_the_default_pitch(self, s227):
-        assert repeat(s227, 1).pole_pitch == 4
+        assert repeat(s227, 1, port_format="{k}.{port}").pole_pitch == 4
 
     def test_pole_pitch_is_the_declared_pitch(self, s230):
-        assert repeat(s230, 1).pole_pitch == 8
+        assert repeat(s230, 1, port_format="{k}.{port}").pole_pitch == 8
 
 
 class TestBoundLeadsAreRenamed:
@@ -112,13 +117,13 @@ class TestBoundLeadsAreRenamed:
                 Line(Point(0, 2), Point(0, 1), port="out"),
             )
         )
-        result = repeat(symbol, 2)
+        result = repeat(symbol, 2, port_format="{k}.{port}")
         ports = [e.port for e in result.elements if isinstance(e, Line)]
         assert ports == ["1.in", "1.out", "2.in", "2.out"]
 
     def test_an_unbound_lead_is_left_alone(self):
         symbol = bare(elements=(Line(Point(0, -2), Point(0, -1)),))
-        result = repeat(symbol, 2)
+        result = repeat(symbol, 2, port_format="{k}.{port}")
         ports = [e.port for e in result.elements if isinstance(e, Line)]
         assert ports == [None, None]
 
@@ -126,7 +131,7 @@ class TestBoundLeadsAreRenamed:
 class TestThreePolesOfS00227:
     @pytest.fixture
     def result(self, s227) -> Symbol:
-        return repeat(s227, 3)
+        return repeat(s227, 3, port_format="{k}.{port}")
 
     def test_ports_are_prefixed_and_four_apart(self, result):
         assert result.ports == (
@@ -179,7 +184,7 @@ class TestThreePolesOfS00227:
 class TestTwoPolesOfS00230:
     @pytest.fixture
     def result(self, s230) -> Symbol:
-        return repeat(s230, 2)
+        return repeat(s230, 2, port_format="{k}.{port}")
 
     def test_ports_use_the_declared_pitch(self, result):
         assert result.ports == (
@@ -232,21 +237,21 @@ class TestTwoPolesOfS00230:
 class TestEdgeCases:
     def test_no_link_anchor_adds_no_line(self):
         symbol = bare(elements=(Line(Point(0, -2), Point(0, 2)),))
-        assert len(repeat(symbol, 3).elements) == 3
+        assert len(repeat(symbol, 3, port_format="{k}.{port}").elements) == 3
 
     def test_one_pole_adds_no_link_line(self, s227):
-        assert len(repeat(s227, 1).elements) == len(s227.elements)
+        assert len(repeat(s227, 1, port_format="{k}.{port}").elements) == len(s227.elements)
 
     def test_a_link_anchor_with_another_id_adds_no_line(self):
         symbol = bare(anchors=(Anchor("top", Point(0, -2), N),))
-        assert repeat(symbol, 2).elements == ()
+        assert repeat(symbol, 2, port_format="{k}.{port}").elements == ()
 
     def test_potential_is_preserved(self):
         symbol = bare(
             nodes=(Node(("in",), "earth"), Node(("out",))),
             paths=(Path("in", "out", "conductor", through=True),),
         )
-        assert repeat(symbol, 2).nodes == (
+        assert repeat(symbol, 2, port_format="{k}.{port}").nodes == (
             Node(("1.in",), "earth"),
             Node(("1.out",)),
             Node(("2.in",), "earth"),
@@ -262,7 +267,7 @@ class TestEdgeCases:
             ),
             nodes=(Node(("in", "in2")),),
         )
-        assert repeat(symbol, 2).nodes == (
+        assert repeat(symbol, 2, port_format="{k}.{port}").nodes == (
             Node(("1.in", "1.in2")),
             Node(("1.out",)),
             Node(("2.in", "2.in2")),
@@ -271,7 +276,7 @@ class TestEdgeCases:
 
     def test_lint_allow_is_carried_over_unchanged(self):
         allow = (Allow("port-spacing", "on purpose"),)
-        assert repeat(bare(lint_allow=allow), 3).lint_allow == allow
+        assert repeat(bare(lint_allow=allow), 3, port_format="{k}.{port}").lint_allow == allow
 
     def test_value_slot_comes_from_pole_one_only_and_is_not_prefixed(self):
         symbol = bare(
@@ -281,7 +286,7 @@ class TestEdgeCases:
                 Slot("marking.in", Point(0.5, -1), E, (1, 1)),
             )
         )
-        assert repeat(symbol, 2).slots == (
+        assert repeat(symbol, 2, port_format="{k}.{port}").slots == (
             Slot("tag", Point(-1, 0), W, (2, 1)),
             Slot("value", Point(1, 0), E, (2, 1)),
             Slot("marking.1.in", Point(0.5, -1), E, (1, 1)),
@@ -290,7 +295,9 @@ class TestEdgeCases:
 
     def test_an_unknown_slot_id_comes_from_pole_one_only(self):
         symbol = bare(slots=(Slot("note", Point(1, 0), E, (2, 1)),))
-        assert repeat(symbol, 3).slots == (Slot("note", Point(1, 0), E, (2, 1)),)
+        assert repeat(symbol, 3, port_format="{k}.{port}").slots == (
+            Slot("note", Point(1, 0), E, (2, 1)),
+        )
 
     def test_dotted_ids_from_composition_are_prefixed_whole(self):
         symbol = bare(
@@ -298,14 +305,14 @@ class TestEdgeCases:
             paths=(Path("c.in", "c.out", "conductor", through=True),),
             slots=(Slot("marking.c.in", Point(0.5, -1), E, (1, 1)),),
         )
-        result = repeat(symbol, 2)
+        result = repeat(symbol, 2, port_format="{k}.{port}")
         assert tuple(p.id for p in result.ports) == ("1.c.in", "1.c.out", "2.c.in", "2.c.out")
         assert tuple(s.id for s in result.slots) == ("marking.1.c.in", "marking.2.c.in")
 
     def test_input_is_not_mutated(self, s227):
         rebuilt = guide_symbol("S00227")  # read again, so it is not the object `repeat` gets
         assert rebuilt is not s227
-        repeat(s227, 3)
+        repeat(s227, 3, port_format="{k}.{port}")
         assert s227 == rebuilt
 
 
@@ -313,15 +320,15 @@ class TestPreconditions:
     @pytest.mark.parametrize("n", [0, -1])
     def test_a_pole_count_below_one_is_rejected(self, s227, n):
         with pytest.raises(InvalidValueError, match=r"pole count|through path"):
-            repeat(s227, n)
+            repeat(s227, n, port_format="{k}.{port}")
 
     def test_a_symbol_without_a_through_path_repeats_with_no_through_path(self):
-        result = repeat(bare(paths=(Path("in", "out", "conductor"),)), 3)
+        result = repeat(bare(paths=(Path("in", "out", "conductor"),)), 3, port_format="{k}.{port}")
         assert [p.from_port for p in result.paths] == ["1.in", "2.in", "3.in"]
         assert [p.through for p in result.paths] == [False, False, False]
 
     def test_a_symbol_without_paths_repeats(self):
-        result = repeat(bare(paths=()), 2)
+        result = repeat(bare(paths=()), 2, port_format="{k}.{port}")
         assert result.paths == ()
         assert len(result.ports) == 2 * len(bare(paths=()).ports)
 
@@ -344,7 +351,7 @@ def repeatable_symbols(draw):
 @given(symbol=repeatable_symbols(), n=st.integers(min_value=1, max_value=8))
 def test_port_x_extent_grows_by_the_pitch_per_extra_pole(symbol, n):
     pitch = symbol.pole_pitch or 4
-    result = repeat(symbol, n)
+    result = repeat(symbol, n, port_format="{k}.{port}")
     xs = [p.position.x for p in symbol.ports]
     result_xs = [p.position.x for p in result.ports]
     assert max(result_xs) - min(result_xs) == max(xs) - min(xs) + (n - 1) * pitch
@@ -355,3 +362,34 @@ def test_port_x_extent_grows_by_the_pitch_per_extra_pole(symbol, n):
     assert sum(path.through for path in result.paths) == 1
     listed = [port_id for node in nodes_of(result) for port_id in node.ports]
     assert sorted(listed) == sorted(ids)
+
+
+class TestPortFormat:
+    def test_two_formats_give_two_outputs(self, s227):
+        dotted = repeat(s227, 2, port_format="{k}.{port}")
+        dashed = repeat(s227, 2, port_format="P{k}_{port}")
+        assert tuple(p.id for p in dotted.ports)[:2] == ("1.in", "1.out")
+        assert tuple(p.id for p in dashed.ports)[:2] == ("P1_in", "P1_out")
+        assert dashed.nodes == (
+            Node(("P1_in",)),
+            Node(("P1_out",)),
+            Node(("P2_in",)),
+            Node(("P2_out",)),
+        )
+        assert dashed.paths[0].from_port == "P1_in"
+
+    def test_the_format_renames_a_bound_lead_and_a_marking_slot_too(self):
+        lead = Line(Point(0, 0), Point(1, 0), Weight.NORMAL, Style.SOLID, port="in")
+        symbol = bare(elements=(lead,), slots=(Slot("marking.in", Point(1, 0), E, (2, 1)),))
+        result = repeat(symbol, 2, port_format="P{k}_{port}")
+        assert tuple(e.port for e in result.elements if isinstance(e, Line)) == ("P1_in", "P2_in")
+        assert tuple(s.id for s in result.slots) == ("marking.P1_in", "marking.P2_in")
+
+    def test_omitting_the_format_is_an_error_naming_the_argument_and_the_fix(self, s227):
+        with pytest.raises(InvalidValueError, match=r"port_format.*such as '\{k\}\.\{port\}'"):
+            repeat(s227, 2)
+
+    @pytest.mark.parametrize("bad", ["{k}", "{port}", "{k}.{port}.{n}", "plain", "{k}.{port", 3])
+    def test_a_format_without_exactly_k_and_port_is_an_error(self, s227, bad):
+        with pytest.raises(InvalidValueError, match="port_format"):
+            repeat(s227, 2, port_format=bad)

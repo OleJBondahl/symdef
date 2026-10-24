@@ -55,7 +55,7 @@ def test_the_guide_drawing_library_snippet_runs_on_the_guide_fixtures():
     # The guide's `from iec60617 import LIBRARY`, with the guide fixtures as the library and
     # S00227 (a make contact, one through path) in place of S00287. The `Placement` is left out.
     library = load_library(GUIDE_FIXTURES)
-    breaker = orient(repeat(library.get("S00227"), 3), Orientation.R0)
+    breaker = orient(repeat(library.get("S00227"), 3, port_format="{k}.{port}"), Orientation.R0)
 
     assert isinstance(breaker, Symbol)
     assert lint(breaker) == ()
@@ -96,10 +96,10 @@ SECTION_11_SIGNATURES = {
     "pole_pitch": positional("symbol"),
     "pole_port": positional("k", "port_id"),
     "nodes_of": positional("symbol"),
-    "repeat": positional("symbol", "n"),
     "body_box": [*positional("symbol"), ("font", "POSITIONAL_OR_KEYWORD", "None")],
     "keepout_box": [*positional("symbol"), ("font", "POSITIONAL_OR_KEYWORD", "None")],
     "leads": positional("symbol", "ports"),
+    "repeat": [*positional("symbol", "n"), ("port_format", "KEYWORD_ONLY", "None")],
     "only_ports": positional("symbol", "ports"),
     "stretch_to_ports": [
         *positional("symbol", "axis", "edge", "n"),

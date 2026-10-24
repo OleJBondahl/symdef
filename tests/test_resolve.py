@@ -268,7 +268,7 @@ class TestRepeatedPart:
     def resolution(self) -> Resolution:
         top = composite(
             "S00040",
-            'parts = [{ as = "main", use = "S00227", repeat = 3 }]\n'
+            'parts = [{ as = "main", use = "S00227", repeat = 3, port_format = "{k}.{port}" }]\n'
             'ports = { in1 = "main.1.in", out1 = "main.1.out", in2 = "main.2.in", '
             'out2 = "main.2.out", in3 = "main.3.in", out3 = "main.3.out" }\n'
             "[slots]\n"
@@ -318,7 +318,8 @@ class TestRepeatedPart:
     def test_repeat_then_orient_then_place(self):
         top = composite(
             "S00041",
-            'parts = [{ as = "m", use = "S00227", repeat = 2, orient = "R90", at = [1, 0] }]\n'
+            'parts = [{ as = "m", use = "S00227", repeat = 2, port_format = "{k}.{port}",'
+            ' orient = "R90", at = [1, 0] }]\n'
             'ports = { a = "m.1.in", b = "m.1.out", c = "m.2.in", d = "m.2.out" }\n',
         )
         resolution = resolve_library(CONFIG, guide_sources() | files(top))
@@ -334,7 +335,7 @@ class TestRepeatedPart:
     def test_an_integral_float_count_is_accepted(self):
         top = composite(
             "S00041",
-            'parts = [{ as = "m", use = "S00227", repeat = 2.0 }]\n'
+            'parts = [{ as = "m", use = "S00227", repeat = 2.0, port_format = "{k}.{port}" }]\n'
             'ports = { a = "m.1.in", b = "m.1.out", c = "m.2.in", d = "m.2.out" }\n',
         )
         resolution = resolve_library(CONFIG, guide_sources() | files(top))
@@ -778,7 +779,7 @@ class TestPartAnchor:
     def test_a_part_that_failed_earlier_causes_no_further_finding_for_its_users(self):
         top = composite(
             "S00080",
-            'parts = [{ as = "a", use = "S00227", repeat = 0 },'
+            'parts = [{ as = "a", use = "S00227", repeat = 0, port_format = "{k}.{port}" },'
             ' { as = "b", use = "S00011", attach = "link", to = "a.link" }]\n',
         )
         resolution = resolve_library(CONFIG, guide_sources() | files(LINK_W, top))
@@ -943,7 +944,10 @@ class TestFileRules:
         assert resolution.symbols == {}
 
     def test_repeat_below_one_is_a_schema_finding_at_the_repeat_key(self):
-        top = composite("S00094", 'parts = [{ as = "a", use = "S00227", repeat = 0 }]\n')
+        top = composite(
+            "S00094",
+            'parts = [{ as = "a", use = "S00227", repeat = 0, port_format = "{k}.{port}" }]\n',
+        )
         resolution = resolve_library(CONFIG, guide_sources() | files(top))
         assert located(resolution, "S00094") == [("schema", "/parts/0/repeat")]
         assert "S00094" not in resolution.symbols
@@ -956,7 +960,10 @@ class TestFileRules:
         assert "S00094" not in resolution.symbols
 
     def test_the_repeat_cap_message_names_the_bounds(self):
-        top = composite("S00094", 'parts = [{ as = "a", use = "S00227", repeat = 65 }]\n')
+        top = composite(
+            "S00094",
+            'parts = [{ as = "a", use = "S00227", repeat = 65, port_format = "{k}.{port}" }]\n',
+        )
         resolution = resolve_library(CONFIG, guide_sources() | files(top))
         assert resolution.findings["S00094"][0].message == "repeat must be between 1 and 64"
 
@@ -964,7 +971,9 @@ class TestFileRules:
         exports = ", ".join(f'p{k}i = "a.{k}.in", p{k}o = "a.{k}.out"' for k in range(1, 65))
         top = composite(
             "S00094",
-            f'parts = [{{ as = "a", use = "S00227", repeat = 64 }}]\nports = {{ {exports} }}\n',
+            f'parts = [{{ as = "a", use = "S00227", repeat = 64, '
+            f'port_format = "{{k}}.{{port}}" }}]\n'
+            f"ports = {{ {exports} }}\n",
         )
         resolution = resolve_library(CONFIG, guide_sources() | files(top))
         assert resolution.findings == {}
@@ -973,7 +982,7 @@ class TestFileRules:
     def test_repeat_of_a_part_without_a_through_path_repeats_it(self):
         top = composite(
             "S00094",
-            'parts = [{ as = "a", use = "S00013", repeat = 2 }]\n'
+            'parts = [{ as = "a", use = "S00013", repeat = 2, port_format = "{k}.{port}" }]\n'
             'ports = { p = "a.1.in", q = "a.1.out", r = "a.2.in", s = "a.2.out" }\n',
         )
         resolution = resolve(TWO_PORT_PLAIN, top)
@@ -985,7 +994,7 @@ class TestFileRules:
     def test_repeat_of_one_does_not_fire(self):
         top = composite(
             "S00094",
-            'parts = [{ as = "a", use = "S00012", repeat = 1 }]\n'
+            'parts = [{ as = "a", use = "S00012", repeat = 1, port_format = "{k}.{port}" }]\n'
             'ports = { p = "a.1.in", q = "a.1.out" }\n',
         )
         assert resolve(TWO_PORT, top).findings == {}
@@ -1192,7 +1201,8 @@ class TestPatternTotality:
 SOURCES = guide_sources() | files(
     composite(
         "S00040",
-        'parts = [{ as = "main", use = "S00227", repeat = 3, orient = "R90" }]\n'
+        'parts = [{ as = "main", use = "S00227", repeat = 3, port_format = "{k}.{port}",'
+        ' orient = "R90" }]\n'
         'ports = { a = "main.1.in", b = "main.1.out", c = "main.2.in", d = "main.2.out",'
         ' e = "main.3.in", f = "main.3.out" }\n'
         '[slots]\ntag = "main.tag"\n',
@@ -1254,3 +1264,20 @@ def test_the_totality_check_can_fail():
 def test_resolving_never_raises_on_damaged_files(stem, pick, action, value, key):
     sources = {**SOURCES, stem: damage(SOURCES[stem], pick, action, value, key)}
     assert raises_nothing(resolve_library, sources)
+
+
+class TestRepeatPortFormat:
+    def test_a_repeat_without_port_format_is_a_schema_finding_at_the_repeat_key(self):
+        top = composite("S00094", 'parts = [{ as = "a", use = "S00227", repeat = 2 }]\n')
+        resolution = resolve_library(CONFIG, guide_sources() | files(top))
+        assert located(resolution, "S00094") == [("schema", "/parts/0/repeat")]
+        assert "port_format" in resolution.findings["S00094"][0].message
+        assert "S00094" not in resolution.symbols
+
+    def test_the_part_supplies_the_format_and_it_reaches_the_ports(self):
+        part = '{ as = "a", use = "S00227", repeat = 2, port_format = "P{k}_{port}" }'
+        names = ("P1_in", "P1_out", "P2_in", "P2_out")
+        exports = ", ".join(f'{n} = "a.{n}"' for n in names)
+        top = composite("S00094", f"parts = [{part}]\nports = {{ {exports} }}\n")
+        resolution = resolve_library(CONFIG, guide_sources() | files(top))
+        assert [p.id for p in resolution.symbols["S00094"].ports] == list(names)

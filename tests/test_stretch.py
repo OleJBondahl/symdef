@@ -196,7 +196,7 @@ def test_orient_translate_and_repeat_leave_the_stretch_field_untouched():
     )
     assert orient(symbol, Orientation.R90).stretch == symbol.stretch
     assert translate(symbol, 2, 2).stretch == symbol.stretch
-    assert repeat(symbol, 2).stretch == symbol.stretch
+    assert repeat(symbol, 2, port_format="{k}.{port}").stretch == symbol.stretch
 
 
 TOML = """\

@@ -8,7 +8,7 @@ from symdef.errors import InvalidValueError
 from symdef.geometry import Element, Line, Polyline
 from symdef.model import Slot, Symbol, nodes_of
 from symdef.orient import translate
-from symdef.repeat import MAX_REPEAT, declared_union, pole_elements, pole_parts
+from symdef.repeat import MAX_REPEAT, ROW_PORT_FORMAT, declared_union, pole_elements, pole_parts
 from symdef.stretch import Axis, stretch
 from symdef.table_rows import (
     HeadAlign,
@@ -26,7 +26,7 @@ _MARKING = "marking."
 
 def _row_elements(row: Symbol, k: int, n: int) -> tuple[Element, ...]:
     """Return row `k` of `n`'s elements; a `between` element is left out of the last row."""
-    elements = pole_elements(row.elements, k)
+    elements = pole_elements(row.elements, k, ROW_PORT_FORMAT)
     if k < n:
         return elements
     return tuple(e for e in elements if not (isinstance(e, Line | Polyline) and e.between))
@@ -154,7 +154,7 @@ def table(  # noqa: PLR0913 - the ruled signature: row, n, axis, head and the ke
     else:
         head_elements, head_ports, head_nodes = head.elements, head.ports, nodes_of(head)
         head_paths, head_slots = head.paths, head.slots
-    parts = tuple(pole_parts(r, k) for k, r in enumerate(rows, start=1))
+    parts = tuple(pole_parts(r, k, ROW_PORT_FORMAT) for k, r in enumerate(rows, start=1))
     return replace(
         first,
         elements=head_elements

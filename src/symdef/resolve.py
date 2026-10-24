@@ -9,6 +9,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from typing import Any
 
+from symdef.errors import InvalidValueError
 from symdef.geometry import Element, Line, Orientation, Point, Style, Weight
 from symdef.lint.exemptions import exempt
 from symdef.lint.file import metadata_findings, part_id_findings
@@ -99,7 +100,10 @@ def _prepare(
         if not 1 <= count <= MAX_REPEAT:
             message = f"repeat must be between 1 and {MAX_REPEAT}"
             return None, (rule_finding("schema", message, where),)
-        symbol = repeat(base, count)
+        try:
+            symbol = repeat(base, count, port_format=part.get("port_format"))
+        except InvalidValueError as error:
+            return None, (rule_finding("schema", str(error), where),)
     return orient(symbol, Orientation(part.get("orient", "R0"))), ()
 
 

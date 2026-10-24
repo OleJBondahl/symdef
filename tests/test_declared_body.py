@@ -83,8 +83,8 @@ class TestOrientAndCompose:
             ports=(Port("in", Point(0, -2), Direction.N), Port("out", Point(0, 2), Direction.S)),
             paths=(Path("in", "out", "switch_open", through=True),),
         )
-        assert body_box(repeat(sym, 1)) == box(-1, -2, 5, 2)
-        assert body_box(repeat(sym, 3)) == box(-1, -2, 13, 2)
+        assert body_box(repeat(sym, 1, port_format="{k}.{port}")) == box(-1, -2, 5, 2)
+        assert body_box(repeat(sym, 3, port_format="{k}.{port}")) == box(-1, -2, 13, 2)
 
     def test_table_unites_the_rows_and_stretches_the_head(self):
         row = plain_symbol(elements=(Line(Point(0, 0), Point(2, 0)),), body=box(0, 0, 4, 2))

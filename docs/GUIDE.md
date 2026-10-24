@@ -27,9 +27,12 @@ spec was silent, the choice is a numbered entry in [DECISIONS.md](DECISIONS.md) 
 - **Composite.** A symbol made of `parts`, each a reference to another symbol, attached by
   anchor. It copies no coordinates and inherits ports, slots and elements from its parts (D20).
   Spec section 7.
-- **Repeat.** `repeat(symbol, n)` makes an n-pole symbol from a one-pole one, stepping by
-  `pole_pitch`. The result is an ordinary symbol with ports such as `1.in` and `3.out` (D16).
-  Spec section 7.
+- **Repeat.** `repeat(symbol, n, *, port_format)` makes an n-pole symbol from a one-pole one,
+  stepping by `pole_pitch`. The result is an ordinary symbol; `port_format` is the caller's
+  template of a pole's port id, with the fields `{k}` and `{port}` (`"{k}.{port}"` gives `1.in`
+  and `3.out`). It is required: symdef keeps no spelling of a pole prefix (D16, D121).
+  In a part file the data op is `repeat = 3` with `port_format = "{k}.{port}"` beside it. Spec
+  section 7.
 
 Units are modules (1 M = `DEFAULT_MODULE_MM`, 2.5 mm) on a drawing grid of `GRID_DIVISION` (0.125) M,
 which `[grid]` in `library.toml` may change (see Measuring text and the grid); wires run on a 1 M grid. The wiring contract is linted in all 8 orientations (`Orientation`).
@@ -210,7 +213,7 @@ loads its bundle this way at import.
 ```python
 from symdef import Orientation, orient, repeat, to_fragment, to_svg
 
-breaker = orient(repeat(contact, 3), Orientation.R0)
+breaker = orient(repeat(contact, 3, port_format="{k}.{port}"), Orientation.R0)
 svg = to_svg(breaker, annotate=True, texts={"tag": "-Q1"})
 group = to_fragment(breaker)
 ```

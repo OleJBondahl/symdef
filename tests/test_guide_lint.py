@@ -90,7 +90,7 @@ class TestRepeatedExamples:
     @pytest.mark.parametrize("poles", [1, 2, 3])
     @pytest.mark.parametrize("number", WITH_A_THROUGH_PATH)
     def test_a_repeated_example_lints_clean(self, library, number, poles):
-        assert lint(repeat(library.get(number), poles)) == ()
+        assert lint(repeat(library.get(number), poles, port_format="{k}.{port}")) == ()
 
     def test_the_relay_coil_is_exactly_as_wide_as_its_pitch(self, library):
         symbol = library.get("S00305")
@@ -107,9 +107,11 @@ class TestRepeatedExamples:
             ),
         )
         assert pole_extent(wider) == 4.125
-        assert [f.rule for f in lint(repeat(wider, 3))] == ["pitch-overflow"]
+        assert [f.rule for f in lint(repeat(wider, 3, port_format="{k}.{port}"))] == [
+            "pitch-overflow"
+        ]
 
     def test_the_change_over_contact_repeats_at_its_own_pitch(self, library):
-        repeated = repeat(library.get("S00230"), 3)
+        repeated = repeat(library.get("S00230"), 3, port_format="{k}.{port}")
         assert repeated.pole_pitch == 24
         assert lint(repeated) == ()

@@ -143,7 +143,7 @@ def test_table_and_repeat_keep_the_centre_side():
         slots=(Slot("marking.in", Point(3, 5), Centre.C, (4.0, 2.0)),),
     )
     assert table(base, 2, "x").slots[1].side is Centre.C
-    assert repeat(base, 2).slots[0].side is Centre.C
+    assert repeat(base, 2, port_format="{k}.{port}").slots[0].side is Centre.C
 
 
 TOML = """schema = 1

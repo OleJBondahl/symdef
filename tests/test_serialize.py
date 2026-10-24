@@ -310,7 +310,7 @@ def test_every_guide_symbol_round_trips_through_json_text(symbol):
 
 
 def test_a_repeated_symbol_round_trips():
-    assert round_trips(repeat(LIBRARY.get("S00227"), 3))
+    assert round_trips(repeat(LIBRARY.get("S00227"), 3, port_format="{k}.{port}"))
 
 
 def test_a_bound_lead_round_trips():
@@ -343,7 +343,9 @@ def test_the_resolved_data_of_a_guide_symbol_validates_with_both_validators(symb
 
 
 def test_the_repeated_symbol_validates_with_both_validators():
-    data = json.loads(to_json(symbol_to_data(repeat(LIBRARY.get("S00227"), 3))))
+    data = json.loads(
+        to_json(symbol_to_data(repeat(LIBRARY.get("S00227"), 3, port_format="{k}.{port}")))
+    )
     assert validate(data) == ()
     assert JSON_SCHEMA.is_valid(data)
 
