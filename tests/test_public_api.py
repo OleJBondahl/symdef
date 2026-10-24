@@ -94,7 +94,7 @@ SECTION_11_SIGNATURES = {
     "orient_box": positional("box", "orientation"),
     "slots_box": positional("symbol"),
     "pole_pitch": positional("symbol"),
-    "pole_port": positional("k", "port_id"),
+    "pole_port": positional("k", "port_id", "port_format"),
     "nodes_of": positional("symbol"),
     "body_box": [*positional("symbol"), ("font", "POSITIONAL_OR_KEYWORD", "None")],
     "keepout_box": [*positional("symbol"), ("font", "POSITIONAL_OR_KEYWORD", "None")],
@@ -157,6 +157,7 @@ SECTION_11_SIGNATURES = {
     "table": [
         *positional("row", "n", "axis"),
         ("head", "POSITIONAL_OR_KEYWORD", "None"),
+        ("port_format", "KEYWORD_ONLY", "-"),
         ("grid", "KEYWORD_ONLY", "None"),
         ("gaps", "KEYWORD_ONLY", "None"),
         ("positions", "KEYWORD_ONLY", "None"),
@@ -193,7 +194,7 @@ SECTION_11_FIELDS = {
     ],
     "Library": [
         *("standard", "title", "number_pattern", "symbols", "vocabulary", "required_slots"),
-        *("wires", "font", "grid", "lines", "dash"),
+        *("wires", "font", "grid", "lines", "dash", "port_format"),
     ],
     "Finding": ["rule", "severity", "message", "location", "orientation"],
 }

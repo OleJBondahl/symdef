@@ -93,9 +93,9 @@ class TestOrientAndCompose:
             body=box(0, -1, 4, 0),
             stretch=(Stretch("y", -1),),
         )
-        made = table(row, 3, "y")
+        made = table(row, 3, "y", port_format="{k}.{port}")
         assert body_box(made) == box(0, 0, 4, 6)
-        assert body_box(table(row, 2, "y", head)) == box(0, -1, 4, 4)
+        assert body_box(table(row, 2, "y", head, port_format="{k}.{port}")) == box(0, -1, 4, 4)
 
     def test_a_part_that_declares_a_body_needs_the_composite_to_declare_one(self):
         part = (

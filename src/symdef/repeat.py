@@ -13,10 +13,6 @@ _DEFAULT_PITCH = 4
 _LINK = "link"
 _MARKING = "marking."
 
-# The spelling `table`, `fitted_table` and `edge_pattern` give a row's or a copy's port: rows and
-# copies are not poles, and a pole prefix is the caller's to choose (D121).
-ROW_PORT_FORMAT = "{k}.{port}"
-
 # A repeat in a part file stops here: the guide sets no bound, and a data file must not be able to
 # ask for a million poles. `table` uses the same bound.
 MAX_REPEAT = 64
@@ -33,14 +29,9 @@ def pole_pitch(symbol: Symbol) -> float:
     return symbol.pole_pitch or _DEFAULT_PITCH
 
 
-def format_port(k: int, port_id: str, port_format: str) -> str:
+def pole_port(k: int, port_id: str, port_format: str) -> str:
     """Return the id port `port_id` takes in pole `k` (counted from 1): `port_format` filled in."""
     return port_format.format(k=k, port=port_id)
-
-
-def pole_port(k: int, port_id: str) -> str:
-    """Return the id port `port_id` takes in row or copy `k` (counted from 1): `<k>.<port_id>`."""
-    return format_port(k, port_id, ROW_PORT_FORMAT)
 
 
 def _template_fields(template: str) -> set[str] | None:
@@ -55,7 +46,7 @@ def checked_port_format(port_format: object) -> str:
     """Return `port_format` when it is a template with exactly the fields `{k}` and `{port}`."""
     if not isinstance(port_format, str) or _template_fields(port_format) != {"k", "port"}:
         msg = (
-            "repeat needs port_format, the template of a pole's port id with the fields {k} "
+            "a pole's port id needs port_format, a template with the fields {k} "
             f"and {{port}}, such as '{{k}}.{{port}}'; got {port_format!r}"
         )
         raise InvalidValueError(msg)
@@ -65,7 +56,7 @@ def checked_port_format(port_format: object) -> str:
 def pole_elements(elements: tuple[Element, ...], k: int, port_format: str) -> tuple[Element, ...]:
     """Return pole `k`'s elements, a bound lead's `port` renamed by `port_format` like its port."""
     return tuple(
-        replace(e, port=format_port(k, e.port, port_format))
+        replace(e, port=pole_port(k, e.port, port_format))
         if isinstance(e, Line) and e.port is not None
         else e
         for e in elements
@@ -75,7 +66,7 @@ def pole_elements(elements: tuple[Element, ...], k: int, port_format: str) -> tu
 def _pole_slots(slots: tuple[Slot, ...], k: int, port_format: str) -> tuple[Slot, ...]:
     """Return the slots pole `k` contributes: its marking slots renamed, the rest from pole 1."""
     return tuple(
-        replace(s, id=_MARKING + format_port(k, s.id.removeprefix(_MARKING), port_format))
+        replace(s, id=_MARKING + pole_port(k, s.id.removeprefix(_MARKING), port_format))
         if s.id.startswith(_MARKING)
         else s
         for s in slots
@@ -88,16 +79,16 @@ def pole_parts(
 ) -> tuple[tuple[Port, ...], tuple[Node, ...], tuple[Path, ...]]:
     """Return the ports, nodes and paths of pole `k` with every port id renamed by `port_format`."""
     return (
-        tuple(replace(p, id=format_port(k, p.id, port_format)) for p in pole.ports),
+        tuple(replace(p, id=pole_port(k, p.id, port_format)) for p in pole.ports),
         tuple(
-            replace(n, ports=tuple(format_port(k, p, port_format) for p in n.ports))
+            replace(n, ports=tuple(pole_port(k, p, port_format) for p in n.ports))
             for n in nodes_of(pole)
         ),
         tuple(
             replace(
                 p,
-                from_port=format_port(k, p.from_port, port_format),
-                to_port=format_port(k, p.to_port, port_format),
+                from_port=pole_port(k, p.from_port, port_format),
+                to_port=pole_port(k, p.to_port, port_format),
                 through=p.through and k == 1,
             )
             for p in pole.paths

@@ -74,7 +74,7 @@ def test_the_small_sites_raise_the_domain_errors():
     with pytest.raises(InvalidValueError, match="pole count"):
         repeat(PLAIN, 0, port_format="{k}.{port}")
     with pytest.raises(InvalidValueError, match="between 1 and 64"):
-        table(PLAIN, 0, "y")
+        table(PLAIN, 0, "y", port_format="{k}.{port}")
 
 
 def test_stretch_raises_the_domain_error():

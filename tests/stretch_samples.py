@@ -115,7 +115,7 @@ def golden_files() -> dict[str, bytes]:
     for number in TABLE_NUMBERS:
         row = LIBRARY.get(number)
         for n, axis in ((1, "x"), (4, "x"), (4, "y")):
-            tabled = table(row, n, axis)
+            tabled = table(row, n, axis, port_format="{k}.{port}")
             stem = f"table.{number}.{n}{axis}"
             files[f"{stem}.json"] = _json(tabled)
             files[f"{stem}.svg"] = symdef.to_fragment(tabled).encode()

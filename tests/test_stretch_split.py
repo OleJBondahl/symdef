@@ -101,8 +101,12 @@ def test_fitted_table_is_identical_under_both_splits():
     whole = replace(LIB, grid=Grid(divisions_per_module=8, stretch_split="whole"))
     assert whole.grid.stretch_split == "whole"
     head = replace(HEAD, stretch=(Stretch("x", 3), Stretch("x", 7.5)))
-    a = fitted_table(ROW, "y", texts, weight, HEIGHT, head=head, head_texts={"h": WIDE})
-    b = fitted_table(ROW, "y", texts, whole, HEIGHT, head=head, head_texts={"h": WIDE})
+    a = fitted_table(
+        ROW, "y", texts, weight, HEIGHT, head=head, head_texts={"h": WIDE}, port_format="{k}.{port}"
+    )
+    b = fitted_table(
+        ROW, "y", texts, whole, HEIGHT, head=head, head_texts={"h": WIDE}, port_format="{k}.{port}"
+    )
     assert a == b
     assert body_box(a).width > 10  # the columns did grow, on two cuts
 

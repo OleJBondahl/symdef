@@ -46,7 +46,7 @@ def wide(n: int) -> float:
 
 @pytest.mark.parametrize("n", [1, 2, 3, MAX_REPEAT])
 def test_n_copies_stand_on_the_pitch_with_their_leads_and_marking_slots(n):
-    out = pattern_ports(card(wide(n)), S, n)
+    out = pattern_ports(card(wide(n)), S, n, port_format="{k}.{port}")
     ids = [f"{k}.p" for k in range(1, n + 1)]
     assert [p.id for p in out.ports] == ["top", *ids]
     assert [p.position for p in out.ports[1:]] == [
@@ -68,14 +68,14 @@ def test_n_copies_stand_on_the_pitch_with_their_leads_and_marking_slots(n):
 
 def test_the_other_elements_and_slots_stay_as_they_were():
     source = card(wide(3))
-    out = pattern_ports(source, S, 3)
+    out = pattern_ports(source, S, 3, port_format="{k}.{port}")
     assert out.elements[0] == source.elements[0]
     assert out.slots[-1] == source.slots[-1]
     assert out.ports[0] == source.ports[0]
 
 
 def test_an_east_edge_expands_along_y():
-    out = pattern_ports(card(wide(3), edge=E), E, 3)
+    out = pattern_ports(card(wide(3), edge=E), E, 3, port_format="{k}.{port}")
     assert [(p.id, p.position) for p in out.ports[1:]] == [
         (f"{k}.p", Point(2, 1 + (k - 1) * PITCH)) for k in (1, 2, 3)
     ]
@@ -85,7 +85,7 @@ def test_an_east_edge_expands_along_y():
 @pytest.mark.parametrize("n", [0, MAX_REPEAT + 1])
 def test_n_out_of_range_raises(n):
     with pytest.raises(InvalidValueError) as raised:
-        pattern_ports(card(wide(3)), S, n)
+        pattern_ports(card(wide(3)), S, n, port_format="{k}.{port}")
     assert str(raised.value) == (
         f"card: edge S cannot carry n={n} pattern ports; ask for 1 to {MAX_REPEAT}"
     )
@@ -93,7 +93,7 @@ def test_n_out_of_range_raises(n):
 
 def test_an_edge_without_a_pattern_port_raises():
     with pytest.raises(InvalidValueError) as raised:
-        pattern_ports(card(wide(3)), N, 2)
+        pattern_ports(card(wide(3)), N, 2, port_format="{k}.{port}")
     assert str(raised.value) == (
         "card: declares no pattern port on edge N; set pattern = true on one port of that edge"
     )
@@ -101,7 +101,7 @@ def test_an_edge_without_a_pattern_port_raises():
 
 def test_a_body_too_short_for_the_copies_raises():
     with pytest.raises(InvalidValueError) as raised:
-        pattern_ports(card(wide(2)), S, 3)
+        pattern_ports(card(wide(2)), S, 3, port_format="{k}.{port}")
     assert str(raised.value) == (
         f"card: 3 copies of the pattern port 'p' on edge S need a body extent of at least "
         f"{1 + 2 * PITCH:g} along the x axis; stretch it first (stretch_to_ports)"
@@ -219,7 +219,9 @@ def spans(out, edge_ids):
 
 @pytest.mark.parametrize("n", [1, 3, MAX_REPEAT])
 def test_a_double_pitch_spaces_the_copies_two_wire_pitches_apart(n):
-    out = pattern_ports(card(1 + (n - 1) * 2 * PITCH), S, n, pitch=2 * PITCH)
+    out = pattern_ports(
+        card(1 + (n - 1) * 2 * PITCH), S, n, pitch=2 * PITCH, port_format="{k}.{port}"
+    )
     ports = [p for p in out.ports if p.id != "top"]
     assert [p.id for p in ports] == [f"{k}.p" for k in range(1, n + 1)]
     assert [p.position.x for p in ports] == [1 + k * 2 * PITCH for k in range(n)]
@@ -230,7 +232,7 @@ def test_a_double_pitch_spaces_the_copies_two_wire_pitches_apart(n):
 
 def test_positions_place_each_copy_with_its_lead_and_slot():
     coords = [0.5, 0.5 + PITCH, 0.5 + 3 * PITCH]
-    out = pattern_ports(card(wide(4)), S, 3, positions=coords)
+    out = pattern_ports(card(wide(4)), S, 3, positions=coords, port_format="{k}.{port}")
     ports = [p for p in out.ports if p.id != "top"]
     assert [p.position.x for p in ports] == coords
     assert [e.start.x for e in out.elements if isinstance(e, Line)] == coords
@@ -239,7 +241,7 @@ def test_positions_place_each_copy_with_its_lead_and_slot():
 
 def test_a_pitch_that_is_not_a_whole_multiple_raises():
     with pytest.raises(InvalidValueError) as raised:
-        pattern_ports(card(wide(3)), S, 2, pitch=1.5 * PITCH)
+        pattern_ports(card(wide(3)), S, 2, pitch=1.5 * PITCH, port_format="{k}.{port}")
     assert str(raised.value) == (
         f"card: the pitch {1.5 * PITCH:g} is not a whole multiple of the wire pitch {PITCH:g}; "
         f"use {PITCH:g}, {2 * PITCH:g}, {3 * PITCH:g} and so on"
@@ -248,24 +250,26 @@ def test_a_pitch_that_is_not_a_whole_multiple_raises():
 
 def test_a_pitch_below_the_wire_pitch_raises():
     with pytest.raises(InvalidValueError, match="is not a whole multiple of the wire pitch"):
-        pattern_ports(card(wide(3)), S, 2, pitch=PITCH / 2)
+        pattern_ports(card(wide(3)), S, 2, pitch=PITCH / 2, port_format="{k}.{port}")
 
 
 def test_pitch_with_positions_raises():
     with pytest.raises(InvalidValueError) as raised:
-        pattern_ports(card(wide(3)), S, 2, pitch=PITCH, positions=[1, 1 + PITCH])
+        pattern_ports(
+            card(wide(3)), S, 2, pitch=PITCH, positions=[1, 1 + PITCH], port_format="{k}.{port}"
+        )
     assert str(raised.value) == "card: gives both pitch and positions; give one of them"
 
 
 def test_positions_of_the_wrong_length_raise():
     with pytest.raises(InvalidValueError) as raised:
-        pattern_ports(card(wide(3)), S, 3, positions=[1, 1 + PITCH])
+        pattern_ports(card(wide(3)), S, 3, positions=[1, 1 + PITCH], port_format="{k}.{port}")
     assert str(raised.value) == "card: positions holds 2 coordinates for n=3 copies; give exactly 3"
 
 
 def test_positions_that_do_not_increase_raise():
     with pytest.raises(InvalidValueError) as raised:
-        pattern_ports(card(wide(3)), S, 2, positions=[1 + PITCH, 1])
+        pattern_ports(card(wide(3)), S, 2, positions=[1 + PITCH, 1], port_format="{k}.{port}")
     assert str(raised.value) == (
         f"card: positions {[1 + PITCH, 1]!r} do not increase; "
         f"list the copies from low to high along the edge"
@@ -274,7 +278,9 @@ def test_positions_that_do_not_increase_raise():
 
 def test_a_position_gap_that_is_not_a_whole_multiple_raises():
     with pytest.raises(InvalidValueError) as raised:
-        pattern_ports(card(wide(3)), S, 2, positions=[0.5, 0.5 + 1.5 * PITCH])
+        pattern_ports(
+            card(wide(3)), S, 2, positions=[0.5, 0.5 + 1.5 * PITCH], port_format="{k}.{port}"
+        )
     assert str(raised.value) == (
         f"card: the gap between positions {1.5 * PITCH:g} is not a whole multiple of the wire "
         f"pitch {PITCH:g}; use {PITCH:g}, {2 * PITCH:g}, {3 * PITCH:g} and so on"
@@ -283,12 +289,12 @@ def test_a_position_gap_that_is_not_a_whole_multiple_raises():
 
 def test_positions_past_the_high_side_raise():
     with pytest.raises(InvalidValueError, match="stretch it first"):
-        pattern_ports(card(wide(2)), S, 2, positions=[1, 1 + 4 * PITCH])
+        pattern_ports(card(wide(2)), S, 2, positions=[1, 1 + 4 * PITCH], port_format="{k}.{port}")
 
 
 def test_positions_before_the_low_side_raise():
     with pytest.raises(InvalidValueError) as raised:
-        pattern_ports(card(wide(3)), S, 2, positions=[-1, -1 + PITCH])
+        pattern_ports(card(wide(3)), S, 2, positions=[-1, -1 + PITCH], port_format="{k}.{port}")
     assert str(raised.value) == (
         "card: the first copy of the pattern port 'p' on edge S lies at -1, "
         "before the body's low side 0 along the x axis; move it inside"
@@ -306,7 +312,7 @@ def mixed(width: float):
 
 
 def test_copies_clear_of_the_named_ports_leave_them_untouched():
-    out = pattern_ports(mixed(wide(2)), S, 1)
+    out = pattern_ports(mixed(wide(2)), S, 1, port_format="{k}.{port}")
     assert spans(out, {"plus", "sig", "1.p"}) == [
         ("1.p", 1),
         ("plus", 1 - PITCH),
@@ -316,8 +322,20 @@ def test_copies_clear_of_the_named_ports_leave_them_untouched():
 
 def test_a_copy_within_one_wire_pitch_of_a_named_port_raises():
     with pytest.raises(InvalidValueError) as raised:
-        pattern_ports(mixed(wide(3)), S, 2)
+        pattern_ports(mixed(wide(3)), S, 2, port_format="{k}.{port}")
     assert str(raised.value) == (
         f"card: the copy '2.p' at {1 + PITCH:g} lies within one wire pitch {PITCH:g} "
         f"of the port 'sig' at {1 + PITCH:g} on edge S; move the port or the copy"
     )
+
+
+def test_pattern_ports_reads_the_given_port_format():
+    out = pattern_ports(card(wide(2)), S, 2, port_format="P{k}_{port}")
+    assert [p.id for p in out.ports] == ["top", "P1_p", "P2_p"]
+    assert [s.id for s in out.slots] == ["marking.P1_p", "marking.P2_p", "tag"]
+    assert [e.port for e in out.elements if isinstance(e, Line)] == ["P1_p", "P2_p"]
+
+
+def test_pattern_ports_refuses_a_format_without_its_fields():
+    with pytest.raises(InvalidValueError, match="port_format"):
+        pattern_ports(card(wide(2)), S, 2, port_format="{k}")

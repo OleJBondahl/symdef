@@ -245,7 +245,8 @@ def bundle_to_data(library: Library) -> dict[str, Any]:
     (the font's fields and an `advances` object); a grid other than the default adds the `grid`
     object (`module_mm`, `divisions_per_module`, the two wire pitches, and `stretch_split` when
     "whole"); one with line widths adds the `lines` object (millimetres by weight name); one with
-    dash patterns adds the `dash` object (millimetres by name); one with none of these has none
+    dash patterns adds the `dash` object (millimetres by name); one with a `port_format` adds that
+    string; one with none of these has none
     of the keys.
     """
     data: dict[str, Any] = {
@@ -268,6 +269,8 @@ def bundle_to_data(library: Library) -> dict[str, Any]:
         data["lines"] = {w.name.lower(): library.lines[w] for w in Weight if w in library.lines}
     if library.dash:
         data["dash"] = {name: list(library.dash[name]) for name in sorted(library.dash)}
+    if library.port_format is not None:
+        data["port_format"] = library.port_format
     return data
 
 

@@ -132,6 +132,7 @@ def load_library(root: Path) -> Library:
         config.grid,
         config.lines,
         config.dash,
+        config.port_format,
     )
     if font is not None:
         overflow = tuple(
