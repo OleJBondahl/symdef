@@ -267,6 +267,7 @@ _PART = _table(
         "via": _string,
         "at": _POINT,
         "repeat": _integer,
+        "port_format": _string,
     },
     required=("as", "use"),
 )

@@ -1715,6 +1715,12 @@ Decided: no value in the library data fits. The `unit-outline` symbol declares n
 Why: R520 B2: the outline drawn on a page needs its margin from library data, not a constant in an application; the grid is where on-grid distances (the pitches) already live, and divisions keep the value exact.
 Cost if wrong: additive (a field after `stretch_split`, `None`); the value a consumer sets is its own and unchecked against what it draws; a margin per outline kind, or one in millimetres, is a further key.
 
+## D121: `repeat` takes its pole-prefix format from its caller
+
+Decided: `repeat(symbol, n, *, port_format)` renames each port, node and path end, bound lead and marking slot (`marking.` plus the formatted id) by `port_format`, a template with exactly the fields `{k}` (the pole, from 1) and `{port}`. It is required: `None`, a non-string, a malformed template or other fields raise `InvalidValueError` naming `port_format` and an example; there is no fallback spelling. The part-file data op takes it beside the count (`repeat = 3, port_format = "{k}.{port}"`); without it the part is a `schema` finding at the `repeat` key. `table`, `fitted_table`, `edge_pattern` and `pole_port(k, port_id)` keep `<k>.` (rows and copies, not poles; `ROW_PORT_FORMAT`), and gate 3 repeats with the same spelling because lint accepts a prefixed port only as `<n>.<id>`.
+Why: R591.3: a pole prefix is an electrical convention, so symdef holds none for poles; the caller states it.
+Cost if wrong: breaking for every `repeat(...)` call and every part file with `repeat`. A library-wide format (a `library.toml` key) would remove the repeated value from each part; it is a further key, and lint's `<n>.` rule would then need the format too.
+
 ## D122: the sheet wrapper and the bold group live in symdef
 
 Decided: new top-level `sheet_svg(width_mm, height_mm, body, *, margin_mm) -> str` and `bold_layer(fragment) -> str` in `sheet_svg.py`, pure. `sheet_svg` writes the `<svg>` root in millimetres around `body`, the page widened by `margin_mm` on every side; `margin_mm` is required and symdef holds no margin default. `bold_layer` wraps a fragment in one `<g font-weight="bold">`. Both write their numbers as Python prints them, which is what the code they replace did, so a consumer's output stays byte-identical. This supersedes the "no `sized_svg_mm`" half of D118: the root and its margin are no longer the consumer's to write, the margin value still is.

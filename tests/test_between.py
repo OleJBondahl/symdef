@@ -81,7 +81,7 @@ def test_between_survives_orient_translate_stretch_and_repeat():
     assert len(betweens(translate(ticked(), 1, 1))) == 1
     cut = replace(ticked(), stretch=(model.Stretch("x", 2),))
     assert len(betweens(stretch(cut, "x", 8))) == 1
-    assert len(betweens(repeat(ticked(), 2))) == 2
+    assert len(betweens(repeat(ticked(), 2, port_format="{k}.{port}"))) == 2
 
 
 def test_serialize_writes_between_only_on_the_element_that_has_it():

@@ -427,12 +427,12 @@ tag           = { at = [-3.5, 0], side = "W", box = [6, 1] }
 <p><code>S00171</code> stands for the Part 2 qualifier "operated by pushing". Its number, like every number in this guide, must be confirmed against the IEC database overview before the file is committed.</p>
 
 <h3><code>repeat</code>: the only multi-pole mechanism</h3>
-<p><code>repeat(symbol, n)</code> places <code>n</code> copies along +x in base orientation and returns an ordinary symbol. Pole <code>k</code> (counting from 1) is the symbol translated by <code>((k - 1) &times; pitch, 0)</code>, where <code>pitch</code> is the symbol's <code>pole_pitch</code>, default 4. It requires <code>n &gt;= 1</code> and a symbol with a through path; <code>repeat(symbol, 1)</code> still renames the ports.</p>
+<p><code>repeat(symbol, n, *, port_format)</code> places <code>n</code> copies along +x in base orientation and returns an ordinary symbol. Pole <code>k</code> (counting from 1) is the symbol translated by <code>((k - 1) &times; pitch, 0)</code>, where <code>pitch</code> is the symbol's <code>pole_pitch</code>, default 4. It requires <code>n &gt;= 1</code> and a symbol with a through path; <code>repeat(symbol, 1)</code> still renames the ports. <code>port_format</code> is required: the template of a pole's port id with the fields <code>{k}</code> and <code>{port}</code>, such as <code>"{k}.{port}"</code>; symdef keeps no spelling of a pole prefix, and a missing or malformed one raises <code>InvalidValueError</code> naming it (D121).</p>
 <ul>
-  <li>Ports, and their marking slots, are prefixed with the pole number: <code>1.in</code>, <code>2.in</code>, <code>"marking.2.in"</code>. Nodes and paths repeat per pole. Pole 1's through path stays the through path; the flag is cleared on the other poles. The result's <code>pole_pitch</code> is <code>n &times; pitch</code>.</li>
+  <li>Ports, and their marking slots, are renamed by <code>port_format</code>; with <code>"{k}.{port}"</code>: <code>1.in</code>, <code>2.in</code>, <code>"marking.2.in"</code>. Nodes and paths repeat per pole. Pole 1's through path stays the through path; the flag is cleared on the other poles. The result's <code>pole_pitch</code> is <code>n &times; pitch</code>.</li>
   <li>The <code>tag</code> slot is taken from pole 1 only. A <code>value</code> slot likewise.</li>
   <li>If the symbol has an anchor with the id <code>link</code> and <code>n &gt; 1</code>, the result gains one element: a dashed line from pole 1's <code>link</code> anchor to pole n's. It may cross the poles in between; that is how the standard draws it. Pole 1's anchors become the result's anchors; the other poles' anchors are dropped.</li>
-  <li>It is available as a toolkit function for consumers, and as a data op in a part: <code>{ as = "main", use = "S00227", repeat = 3 }</code>.</li>
+  <li>It is available as a toolkit function for consumers, and as a data op in a part: <code>{ as = "main", use = "S00227", repeat = 3, port_format = "{k}.{port}" }</code>; a <code>repeat</code> without <code>port_format</code> is a <code>schema</code> finding at the <code>repeat</code> key.</li>
 </ul>
 <p>There are no <code>poles=</code>, <code>pins=</code> or <code>inverted=</code> parameters anywhere. Pole count is <code>repeat</code>, markings belong to the placement, and inversion is the orientation <code>MR180</code>.</p>
 
@@ -531,7 +531,7 @@ load_library(root) -&gt; Library             read library.toml and symbols/*.tom
 load_bundle(json_path) -&gt; Library         read a resolved bundle
 orient(symbol, orientation) -&gt; Symbol       ports, nodes, paths, anchors and slots all carried along
 translate(symbol, dx, dy) -&gt; Symbol         used by composition and repeat; consumers place symbols themselves
-repeat(symbol, n) -&gt; Symbol
+repeat(symbol, n, *, port_format) -&gt; Symbol    the pole's port id template, such as "{k}.{port}"; required
 stretch(symbol, axis, length, offsets=None) -&gt; Symbol    section 7
 table(row, n, axis, head=None, *, grid=None, gaps=None, positions=None, head_align=None) -&gt; Symbol    section 7
 leads(symbol, ports) -&gt; Symbol    section 7

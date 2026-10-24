@@ -193,14 +193,23 @@ class TestSymbolIdFindings:
     def test_the_ports_of_repeat_lint_clean_however_often_it_is_nested(self, library):
         contact, changeover = library.get("S00227"), library.get("S00230")
         for symbol in (
-            repeat(repeat(contact, 2), 2),
-            repeat(contact, 3),
-            repeat(changeover, 2),
-            repeat(repeat(repeat(contact, 2), 2), 2),
+            repeat(repeat(contact, 2, port_format="{k}.{port}"), 2, port_format="{k}.{port}"),
+            repeat(contact, 3, port_format="{k}.{port}"),
+            repeat(changeover, 2, port_format="{k}.{port}"),
+            repeat(
+                repeat(repeat(contact, 2, port_format="{k}.{port}"), 2, port_format="{k}.{port}"),
+                2,
+                port_format="{k}.{port}",
+            ),
         ):
             assert symbol_id_findings(symbol) == ()
             assert not [f for f in lint(symbol) if f.rule == "id-format"]
-        assert [p.id for p in repeat(repeat(contact, 2), 2).ports] == [
+        assert [
+            p.id
+            for p in repeat(
+                repeat(contact, 2, port_format="{k}.{port}"), 2, port_format="{k}.{port}"
+            ).ports
+        ] == [
             "1.1.in",
             "1.1.out",
             "1.2.in",

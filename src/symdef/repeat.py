@@ -2,6 +2,7 @@
 
 from collections.abc import Iterable
 from dataclasses import replace
+from string import Formatter
 
 from symdef.errors import InvalidValueError
 from symdef.geometry import Box, Element, Line, Point, Style, Weight
@@ -11,6 +12,10 @@ from symdef.orient import translate
 _DEFAULT_PITCH = 4
 _LINK = "link"
 _MARKING = "marking."
+
+# The spelling `table`, `fitted_table` and `edge_pattern` give a row's or a copy's port: rows and
+# copies are not poles, and a pole prefix is the caller's to choose (D121).
+ROW_PORT_FORMAT = "{k}.{port}"
 
 # A repeat in a part file stops here: the guide sets no bound, and a data file must not be able to
 # ask for a million poles. `table` uses the same bound.
@@ -28,23 +33,49 @@ def pole_pitch(symbol: Symbol) -> float:
     return symbol.pole_pitch or _DEFAULT_PITCH
 
 
+def format_port(k: int, port_id: str, port_format: str) -> str:
+    """Return the id port `port_id` takes in pole `k` (counted from 1): `port_format` filled in."""
+    return port_format.format(k=k, port=port_id)
+
+
 def pole_port(k: int, port_id: str) -> str:
-    """Return the id port `port_id` takes in pole `k` (counted from 1) of a repeated symbol."""
-    return f"{k}.{port_id}"
+    """Return the id port `port_id` takes in row or copy `k` (counted from 1): `<k>.<port_id>`."""
+    return format_port(k, port_id, ROW_PORT_FORMAT)
 
 
-def pole_elements(elements: tuple[Element, ...], k: int) -> tuple[Element, ...]:
-    """Return pole `k`'s elements, a bound lead's `port` prefixed `<k>.` to match its port."""
+def _template_fields(template: str) -> set[str] | None:
+    """Return the field names of a format template, or None when it is not a well-formed one."""
+    try:
+        return {name for _, name, _, _ in Formatter().parse(template) if name}
+    except ValueError:
+        return None
+
+
+def checked_port_format(port_format: object) -> str:
+    """Return `port_format` when it is a template with exactly the fields `{k}` and `{port}`."""
+    if not isinstance(port_format, str) or _template_fields(port_format) != {"k", "port"}:
+        msg = (
+            "repeat needs port_format, the template of a pole's port id with the fields {k} "
+            f"and {{port}}, such as '{{k}}.{{port}}'; got {port_format!r}"
+        )
+        raise InvalidValueError(msg)
+    return port_format
+
+
+def pole_elements(elements: tuple[Element, ...], k: int, port_format: str) -> tuple[Element, ...]:
+    """Return pole `k`'s elements, a bound lead's `port` renamed by `port_format` like its port."""
     return tuple(
-        replace(e, port=pole_port(k, e.port)) if isinstance(e, Line) and e.port is not None else e
+        replace(e, port=format_port(k, e.port, port_format))
+        if isinstance(e, Line) and e.port is not None
+        else e
         for e in elements
     )
 
 
-def _pole_slots(slots: tuple[Slot, ...], k: int) -> tuple[Slot, ...]:
+def _pole_slots(slots: tuple[Slot, ...], k: int, port_format: str) -> tuple[Slot, ...]:
     """Return the slots pole `k` contributes: its marking slots renamed, the rest from pole 1."""
     return tuple(
-        replace(s, id=f"{_MARKING}{k}.{s.id.removeprefix(_MARKING)}")
+        replace(s, id=_MARKING + format_port(k, s.id.removeprefix(_MARKING), port_format))
         if s.id.startswith(_MARKING)
         else s
         for s in slots
@@ -52,16 +83,21 @@ def _pole_slots(slots: tuple[Slot, ...], k: int) -> tuple[Slot, ...]:
     )
 
 
-def pole_parts(pole: Symbol, k: int) -> tuple[tuple[Port, ...], tuple[Node, ...], tuple[Path, ...]]:
-    """Return the ports, nodes and paths of pole `k` with every port id prefixed by `<k>.`."""
+def pole_parts(
+    pole: Symbol, k: int, port_format: str
+) -> tuple[tuple[Port, ...], tuple[Node, ...], tuple[Path, ...]]:
+    """Return the ports, nodes and paths of pole `k` with every port id renamed by `port_format`."""
     return (
-        tuple(replace(p, id=pole_port(k, p.id)) for p in pole.ports),
-        tuple(replace(n, ports=tuple(pole_port(k, p) for p in n.ports)) for n in nodes_of(pole)),
+        tuple(replace(p, id=format_port(k, p.id, port_format)) for p in pole.ports),
+        tuple(
+            replace(n, ports=tuple(format_port(k, p, port_format) for p in n.ports))
+            for n in nodes_of(pole)
+        ),
         tuple(
             replace(
                 p,
-                from_port=pole_port(k, p.from_port),
-                to_port=pole_port(k, p.to_port),
+                from_port=format_port(k, p.from_port, port_format),
+                to_port=format_port(k, p.to_port, port_format),
                 through=p.through and k == 1,
             )
             for p in pole.paths
@@ -69,14 +105,15 @@ def pole_parts(pole: Symbol, k: int) -> tuple[tuple[Port, ...], tuple[Node, ...]
     )
 
 
-def repeat(symbol: Symbol, n: int) -> Symbol:
+def repeat(symbol: Symbol, n: int, *, port_format: str | None = None) -> Symbol:
     """Return `n` copies of a symbol placed along +x, as an ordinary symbol.
 
     Pole k (from 1) is the symbol translated by `((k - 1) * pitch, 0)`, where the pitch is the
     symbol's `pole_pitch`, default 4. Ports, and the paths, nodes and bound leads that name them,
-    are prefixed `<k>.`; every node is listed explicitly, `potential` kept. Marking slots
-    (`marking.in` becomes
-    `marking.<k>.in`) repeat per pole; `tag`, `value` and any other slot come from pole 1 only.
+    are renamed by `port_format`, a template with the fields `{k}` and `{port}` that the caller
+    supplies (a pole prefix is an electrical convention; symdef keeps none, D121); every node is
+    listed explicitly, `potential` kept. Marking slots (`marking.in` becomes `marking.` plus the
+    formatted id) repeat per pole; `tag`, `value` and any other slot come from pole 1 only.
     Only pole 1's path keeps `through`; a symbol with no through path repeats just the same, its
     poles all without one (D106). Pole 1's anchors become the result's anchors, and if one
     is `link` and `n > 1` a dashed line joins pole 1's `link` to pole n's. `pole_pitch` becomes
@@ -85,19 +122,22 @@ def repeat(symbol: Symbol, n: int) -> Symbol:
     Args:
         symbol: A symbol in base orientation.
         n: The pole count, at least 1.
+        port_format: The template of a pole's port id, such as `"{k}.{port}"`; required.
 
     Returns:
         The repeated symbol; with `n = 1` it is the symbol with renamed ports and slots.
 
     Raises:
-        InvalidValueError: If `n` is below 1.
+        InvalidValueError: If `n` is below 1, or `port_format` is missing or not a template with
+            exactly the fields `{k}` and `{port}`.
     """
+    port_format = checked_port_format(port_format)
     if n < 1:
         msg = f"the pole count must be at least 1, got {n}"
         raise InvalidValueError(msg)
     pitch = pole_pitch(symbol)
     poles = tuple(translate(symbol, (k - 1) * pitch, 0) for k in range(1, n + 1))
-    parts = tuple(pole_parts(pole, k) for k, pole in enumerate(poles, start=1))
+    parts = tuple(pole_parts(pole, k, port_format) for k, pole in enumerate(poles, start=1))
     link = next((a for a in symbol.anchors if a.id == _LINK), None)
     dashes = ()
     if link is not None and n > 1:
@@ -106,14 +146,20 @@ def repeat(symbol: Symbol, n: int) -> Symbol:
     return replace(
         symbol,
         elements=tuple(
-            e for k, pole in enumerate(poles, start=1) for e in pole_elements(pole.elements, k)
+            e
+            for k, pole in enumerate(poles, start=1)
+            for e in pole_elements(pole.elements, k, port_format)
         )
         + dashes,
         ports=tuple(p for ports, _, _ in parts for p in ports),
         nodes=tuple(node for _, nodes, _ in parts for node in nodes),
         paths=tuple(path for _, _, paths in parts for path in paths),
         anchors=poles[0].anchors,
-        slots=tuple(s for k, pole in enumerate(poles, start=1) for s in _pole_slots(pole.slots, k)),
+        slots=tuple(
+            s
+            for k, pole in enumerate(poles, start=1)
+            for s in _pole_slots(pole.slots, k, port_format)
+        ),
         pole_pitch=n * pitch,
         body=declared_union(p.body for p in poles),
         keepout=declared_union(p.keepout for p in poles),

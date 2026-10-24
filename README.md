@@ -84,7 +84,7 @@ an ordinary symbol with ports such as `1.in` and `3.out`.
 ```python
 from symdef import Orientation, keepout_box, orient, repeat, to_svg
 
-breaker = orient(repeat(contact, 3), Orientation.R0)
+breaker = orient(repeat(contact, 3, port_format="{k}.{port}"), Orientation.R0)
 print(keepout_box(breaker))
 svg = to_svg(breaker, annotate=True, texts={"tag": "-Q1"})
 ```

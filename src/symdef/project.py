@@ -12,7 +12,7 @@ from symdef.files import (
 )
 from symdef.lint import lint
 from symdef.model import Finding, Library, Severity
-from symdef.repeat import repeat
+from symdef.repeat import ROW_PORT_FORMAT, repeat
 from symdef.serialize import package_folder, symbol_to_data
 from symdef.starter import starter_files
 
@@ -68,11 +68,14 @@ def build(root: Path) -> tuple[Path, ...]:
 
 
 def _through_repeats(library: Library) -> tuple[Finding, ...]:
-    """Gate 3: every symbol with a through path also lints clean as `repeat(symbol, 3)`."""
+    """Gate 3: every symbol with a through path also lints clean as `repeat(symbol, 3)`.
+
+    The format is the one spelling lint accepts for a prefixed port (D121).
+    """
     found = []
     for symbol in library:
         if any(path.through for path in symbol.paths):
-            repeated = repeat(symbol, 3)
+            repeated = repeat(symbol, 3, port_format=ROW_PORT_FORMAT)
             number = symbol.reference.number
             found.extend(
                 _named(
