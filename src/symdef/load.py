@@ -643,17 +643,22 @@ _ADVANCE_TABLES = _table(
     required=tuple(w.name.lower() for w in TEXT_WEIGHTS),
 )
 _TEXT_BLOCK = _enum("cap", "grid")
-_FONT_FIELDS = ("units_per_em", "cap_height", "ascent", "descent", "default_advance")
+_FONT_FIELDS = ("units_per_em", "cap_height", "ascent", "descent")
+_DEFAULT_ADVANCES = _table(
+    {w.name.lower(): _positive for w in TEXT_WEIGHTS},
+    required=tuple(w.name.lower() for w in TEXT_WEIGHTS),
+)
 _FONT = _table(
     {
         **dict.fromkeys(_FONT_FIELDS, _positive),
         "advances": _ADVANCE_TABLES,
+        "default_advance": _DEFAULT_ADVANCES,
         "heights": _map_of(_positive),
         "name": _string,
         "family": _string,
         "text_block": _TEXT_BLOCK,
     },
-    required=(*_FONT_FIELDS, "advances", "name"),
+    required=(*_FONT_FIELDS, "advances", "default_advance", "name"),
 )
 
 
@@ -666,7 +671,7 @@ def font_from_data(data: Mapping[str, Any]) -> FontMetrics:
         data["ascent"],
         data["descent"],
         {Weight[key.upper()]: dict(table) for key, table in data["advances"].items()},
-        data["default_advance"],
+        {Weight[key.upper()]: value for key, value in data["default_advance"].items()},
         data.get("heights", {}),
         data.get("family", ""),
         data.get("text_block", "cap"),
@@ -925,8 +930,9 @@ def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
     tables `[vocabulary]` (`path_kinds`, `potentials`, `links`) and `[rules]` (`required_slots`)
     hold lists of strings; an absent list is empty. The `[[wire]]` tables (`id`, `weight`,
     `style`) give the wire styles `wire` draws; an absent list is empty. The optional `[font]` table
-    (`name`, `units_per_em`, `cap_height`, `ascent`, `descent`, `default_advance` and
-    `[font.advances.normal]` and `[font.advances.thick]`, each one number per character, and
+    (`name`, `units_per_em`, `cap_height`, `ascent`, `descent`,
+    `[font.default_advance]` and `[font.advances.normal]` and `[font.advances.thick]` (`normal` and
+    `thick` each; the advances one number per character, the default one number), and
     `[font.heights]`, a capital height in millimetres by name) is the font text is measured with.
     Instead of the measured tables, `[font]` may hold `name`, `files = { regular, bold }`, two
     TTF paths relative to the folder of `library.toml` (D87), and `heights`; `files.py` measures

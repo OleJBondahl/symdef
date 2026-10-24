@@ -12,6 +12,7 @@ from fontTools.ttLib import TTFont
 import symdef
 from symdef.errors import InvalidValueError, LibraryError
 from symdef.files import load_library, write_build
+from symdef.font import text_width
 from symdef.fontmeasure import measure_font
 from symdef.geometry import Weight
 from symdef.load import parse_config
@@ -47,11 +48,15 @@ def without_glyph(character: str):
 class TestMeasure:
     def test_the_house_font_equals_the_oracle_field_by_field(self):
         metrics = measure_font(REGULAR, BOLD)
-        for field in ("name", "units_per_em", "cap_height", "ascent", "descent", "default_advance"):
+        for field in ("name", "units_per_em", "cap_height", "ascent", "descent"):
             assert getattr(metrics, field) == EXPECTED[field], field
         assert dict(metrics.advances[Weight.NORMAL]) == EXPECTED["advances"]["normal"]
         assert dict(metrics.advances[Weight.THICK]) == EXPECTED["advances"]["thick"]
         assert len(metrics.advances[Weight.NORMAL]) == len(metrics.advances[Weight.THICK]) == 197
+        assert dict(metrics.default_advance) == {
+            Weight.NORMAL: EXPECTED["default_advance"]["normal"],
+            Weight.THICK: EXPECTED["default_advance"]["thick"],
+        }
         assert dict(metrics.heights) == {}
 
     @pytest.mark.parametrize("character", ["H", "p"])
@@ -72,6 +77,17 @@ class TestMeasure:
         with pytest.raises(InvalidValueError, match="not a TrueType font"):
             measure_font(*pair)
 
+    def test_an_unknown_glyph_is_wider_in_bold_by_each_faces_own_widest_advance(self):
+        metrics = measure_font(REGULAR, BOLD)
+        unknown = "\u2603"  # in neither table
+        assert unknown not in metrics.advances[Weight.NORMAL]
+        assert unknown not in metrics.advances[Weight.THICK]
+        normal = text_width(metrics, unknown, 1)
+        thick = text_width(metrics, unknown, 1, Weight.THICK)
+        assert normal == max(metrics.advances[Weight.NORMAL].values()) / metrics.units_per_em
+        assert thick == max(metrics.advances[Weight.THICK].values()) / metrics.units_per_em
+        assert thick > normal
+
     def test_it_is_exported(self):
         assert symdef.measure_font is measure_font
 
@@ -88,9 +104,13 @@ def library(tmp_path, font_toml: str) -> Path:
 
 def literal_toml() -> str:
     """The `[font]` tables of the oracle, in the literal form."""
-    head = "".join(
-        f"{key} = {EXPECTED[key]}\n"
-        for key in ("units_per_em", "cap_height", "ascent", "descent", "default_advance")
+    head = (
+        "".join(
+            f"{key} = {EXPECTED[key]}\n"
+            for key in ("units_per_em", "cap_height", "ascent", "descent")
+        )
+        + "\n[font.default_advance]\n"
+        + "".join(f"{w} = {n}\n" for w, n in EXPECTED["default_advance"].items())
     )
     tables = "".join(
         f"\n[font.advances.{weight}]\n"
@@ -138,7 +158,7 @@ class TestFilesForm:
         root = library(tmp_path, literal_toml())
         loaded = load_library(root)
         assert loaded.font is not None
-        assert loaded.font.default_advance == EXPECTED["default_advance"]
+        assert loaded.font.default_advance[Weight.THICK] == EXPECTED["default_advance"]["thick"]
 
 
 MIXED = (

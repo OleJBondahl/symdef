@@ -5,7 +5,15 @@ from symdef.geometry import Point, Polyline, Text, Weight
 from symdef.lint.textbody import text_outside_body
 from symdef.model import Reference, Severity, Status, Symbol, SymbolKind
 
-FONT = FontMetrics("F", 1000, 700, 900, 200, {Weight.NORMAL: {"A": 500}, Weight.THICK: {}}, 600)
+FONT = FontMetrics(
+    "F",
+    1000,
+    700,
+    900,
+    200,
+    {Weight.NORMAL: {"A": 500}, Weight.THICK: {}},
+    {Weight.NORMAL: 600, Weight.THICK: 600},
+)
 BODY = Polyline((Point(0, 0), Point(4, 0), Point(4, 2), Point(0, 2), Point(0, 0)))
 
 

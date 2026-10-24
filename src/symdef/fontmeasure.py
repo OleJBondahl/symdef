@@ -77,7 +77,7 @@ def measure_font(regular: bytes, bold: bytes) -> FontMetrics:
 
     Returns:
         The metrics: named by the regular face (name ID 1) and with its typographic family (name ID
-        16, else ID 1) as `family`, with the largest regular advance as the default advance and no
+        16, else ID 1) as `family`, with each face's largest advance as its default advance and no
         heights.
 
     Raises:
@@ -98,5 +98,7 @@ def measure_font(regular: bytes, bold: bytes) -> FontMetrics:
         ascent=cast("Any", faces["regular"]["OS/2"]).sTypoAscender,
         descent=-_bounds(faces["regular"], "p", "regular")[0],
         advances=dict(zip(TEXT_WEIGHTS, (normal, thick), strict=True)),
-        default_advance=max(normal.values()),
+        default_advance={
+            w: max(table.values()) for w, table in zip(TEXT_WEIGHTS, (normal, thick), strict=True)
+        },
     )

@@ -15,7 +15,15 @@ from symdef.settings import with_settings
 DATA = Path(__file__).resolve().parent / "data" / "dejavu"
 REGULAR = (DATA / "DejaVuSansCondensed.ttf").read_bytes()
 BOLD = (DATA / "DejaVuSansCondensed-Bold.ttf").read_bytes()
-FONT = FontMetrics("F", 1000, 700, 900, 200, {Weight.NORMAL: {"A": 500}, Weight.THICK: {}}, 600)
+FONT = FontMetrics(
+    "F",
+    1000,
+    700,
+    900,
+    200,
+    {Weight.NORMAL: {"A": 500}, Weight.THICK: {}},
+    {Weight.NORMAL: 600, Weight.THICK: 600},
+)
 
 
 def symbol(number="S1", height=0.5):

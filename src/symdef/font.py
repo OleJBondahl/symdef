@@ -24,7 +24,8 @@ class FontMetrics:
         descent: Depth of the lowest glyph below the baseline, in font units.
         advances: One table per text weight (`TEXT_WEIGHTS`): the advance of each character, in
             font units.
-        default_advance: The advance of a character a table does not list.
+        default_advance: One advance per text weight: what a character its table does not list
+            takes, so a bold text charges the bold face's own default (D119).
         heights: Capital heights in millimetres by name, such as `smallest` or `body`. The
             names are the library's own; symdef does not interpret them. Empty when none.
         family: The family name a renderer resolves the font by. Empty at construction means the
@@ -38,21 +39,27 @@ class FontMetrics:
     ascent: float
     descent: float
     advances: Mapping[Weight, Mapping[str, float]]
-    default_advance: float
+    default_advance: Mapping[Weight, float]
     heights: Mapping[str, float] = field(default_factory=dict)
     family: str = ""
     text_block: str = "cap"
 
     def __post_init__(self) -> None:
-        """Copy `advances` and `heights` into read-only mappings; each text weight needs a table."""
+        """Copy the mappings read-only; each text weight needs an advance table and a default."""
         if not self.family:
             object.__setattr__(self, "family", self.name)
-        missing = [w.name for w in TEXT_WEIGHTS if w not in self.advances]
-        if missing:
-            msg = f"font {self.name!r} has no advance table for {', '.join(missing)}; add one each"
-            raise InvalidValueError(msg)
+        for what, given in (
+            ("advance table", self.advances),
+            ("default advance", self.default_advance),
+        ):
+            missing = [w.name for w in TEXT_WEIGHTS if w not in given]
+            if missing:
+                msg = f"font {self.name!r} has no {what} for {', '.join(missing)}; add one each"
+                raise InvalidValueError(msg)
         tables = {w: MappingProxyType(dict(self.advances[w])) for w in TEXT_WEIGHTS}
         object.__setattr__(self, "advances", MappingProxyType(tables))
+        defaults = {w: self.default_advance[w] for w in TEXT_WEIGHTS}
+        object.__setattr__(self, "default_advance", MappingProxyType(defaults))
         object.__setattr__(self, "heights", MappingProxyType(dict(self.heights)))
 
 
@@ -67,7 +74,7 @@ def text_width(
     if font is None:
         return DEFAULT_ADVANCE_EM * height * len(text)
     table = font.advances[weight]
-    total = sum(table.get(char, font.default_advance) for char in text)
+    total = sum(table.get(char, font.default_advance[weight]) for char in text)
     return total / font.units_per_em * height
 
 

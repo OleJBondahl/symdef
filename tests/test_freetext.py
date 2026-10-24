@@ -122,7 +122,15 @@ def test_an_unknown_corner_raises_and_names_it(corner):
 
 
 # D117: classes, and where the point sits across the line.
-ASCENT = FontMetrics("F", 2048, 1493, 1556, 492, {Weight.NORMAL: {}, Weight.THICK: {}}, 1000)
+ASCENT = FontMetrics(
+    "F",
+    2048,
+    1493,
+    1556,
+    492,
+    {Weight.NORMAL: {}, Weight.THICK: {}},
+    {Weight.NORMAL: 1000, Weight.THICK: 1000},
+)
 
 
 def placed(**kw) -> str:
