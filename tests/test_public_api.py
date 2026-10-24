@@ -108,7 +108,7 @@ SECTION_11_SIGNATURES = {
             "KEYWORD_ONLY",
             (
                 "Grid(module_mm=2.5, divisions_per_module=8, wire_pitch=8, wire_pitch_fine=4, "
-                "stretch_split='weight')"
+                "stretch_split='weight', outline_margin=16)"
             ),
         ),
         ("pitch", "KEYWORD_ONLY", "None"),
@@ -123,7 +123,7 @@ SECTION_11_SIGNATURES = {
             "POSITIONAL_OR_KEYWORD",
             (
                 "Grid(module_mm=2.5, divisions_per_module=8, wire_pitch=8, wire_pitch_fine=4, "
-                "stretch_split='weight')"
+                "stretch_split='weight', outline_margin=16)"
             ),
         ),
     ],
@@ -135,7 +135,7 @@ SECTION_11_SIGNATURES = {
             "POSITIONAL_OR_KEYWORD",
             (
                 "Grid(module_mm=2.5, divisions_per_module=8, wire_pitch=8, wire_pitch_fine=4, "
-                "stretch_split='weight')"
+                "stretch_split='weight', outline_margin=16)"
             ),
         ),
     ],

@@ -55,6 +55,7 @@ from symdef.model import (
 )
 from symdef.units import (
     DEFAULT_GRID,
+    DEFAULT_OUTLINE_MARGIN,
     DEFAULT_WIRE_PITCH,
     DEFAULT_WIRE_PITCH_FINE,
     Grid,
@@ -746,6 +747,12 @@ def _pitch(value: object, location: str) -> list[Finding]:
     return found or ([_finding(location, "must be above zero")] if value < 1 else [])  # ty: ignore[unsupported-operator] - _integer proved a whole number
 
 
+def _margin(value: object, location: str) -> list[Finding]:
+    """Check `outline_margin`: a whole number of divisions, 0 or more."""
+    found = _integer(value, location)
+    return found or ([_finding(location, "must be 0 or more")] if value < 0 else [])  # ty: ignore[unsupported-operator] - _integer proved a whole number
+
+
 _GRID_KEYS = _table(
     {
         "module_mm": _module_mm,
@@ -753,6 +760,7 @@ _GRID_KEYS = _table(
         "wire_pitch": _pitch,
         "wire_pitch_fine": _pitch,
         "stretch_split": _enum("weight", "whole"),
+        "outline_margin": _margin,
     },
     required=("module_mm", "divisions_per_module"),
 )
@@ -778,6 +786,7 @@ def grid_from_data(data: Mapping[str, Any]) -> Grid:
         int(data.get("wire_pitch", DEFAULT_WIRE_PITCH)),
         int(data.get("wire_pitch_fine", DEFAULT_WIRE_PITCH_FINE)),
         data.get("stretch_split", "weight"),
+        int(data.get("outline_margin", DEFAULT_OUTLINE_MARGIN)),
     )
 
 
