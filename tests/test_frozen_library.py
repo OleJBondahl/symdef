@@ -30,7 +30,15 @@ def test_load_bundle_freezes_the_symbols(tmp_path):
 
 def test_font_advances_cannot_be_written_and_do_not_follow_the_source_dict():
     source = {"A": 500}
-    font = FontMetrics("F", 1000, 700, 900, 200, {Weight.NORMAL: source, Weight.THICK: source}, 600)
+    font = FontMetrics(
+        "F",
+        1000,
+        700,
+        900,
+        200,
+        {Weight.NORMAL: source, Weight.THICK: source},
+        {Weight.NORMAL: 600, Weight.THICK: 600},
+    )
     with pytest.raises(TypeError):
         font.advances[Weight.NORMAL]["B"] = 1  # ty: ignore[invalid-assignment]  # frozen on purpose
     with pytest.raises(TypeError):

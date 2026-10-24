@@ -29,7 +29,7 @@ FONT = FontMetrics(
     ascent=900,
     descent=200,
     advances={Weight.NORMAL: REGULAR, Weight.THICK: BOLD},
-    default_advance=600,
+    default_advance={Weight.NORMAL: 600, Weight.THICK: 800},
 )
 
 
@@ -60,9 +60,19 @@ def test_a_thick_weight_reads_its_own_table_glyph_by_glyph():
     assert len(set(ratios.values())) == len(ratios)  # no single factor makes bold of regular
 
 
+def test_a_thick_text_charges_the_thick_default_for_an_unlisted_character():
+    assert text_width(FONT, "Z", 1, Weight.THICK) == pytest.approx(0.8)
+    assert text_width(FONT, "Z", 1, Weight.THICK) > text_width(FONT, "Z", 1)
+
+
 def test_a_font_needs_a_table_for_every_weight():
     with pytest.raises(InvalidValueError, match="no advance table for THICK"):
         replace(FONT, advances={Weight.NORMAL: REGULAR})
+
+
+def test_a_font_needs_a_default_advance_for_every_weight():
+    with pytest.raises(InvalidValueError, match="no default advance for THICK"):
+        replace(FONT, default_advance={Weight.NORMAL: 600})
 
 
 def test_no_font_measures_six_tenths_of_the_height_per_character():
@@ -130,7 +140,10 @@ units_per_em = 1000
 cap_height = 700
 ascent = 900
 descent = 200
-default_advance = 600
+
+[font.default_advance]
+normal = 600
+thick = 800
 
 [font.advances.normal]
 A = 500
@@ -142,6 +155,15 @@ A = 560
 B = 810
 i = 300
 """
+
+
+def test_a_single_number_default_advance_is_a_finding():
+    _, findings = parse_config(
+        CONFIG.replace(
+            "[font.default_advance]\nnormal = 600\nthick = 800\n", "default_advance = 600\n"
+        )
+    )
+    assert [f.location for f in findings] == ["/font/default_advance"]
 
 
 def test_library_toml_declares_the_font():
@@ -283,7 +305,7 @@ def test_em_height_of_a_known_font():
         ascent=1900,
         descent=500,
         advances={Weight.NORMAL: {}, Weight.THICK: {}},
-        default_advance=1000,
+        default_advance={Weight.NORMAL: 1000, Weight.THICK: 1000},
     )
     assert em_height(real, 1.8) == pytest.approx(2.469, abs=1e-3)
     assert em_height(None, 0.72) == pytest.approx(1.0)

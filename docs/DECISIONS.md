@@ -1702,3 +1702,9 @@ Decided: symdef adds no `sized_svg_mm`: the `<svg>` root, its size and its margi
 Why: R491: one spelling for a wire; the sheet root is the sheet's.
 Cost if wrong: additive; a consumer that needs a coloured wire or a class on a wire asks for a keyword on `to_fragment_mm`.
 
+
+## D119: each face carries its own default advance
+
+Decided: `FontMetrics.default_advance` is a `Mapping[Weight, float]`, one number per text weight, required for every weight in `TEXT_WEIGHTS` like `advances` (a missing weight raises `InvalidValueError` naming it). `library.toml` takes `[font.default_advance]` with `normal` and `thick` (numbers above zero, both required); a single number is a schema finding at `/font/default_advance`. The bundle's `font.default_advance` is an object with the same two keys. `measure_font` derives each from its own face: the largest advance of that face's table (1843 regular and 2033 bold for the house face). `text_width(..., weight=Weight.THICK)` charges the bold default for a character its bold table does not list. This supersedes the "stays one number for both" line of D73 and D87's regular-only default.
+Why: R590: a bold face is not a scaled regular face (D73), so one shared default under-measured every unlisted bold glyph (33 diffs, all bold unknown glyphs, in a consumer's text-measure check).
+Cost if wrong: a breaking change to the font format and to `FontMetrics(...)` construction: every library with a literal `[font]` and every caller building `FontMetrics` by hand writes the default per weight. The files form needs no change.

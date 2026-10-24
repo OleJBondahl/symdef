@@ -28,7 +28,7 @@ GRID_FONT = FontMetrics(
     ASCENT,
     400,
     {Weight.NORMAL: BOLD, Weight.THICK: BOLD},
-    600,
+    {Weight.NORMAL: 600, Weight.THICK: 600},
     text_block="grid",
 )
 CAP_FONT = replace(GRID_FONT, text_block="cap")

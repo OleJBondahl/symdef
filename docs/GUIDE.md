@@ -410,7 +410,7 @@ from symdef import (
 font = FontMetrics(
     name="My Sans", units_per_em=1000, cap_height=700, ascent=900, descent=200,
     advances={Weight.NORMAL: {"A": 650, "B": 650, "i": 250}, Weight.THICK: {}},
-    default_advance=600,
+    default_advance={Weight.NORMAL: 600, Weight.THICK: 600},
 )
 sized = Library("S", "S", "", {}, font=font, grid=Grid(divisions_per_module=8))
 row = Symbol(
@@ -589,7 +589,9 @@ units_per_em = 1000
 cap_height = 700
 ascent = 800
 descent = 200
-default_advance = 500      # for a character not listed below
+[font.default_advance]     # for a character not listed below, one per weight
+normal = 500
+thick = 560
 [font.advances.normal]     # one advance table per weight, each its own glyph by glyph
 A = 600
 i = 300

@@ -213,7 +213,7 @@ def _font(font: FontMetrics) -> dict[str, Any]:
         "cap_height": font.cap_height,
         "ascent": font.ascent,
         "descent": font.descent,
-        "default_advance": font.default_advance,
+        "default_advance": {w.name.lower(): font.default_advance[w] for w in TEXT_WEIGHTS},
         "advances": {w.name.lower(): dict(sorted(font.advances[w].items())) for w in TEXT_WEIGHTS},
     }
     if font.heights:

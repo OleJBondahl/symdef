@@ -4,7 +4,7 @@
  "cap_height": 1493,
  "ascent": 1556,
  "descent": 426,
- "default_advance": 1843,
+ "default_advance": {"normal": 1843, "thick": 2033},
  "advances": {
   "normal": {
    " ": 585,
