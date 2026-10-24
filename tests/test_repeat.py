@@ -385,9 +385,9 @@ class TestPortFormat:
         assert tuple(e.port for e in result.elements if isinstance(e, Line)) == ("P1_in", "P2_in")
         assert tuple(s.id for s in result.slots) == ("marking.P1_in", "marking.P2_in")
 
-    def test_omitting_the_format_is_an_error_naming_the_argument_and_the_fix(self, s227):
-        with pytest.raises(InvalidValueError, match=r"port_format.*such as '\{k\}\.\{port\}'"):
-            repeat(s227, 2)
+    def test_omitting_the_format_is_a_type_error_naming_the_argument(self, s227):
+        with pytest.raises(TypeError, match="port_format"):
+            repeat(s227, 2)  # ty: ignore[missing-argument]  # the omitted format is the case under test
 
     @pytest.mark.parametrize("bad", ["{k}", "{port}", "{k}.{port}.{n}", "plain", "{k}.{port", 3])
     def test_a_format_without_exactly_k_and_port_is_an_error(self, s227, bad):

@@ -96,7 +96,7 @@ def pole_parts(
     )
 
 
-def repeat(symbol: Symbol, n: int, *, port_format: str | None = None) -> Symbol:
+def repeat(symbol: Symbol, n: int, *, port_format: str) -> Symbol:
     """Return `n` copies of a symbol placed along +x, as an ordinary symbol.
 
     Pole k (from 1) is the symbol translated by `((k - 1) * pitch, 0)`, where the pitch is the
@@ -119,7 +119,7 @@ def repeat(symbol: Symbol, n: int, *, port_format: str | None = None) -> Symbol:
         The repeated symbol; with `n = 1` it is the symbol with renamed ports and slots.
 
     Raises:
-        InvalidValueError: If `n` is below 1, or `port_format` is missing or not a template with
+        InvalidValueError: If `n` is below 1, or `port_format` is not a template with
             exactly the fields `{k}` and `{port}`.
     """
     port_format = checked_port_format(port_format)

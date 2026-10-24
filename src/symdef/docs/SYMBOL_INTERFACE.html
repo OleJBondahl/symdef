@@ -555,7 +555,7 @@ init(root) -&gt; tuple[Path, ...]    build(root) -&gt; tuple[Path, ...]    check
 <pre><code>from symdef import Orientation, keepout_box, orient, repeat
 from my_symbols import LIBRARY
 
-breaker = orient(repeat(LIBRARY.get("S00287"), 3), Orientation.R0)
+breaker = orient(repeat(LIBRARY.get("S00287"), 3, port_format=LIBRARY.port_format), Orientation.R0)
 
 # The placement is the consumer's own type. The symbol stays a definition.
 placed = Placement(

@@ -72,10 +72,13 @@ def _through_repeats(library: Library) -> tuple[Finding, ...]:
 
     The library's `port_format` names the repeated ports; a library that declares none has no gate.
     """
+    port_format = library.port_format
+    if port_format is None:
+        return ()
     found = []
-    for symbol in library if library.port_format is not None else ():
+    for symbol in library:
         if any(path.through for path in symbol.paths):
-            repeated = repeat(symbol, 3, port_format=library.port_format)
+            repeated = repeat(symbol, 3, port_format=port_format)
             number = symbol.reference.number
             found.extend(
                 _named(
