@@ -56,6 +56,7 @@ from symdef.model import (
 from symdef.orient import orient, orient_box, orient_direction, orient_point, translate
 from symdef.repeat import pole_pitch, pole_port, repeat
 from symdef.shapes_mm import line_mm, outline_mm, rect_mm
+from symdef.sheet_svg import bold_layer, sheet_svg
 from symdef.slottext import TextPlacement, slot_lines, slot_text
 from symdef.stretch import stretch
 from symdef.stretch_ports import stretch_to_ports
@@ -124,6 +125,7 @@ __all__ = [
     "Weight",
     "WireStyle",
     "body_box",
+    "bold_layer",
     "ceil_divisions",
     "corner_text",
     "em_height",
@@ -150,6 +152,7 @@ __all__ = [
     "pole_port",
     "rect_mm",
     "repeat",
+    "sheet_svg",
     "slot_box",
     "slot_lines",
     "slot_text",
