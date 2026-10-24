@@ -170,8 +170,7 @@
         "length": { "$ref": "#/$defs/number" },
         "via": { "type": "string" },
         "at": { "$ref": "#/$defs/point" },
-        "repeat": { "$ref": "#/$defs/integer" },
-        "port_format": { "type": "string" }
+        "repeat": { "$ref": "#/$defs/integer" }
       }
     },
     "stretch": {

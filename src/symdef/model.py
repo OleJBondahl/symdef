@@ -257,7 +257,8 @@ class LibraryConfig:
     `dash` the `[dash]` table.
     `font_files` is the (regular, bold) paths of the `[font]` files form, relative to the folder
     holding `library.toml`, `font_name` its name and `font_heights` its `heights`; then `font`
-    is None until the files are read.
+    is None until the files are read. `port_format` is the top-level key naming a repeated pole's
+    port id, the value a part's `repeat` passes to the function (D123).
     """
 
     standard: str
@@ -275,6 +276,7 @@ class LibraryConfig:
     font_name: str = ""
     font_heights: Mapping[str, float] = MappingProxyType({})
     font_text_block: str = "cap"
+    port_format: str | None = None
 
     def __post_init__(self) -> None:
         """Copy `lines`, `dash` and `font_heights` into read-only mappings."""
