@@ -654,8 +654,13 @@ or `None`; `stroke` and `fill` are written as you give them, each `#rgb`, `#rrgg
 name, and the shapes read no stylesheet. A dashed outline is four lines drawn left to right and top
 down (top, bottom, left, right), so the dashes of facing edges start at the same corner. A
 polyline wire is `wire(library, style_id, points)` through `to_fragment_mm`, as above. Every number
-is printed with at most four decimals (half-even), by symdef alone (D117, D118). The `<svg>` root
-and its margin are yours to write.
+is printed with at most four decimals (half-even), by symdef alone (D117, D118).
+
+`sheet_svg(width_mm, height_mm, body, *, margin_mm)` wraps `body`, drawn in millimetres, in the
+`<svg>` root of a page `width_mm` by `height_mm`. A margin `m` widens the page by `m` on every side
+(the viewBox starts at `-m -m`); a margin of 0 is the plain page. `margin_mm` is required: symdef
+holds no margin default. `bold_layer(fragment)` puts a fragment in one `<g font-weight="bold">`
+(D122). Both write their numbers as Python prints them.
 
 ```python
 import xml.etree.ElementTree as ET
