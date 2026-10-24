@@ -24,4 +24,4 @@ This page holds no design of its own. Each part has one home:
 
 Review: a change to the spec or to a rule goes through proper review before it lands. It
 carries a dated entry in the spec's change list and in `docs/DECISIONS.md`, and a new or
-changed rule or gate carries a failing fixture. The owner reviews and merges.
+changed rule or gate carries a failing fixture. A reviewer other than its author checks it against the spec and the rule set, and the maintainer approves the merge.
