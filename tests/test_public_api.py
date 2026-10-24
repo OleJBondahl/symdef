@@ -99,7 +99,7 @@ SECTION_11_SIGNATURES = {
     "body_box": [*positional("symbol"), ("font", "POSITIONAL_OR_KEYWORD", "None")],
     "keepout_box": [*positional("symbol"), ("font", "POSITIONAL_OR_KEYWORD", "None")],
     "leads": positional("symbol", "ports"),
-    "repeat": [*positional("symbol", "n"), ("port_format", "KEYWORD_ONLY", "None")],
+    "repeat": [*positional("symbol", "n"), ("port_format", "KEYWORD_ONLY", "-")],
     "only_ports": positional("symbol", "ports"),
     "stretch_to_ports": [
         *positional("symbol", "axis", "edge", "n"),
