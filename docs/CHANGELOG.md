@@ -2,6 +2,13 @@
 
 What changed in the public surface of each release: a name added, removed or moved, and a type that widened. Every change to `surface.toml` has a line here. The reasons are in [the decisions](DECISIONS.md).
 
+## 0.28.0
+
+- Changed (breaking): `FontMetrics.default_advance` is a `Mapping[Weight, float]`, one number per text weight, required for every weight like `advances`. `library.toml` takes `[font.default_advance]` with `normal` and `thick` (a single number is a schema finding); the bundle's `font.default_advance` is an object. `measure_font` derives each from its own face, and `text_width(..., weight=Weight.THICK)` charges the bold default for an unlisted character (D119).
+- Added: `[grid] outline_margin` and `Grid.outline_margin` (`int | None`, default `None`): the divisions a unit outline stands off the boxes it encloses. The bundle writes it only when set (D120).
+- Changed (breaking): `repeat(symbol, n, *, port_format)`: the template of a pole's port id with the fields `{k}` and `{port}` is required, and symdef keeps no default; a missing or malformed one raises `InvalidValueError`. A part's `repeat` key needs `port_format` beside it, else a `schema` finding at `repeat`. `table`, `fitted_table`, `edge_pattern` and `pole_port` keep `<k>.` (D121).
+- Added: `sheet_svg(width_mm, height_mm, body, *, margin_mm) -> str`, the `<svg>` root in millimetres around a body, and `bold_layer(fragment) -> str`, one `<g font-weight="bold">` around a fragment (D122).
+
 ## 0.27.0
 
 - Added: `rect_mm(box, *, library, weight, stroke, fill, dash=None, classes="")`, `outline_mm(box, *, library, weight, stroke, dash=None, classes="")` and `line_mm(a, b, *, library, weight, stroke, dash=None, classes="")`: one SVG element in mm each, the width from `library.lines`, the dash from `library.dash`, the paint as given (D117, D118).
