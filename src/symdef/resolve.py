@@ -9,7 +9,6 @@ from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from typing import Any
 
-from symdef.errors import InvalidValueError
 from symdef.geometry import Element, Line, Orientation, Point, Style, Weight
 from symdef.lint.exemptions import exempt
 from symdef.lint.file import metadata_findings, part_id_findings
@@ -86,7 +85,7 @@ def _form_findings(data: Mapping[str, Any]) -> tuple[Finding, ...]:
 
 
 def _prepare(
-    index: int, part: Mapping[str, Any], base: Symbol
+    index: int, part: Mapping[str, Any], base: Symbol, port_format: str | None
 ) -> tuple[Symbol | None, tuple[Finding, ...]]:
     """Apply the part's `repeat` first and its `orient` second.
 
@@ -100,10 +99,13 @@ def _prepare(
         if not 1 <= count <= MAX_REPEAT:
             message = f"repeat must be between 1 and {MAX_REPEAT}"
             return None, (rule_finding("schema", message, where),)
-        try:
-            symbol = repeat(base, count, port_format=part.get("port_format"))
-        except InvalidValueError as error:
-            return None, (rule_finding("schema", str(error), where),)
+        if port_format is None:
+            message = (
+                "repeat needs the library key port_format in library.toml, the template of a "
+                'pole\'s port id with the fields {k} and {port}, such as port_format = "{k}.{port}"'
+            )
+            return None, (rule_finding("schema", message, where),)
+        symbol = repeat(base, count, port_format=port_format)
     return orient(symbol, Orientation(part.get("orient", "R0"))), ()
 
 
@@ -221,7 +223,7 @@ def _namespace_leads(elements: tuple[Element, ...], name: str) -> tuple[Element,
 
 
 def _place_parts(
-    parts: list[Mapping[str, Any]], bases: Mapping[str, Symbol]
+    parts: list[Mapping[str, Any]], bases: Mapping[str, Symbol], port_format: str | None
 ) -> tuple[dict[str, Symbol], tuple[Element, ...], tuple[Finding, ...]]:
     """Place every part in file order.
 
@@ -243,7 +245,7 @@ def _place_parts(
                 )
             )
             continue
-        oriented, problems = _prepare(index, part, bases[part["use"]])
+        oriented, problems = _prepare(index, part, bases[part["use"]], port_format)
         moved, link = None, ()
         if oriented is not None:
             moved, link, problems = _place(index, part, oriented, placed, frozenset(failed))
@@ -407,14 +409,14 @@ def _part_bodies(
 
 
 def _compose(
-    data: Mapping[str, Any], bases: Mapping[str, Symbol]
+    data: Mapping[str, Any], bases: Mapping[str, Symbol], port_format: str | None
 ) -> tuple[Symbol | None, tuple[Finding, ...]]:
     """Flatten a composite whose part files are all resolved (`bases`, by file stem).
 
     Kind, status, reference, name, anchors, `pole_pitch` and `lint_allow` are the composite's
     own, read by `symbol_from_data`, which skips the rename map and slot references read here.
     """
-    placed, elements, found = _place_parts(data["parts"], bases)
+    placed, elements, found = _place_parts(data["parts"], bases, port_format)
     if found:
         return None, found
     own = symbol_from_data(data)
@@ -468,6 +470,7 @@ class _Walk:
     progress: dict[str, int]
     bases: dict[str, dict[str, Symbol]]
     broken: set[str]
+    port_format: str | None
 
 
 def _cycle_findings(stack: list[str], progress: Mapping[str, int], use: str) -> _Found:
@@ -513,17 +516,17 @@ def _finish(walk: _Walk, stem: str) -> tuple[Symbol | None, tuple[Finding, ...]]
         return symbol_from_data(data), ()
     if stem in walk.broken:
         return None, ()
-    return _compose(data, walk.bases[stem])
+    return _compose(data, walk.bases[stem], walk.port_format)
 
 
 def _walk(
-    sources: Mapping[str, Mapping[str, Any]], valid: frozenset[str]
+    sources: Mapping[str, Mapping[str, Any]], valid: frozenset[str], port_format: str | None
 ) -> tuple[dict[str, Symbol | None], _Found]:
     """Resolve every valid file, part files first, with an explicit stack instead of recursion.
 
     Returns the symbol of each file (`None` when it cannot be built) and the findings of the walk.
     """
-    walk = _Walk(sources, valid, {}, [], {}, {}, set())
+    walk = _Walk(sources, valid, {}, [], {}, {}, set(), port_format)
     found: list[tuple[str, Finding]] = []
     for root in sorted(valid):
         if root in walk.resolved:
@@ -584,7 +587,7 @@ def resolve_library(config: LibraryConfig, sources: Mapping[str, Mapping[str, An
         else:
             valid.add(stem)
             problems[stem] = [*metadata_findings(stem, data, config), *part_id_findings(data)]
-    resolved, found = _walk(sources, frozenset(valid))
+    resolved, found = _walk(sources, frozenset(valid), config.port_format)
     for stem, finding in found:
         problems[stem].append(finding)
     for stem, symbol in resolved.items():

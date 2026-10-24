@@ -31,8 +31,9 @@ spec was silent, the choice is a numbered entry in [DECISIONS.md](DECISIONS.md) 
   stepping by `pole_pitch`. The result is an ordinary symbol; `port_format` is the caller's
   template of a pole's port id, with the fields `{k}` and `{port}` (`"{k}.{port}"` gives `1.in`
   and `3.out`). It is required: symdef keeps no spelling of a pole prefix (D16, D121).
-  In a part file the data op is `repeat = 3` with `port_format = "{k}.{port}"` beside it. Spec
-  section 7.
+  In a part file the data op is `repeat = 3`; it takes the format from the library-wide top-level
+  key `port_format = "{k}.{port}"` of `library.toml` (D123), and a library that uses `repeat`
+  without the key fails to load, the message naming the key. Spec section 7.
 
 Units are modules (1 M = `DEFAULT_MODULE_MM`, 2.5 mm) on a drawing grid of `GRID_DIVISION` (0.125) M,
 which `[grid]` in `library.toml` may change (see Measuring text and the grid); wires run on a 1 M grid. The wiring contract is linted in all 8 orientations (`Orientation`).

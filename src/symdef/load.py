@@ -16,6 +16,7 @@ from types import MappingProxyType
 from typing import Any
 
 from symdef.dash import dash_problems, pattern_problem
+from symdef.errors import InvalidValueError
 from symdef.font import FontMetrics
 from symdef.geometry import (
     TEXT_WEIGHTS,
@@ -53,6 +54,7 @@ from symdef.model import (
     Vocabulary,
     WireStyle,
 )
+from symdef.repeat import checked_port_format
 from symdef.units import (
     DEFAULT_GRID,
     DEFAULT_WIRE_PITCH,
@@ -267,7 +269,6 @@ _PART = _table(
         "via": _string,
         "at": _POINT,
         "repeat": _integer,
-        "port_format": _string,
     },
     required=("as", "use"),
 )
@@ -915,6 +916,15 @@ _VOCABULARY = _table(dict.fromkeys(_VOCABULARY_LISTS, _array(_string)))
 _RULES = _table({"required_slots": _array(_string)})
 
 
+def _port_format_key(value: object, location: str) -> list[Finding]:
+    """Check the library-wide `port_format`: a template with exactly `{k}` and `{port}` (D123)."""
+    try:
+        checked_port_format(value)
+    except InvalidValueError as error:
+        return [_finding(location, str(error))]
+    return []
+
+
 def _tables_problems(data: Mapping[str, Any]) -> list[Finding]:
     """Check the optional tables: vocabulary, rules, wire, font, grid, lines and dash."""
     found: list[Finding] = []
@@ -926,6 +936,7 @@ def _tables_problems(data: Mapping[str, Any]) -> list[Finding]:
         ("grid", _grid_table),
         ("lines", _lines_table),
         ("dash", _dash_table),
+        ("port_format", _port_format_key),
     ):
         if key in data:
             found += check(data[key], _child("", key))
@@ -955,6 +966,8 @@ def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
     The optional `[dash]` table maps a name to a dash pattern in millimetres, an even count of
     lengths above zero; `dashed` has two and `dash_dot` four. Which of the two a library needs
     is checked when its symbols are known.
+    The optional top-level `port_format` is the template of a repeated pole's port id, with the
+    fields `{k}` and `{port}` (D123); a part's `repeat` needs it.
 
     Args:
         text: The file's TOML text.
@@ -1007,4 +1020,5 @@ def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
         lines_from_data(data.get("lines", {})),
         dash_from_data(data.get("dash", {})),
         *_font_files(data),
+        data.get("port_format"),
     ), ()
