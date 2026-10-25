@@ -25,7 +25,7 @@ RESOLVED = "build/resolved/S00227.json"
 SVG = "build/svg/S00227.svg"
 ANNOTATED = "build/annotated/S00227.svg"
 README = "build/README.md"
-BUNDLE = "src/iec60617/bundle.json"
+BUNDLE = "src/exampleset/bundle.json"
 
 
 def relative(paths, root):
@@ -47,7 +47,7 @@ def built(tmp_path) -> Path:
 class TestPackageName:
     @pytest.mark.parametrize(
         ("standard", "package"),
-        [("IEC 60617", "iec60617"), ("ISA 5.1", "isa51"), ("ISO 14617", "iso14617")],
+        [("Example set", "exampleset"), ("ISA 5.1", "isa51"), ("Pipe set", "pipeset")],
     )
     def test_the_standard_lowercased_without_non_alphanumerics(self, standard, package):
         assert package_name(standard) == package
@@ -144,7 +144,7 @@ class TestWriteBuild:
         assert list(tmp_path.rglob("*")) == []
 
     def test_it_accepts_numbers_with_interior_dots(self, tmp_path):
-        symbols = {"5.1": LIBRARY.get("S00227"), "ISO-14617-1.1": LIBRARY.get("S00016")}
+        symbols = {"5.1": LIBRARY.get("S00227"), "PIPE-1.1": LIBRARY.get("S00016")}
         written = write_build(replace(LIBRARY, symbols=symbols), tmp_path)
         assert tmp_path / "build" / "resolved" / "5.1.json" in written
 
@@ -274,7 +274,7 @@ class TestStaleBuild:
 
     def test_files_outside_the_generated_paths_are_left_alone(self, built):
         (built / "build" / "notes.txt").write_bytes(b"x")
-        (built / "src" / "iec60617" / "__init__.py").write_bytes(b"")
+        (built / "src" / "exampleset" / "__init__.py").write_bytes(b"")
         (built / "symbols").mkdir()
         (built / "symbols" / "S00227.toml").write_bytes(b"")
         assert stale_build(LIBRARY, built) == ()
@@ -359,7 +359,7 @@ class TestPackageKey:
         root = self.repo(tmp_path, 'package = "my_pkg"\n')
         write_build(load_library(root), root)
         assert (root / "src" / "my_pkg" / "bundle.json").is_file()
-        assert not (root / "src" / "iec60617").exists()
+        assert not (root / "src" / "exampleset").exists()
 
     def test_stale_build_agrees_with_the_named_package(self, tmp_path):
         root = self.repo(tmp_path, 'package = "my_pkg"\n')

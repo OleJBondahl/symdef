@@ -2,7 +2,7 @@ schema = 1
 name = "Symbol with a pole pitch that is not a multiple of 4"
 kind = "symbol"
 status = "unverified"
-reference = { standard = "IEC 60617", number = "S00002" }
+reference = { standard = "Example set", number = "S00002" }
 pole_pitch = 6
 
 ports = [

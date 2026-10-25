@@ -2,7 +2,7 @@ schema = 1
 name = "Pump"
 kind = "symbol"
 status = "unverified"
-reference = { standard = "IEC 60617", number = "S90002" }
+reference = { standard = "Example set", number = "S90002" }
 
 ports = [
   { id = "in",  at = [0, -2], dir = "N" },

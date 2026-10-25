@@ -29,7 +29,7 @@ from symdef.model import Slot
 from symdef.units import to_divisions
 
 SRC = Path(__file__).resolve().parent.parent / "src" / "symdef"
-LIBRARY = Library("IEC 60617", "IEC 60617", "", {}, wires=(), font=NEUTRAL_FONT)
+LIBRARY = Library("Example set", "Example set", "", {}, wires=(), font=NEUTRAL_FONT)
 
 
 def with_port():

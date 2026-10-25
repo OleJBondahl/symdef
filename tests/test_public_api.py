@@ -52,7 +52,7 @@ def test_the_placement_type_is_the_consumers_own():
 
 
 def test_the_guide_drawing_library_snippet_runs_on_the_guide_fixtures():
-    # The guide's `from iec60617 import LIBRARY`, with the guide fixtures as the library and
+    # The guide's `from exampleset import LIBRARY`, with the guide fixtures as the library and
     # S00227 (a make contact, one through path) in place of S00287. The `Placement` is left out.
     library = load_library(GUIDE_FIXTURES)
     breaker = orient(repeat(library.get("S00227"), 3, port_format="{k}.{port}"), Orientation.R0)
@@ -83,7 +83,7 @@ def positional(*names):
     return [(name, "POSITIONAL_OR_KEYWORD", "-") for name in names]
 
 
-# Guide section 11's API block: the sibling repo `iec60617` codes against these exactly.
+# Guide section 11's API block: the sibling repo `exampleset` codes against these exactly.
 SECTION_11_SIGNATURES = {
     "load_library": positional("root"),
     "load_bundle": positional("json_path"),

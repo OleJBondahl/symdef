@@ -24,7 +24,7 @@ REGULAR = (DATA / "DejaVuSansCondensed.ttf").read_bytes()
 BOLD = (DATA / "DejaVuSansCondensed-Bold.ttf").read_bytes()
 EXPECTED = json.loads((DATA / "expected.json").read_text(encoding="utf-8"))
 FAMILY = "DejaVu Sans"  # name ID 16 of the vendored face; ID 1 is the name
-BUNDLE = "src/iec60617/bundle.json"
+BUNDLE = "src/exampleset/bundle.json"
 FILES = '[font]\nname = "DejaVu Sans Condensed"\nfiles = { regular = "r.ttf", bold = "b.ttf" }\n'
 
 

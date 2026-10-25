@@ -17,7 +17,7 @@ from symdef.serialize import bundle_to_data, to_json
 
 GUIDE = Path(__file__).resolve().parent / "fixtures" / "guide"
 LIBRARY = load_library(GUIDE)
-BUNDLE = "src/iec60617/bundle.json"
+BUNDLE = "src/exampleset/bundle.json"
 
 
 def bundle_data() -> dict:
@@ -36,8 +36,8 @@ class TestLibraryFromBundle:
         library = library_from_bundle(bundle_data())
         assert isinstance(library, Library)
         assert (library.standard, library.title, library.number_pattern) == (
-            "IEC 60617",
-            "IEC 60617",
+            "Example set",
+            "Example set",
             "",
         )
         assert sorted(library.symbols) == sorted(LIBRARY.symbols)
@@ -157,7 +157,7 @@ class TestValidateBundle:
         assert finding.location == f"/symbols/{key.replace('/', '~1')}"
         assert "file name" in finding.message
 
-    @pytest.mark.parametrize("key", ["a.b", "5.1", "ISO-14617-1.1", "A_b-c.d.e", "S00227"])
+    @pytest.mark.parametrize("key", ["a.b", "5.1", "PIPE-1.1", "A_b-c.d.e", "S00227"])
     def test_a_key_with_interior_dots_is_a_file_name_stem(self, key):
         data = bundle_data()
         symbol = data["symbols"].pop("S00227")
@@ -200,16 +200,16 @@ class TestLoadBundle:
             encoding="utf-8",
         )
         source = (GUIDE / "symbols" / "S00227.toml").read_text(encoding="utf-8")
-        for number in ("5.1", "ISO-14617-1.1"):
-            text = source.replace('"S00227"', f'"{number}"').replace("IEC 60617", "ISA 5.1")
+        for number in ("5.1", "PIPE-1.1"):
+            text = source.replace('"S00227"', f'"{number}"').replace("Example set", "ISA 5.1")
             (repo / "symbols" / f"{number}.toml").write_text(text, encoding="utf-8")
         library = load_library(repo)
-        assert sorted(library.symbols) == ["5.1", "ISO-14617-1.1"]
+        assert sorted(library.symbols) == ["5.1", "PIPE-1.1"]
         write_build(library, repo)
         bundle = repo / "src" / "isa51" / "bundle.json"
         assert bundle.is_file()
         loaded = load_bundle(bundle)
-        assert sorted(loaded.symbols) == ["5.1", "ISO-14617-1.1"]
+        assert sorted(loaded.symbols) == ["5.1", "PIPE-1.1"]
         for number, symbol in library.symbols.items():
             assert loaded.get(number) == normalised(symbol)
         assert stale_build(loaded, repo) == ()

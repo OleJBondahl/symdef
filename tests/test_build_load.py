@@ -17,7 +17,7 @@ GUIDE = FIXTURES / "guide"
 BROKEN = FIXTURES / "broken"
 
 CONFIG = (
-    'standard = "IEC 60617"\ntitle = "t"\nnumber_pattern = \'^S\\d{5}$\'\n'
+    'standard = "Example set"\ntitle = "t"\nnumber_pattern = \'^S\\d{5}$\'\n'
     + WORDS
     + NEUTRAL_FONT_TOML
 )
@@ -55,8 +55,8 @@ class TestGuideLibrary:
     def test_carries_the_config(self):
         library = load_library(GUIDE)
         assert (library.standard, library.title, library.number_pattern) == (
-            "IEC 60617",
-            "IEC 60617 symbols",
+            "Example set",
+            "Example set symbols",
             r"^S\d{5}$",
         )
 

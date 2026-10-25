@@ -20,13 +20,19 @@ WIRES = (
     WireStyle("wire", Weight.NORMAL, Style.SOLID),
 )
 LIBRARY = Library(
-    "IEC 60617", "IEC 60617", "", {}, wires=WIRES, dash={"dashed": (1.25, 0.625)}, font=NEUTRAL_FONT
+    "Example set",
+    "Example set",
+    "",
+    {},
+    wires=WIRES,
+    dash={"dashed": (1.25, 0.625)},
+    font=NEUTRAL_FONT,
 )
 PATH = [(0, 0), (4, 0), (4, 6)]
 
 CONFIG = (
-    """standard = "IEC 60617"
-title = "IEC 60617 symbols"
+    """standard = "Example set"
+title = "Example set symbols"
 number_pattern = '^S\\d{5}$'
 """
     + NEUTRAL_FONT_TOML
@@ -65,7 +71,7 @@ def test_a_wire_is_an_unverified_element_with_no_ports_or_slots():
     assert symbol.kind is SymbolKind.ELEMENT
     assert symbol.status is Status.UNVERIFIED
     assert symbol.name == "wire link"
-    assert symbol.reference == Reference("IEC 60617", "wire.link")
+    assert symbol.reference == Reference("Example set", "wire.link")
     assert (symbol.ports, symbol.slots, symbol.nodes, symbol.paths, symbol.anchors) == (
         (),
         (),
@@ -82,7 +88,7 @@ def test_pairs_and_points_give_the_same_wire():
 
 
 def test_an_unknown_style_id_is_a_key_error_naming_it():
-    with pytest.raises(UnknownNameError, match="no wire style 'nope' in IEC 60617"):
+    with pytest.raises(UnknownNameError, match="no wire style 'nope' in Example set"):
         wire(LIBRARY, "nope", PATH)
 
 
@@ -144,7 +150,7 @@ def test_a_library_with_wires_round_trips_through_the_bundle():
 
 
 def test_a_bundle_without_wires_has_no_wires_key():
-    data = bundle_to_data(Library("IEC 60617", "IEC 60617", "", {}, font=NEUTRAL_FONT))
+    data = bundle_to_data(Library("Example set", "Example set", "", {}, font=NEUTRAL_FONT))
     assert "wires" not in data
     assert library_from_bundle(data).wires == ()
 
@@ -152,7 +158,7 @@ def test_a_bundle_without_wires_has_no_wires_key():
 def test_bad_bundle_wire_entries_are_findings():
     data = {
         "schema": 1,
-        "standard": "IEC 60617",
+        "standard": "Example set",
         "symbols": {},
         "font": json.loads(to_json(bundle_to_data(LIBRARY)))["font"],
         "wires": [{"id": "a", "weight": "heavy", "style": "solid"}, 4],
@@ -162,8 +168,8 @@ def test_bad_bundle_wire_entries_are_findings():
 
 
 MARKER_LIBRARY = Library(
-    "IEC 60617",
-    "IEC 60617",
+    "Example set",
+    "Example set",
     "",
     {},
     wires=(WireStyle("marker", Weight.NORMAL, Style.SOLID),),

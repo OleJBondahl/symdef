@@ -2,8 +2,8 @@
 
 Standard-agnostic toolkit for graphical-symbol data. Symbols are TOML files; the toolkit loads
 them, resolves composition, lints the wiring contract, renders SVG, and builds a resolved JSON
-bundle plus a gallery. Data packages hold only data and reuse the toolkit and its gates, for any standard: IEC 60617,
-ISO 14617, ISA 5.1 or your own.
+bundle plus a gallery. Data packages hold only data and reuse the toolkit and its gates, for any
+standard or your own; the toolkit is compatible with IEC.
 
 Two doors: `symdef` is what a consumer draws with (load, orient, render, measure), and
 `symdef.authoring` is what a library's author builds with (`build`, `check`, `init`, `lint`,
@@ -14,7 +14,7 @@ the build, with every lint rule and gate proven by a failing fixture. Published 
 v0.1.0 to v0.3.0 were git tags named `graphical-symbols`.
 
 Every example symbol in this repository, the docs and the gallery included, is drawn
-independently in the style of a published standard (IEC 60617 for the `S000xx` numbers). None
+independently in the style of a published standard (for the `S000xx` numbers). None
 is copied from the IEC database or from any standard's own drawings. Each is marked
 `status = "unverified"`: nobody has checked it against the standard.
 
@@ -98,8 +98,8 @@ times along its edge, `pattern_ports` expands it; the guide has an example of ea
 `write_build` writes `build/` and `src/<package>/bundle.json` under the repo; `stale_build` lists
 the files that differ from what it would write, so a test can fail when a committed build is out
 of date. `load_bundle` reads a bundle back without the sources. `<package>` is the standard's
-normalised name (lowercase letters and digits, D8): the example's standard is `IEC 60617`, so its
-package is `iec60617`.
+normalised name (lowercase letters and digits, D8): the example's standard is `Example set`, so its
+package is `exampleset`.
 
 ```python
 from symdef import load_bundle
@@ -107,7 +107,7 @@ from symdef.authoring import stale_build, write_build
 
 write_build(library, root)
 assert stale_build(library, root) == ()
-assert len(load_bundle(root / "src" / "iec60617" / "bundle.json")) == len(library)
+assert len(load_bundle(root / "src" / "exampleset" / "bundle.json")) == len(library)
 ```
 
 ## Development

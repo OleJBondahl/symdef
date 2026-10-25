@@ -23,13 +23,13 @@ from symdef.repeat import repeat
 
 P = Point
 GUIDE = Path(__file__).resolve().parent / "fixtures" / "guide"
-CONFIG = LibraryConfig("IEC 60617", "IEC 60617 symbols", r"^S\d{5}$", font=NEUTRAL_FONT)
+CONFIG = LibraryConfig("Example set", "Example set symbols", r"^S\d{5}$", font=NEUTRAL_FONT)
 
 
 def file_data(**changes):
     data = {
         "name": "Thing",
-        "reference": {"standard": "IEC 60617", "number": "S00001"},
+        "reference": {"standard": "Example set", "number": "S00001"},
     }
     return data | changes
 
@@ -100,12 +100,12 @@ class TestMetadataFindings:
         assert (found.rule, found.location) == ("metadata", "/name")
 
     def test_other_standard(self):
-        data = file_data(reference={"standard": "ISO 14617", "number": "S00001"})
+        data = file_data(reference={"standard": "Pipe set", "number": "S00001"})
         (found,) = metadata_findings("S00001", data, CONFIG)
         assert (found.rule, found.location) == ("metadata", "/reference/standard")
 
     def test_number_not_matching_the_pattern(self):
-        data = file_data(reference={"standard": "IEC 60617", "number": "X1"})
+        data = file_data(reference={"standard": "Example set", "number": "X1"})
         (found,) = metadata_findings("X1", data, CONFIG)
         assert (found.rule, found.location) == ("metadata", "/reference/number")
         assert "does not match" in found.message
@@ -116,7 +116,7 @@ class TestMetadataFindings:
         assert "differs from the file name" in found.message
 
     def test_a_pattern_that_does_not_compile_matches_nothing(self):
-        config = LibraryConfig("IEC 60617", "t", "(", font=NEUTRAL_FONT)
+        config = LibraryConfig("Example set", "t", "(", font=NEUTRAL_FONT)
         (found,) = metadata_findings("S00001", file_data(), config)
         assert "does not match" in found.message
 

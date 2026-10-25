@@ -1,5 +1,5 @@
-standard = "ISO 14617"
-title = "ISO 14617 symbols"
+standard = "Pipe set"
+title = "Pipe set symbols"
 number_pattern = '^P\d{5}$'
 
 [font]

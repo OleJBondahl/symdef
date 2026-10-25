@@ -16,7 +16,7 @@
     "units_per_em": 1000
   },
   "schema": 1,
-  "standard": "IEC 60617",
+  "standard": "Example set",
   "symbols": {
     "S00016": {
       "anchors": [],
@@ -118,7 +118,7 @@
       ],
       "reference": {
         "number": "S00016",
-        "standard": "IEC 60617"
+        "standard": "Example set"
       },
       "schema": 1,
       "slots": {},
@@ -243,7 +243,7 @@
       ],
       "reference": {
         "number": "S00227",
-        "standard": "IEC 60617"
+        "standard": "Example set"
       },
       "schema": 1,
       "slots": {

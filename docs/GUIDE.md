@@ -1,7 +1,7 @@
 # Guide to symdef
 
 For someone writing a symbol set or consuming the toolkit. It assumes no standard: your set names its own
-words and rules. The examples use one set of IEC 60617 symbols, because that is what the test fixtures hold.
+words and rules. The examples use one set of Example set symbols, because that is what the test fixtures hold.
 New here? Start with the [tutorial](TUTORIAL.md). The binding spec is
 [SYMBOL_INTERFACE.html](../src/symdef/docs/SYMBOL_INTERFACE.html) (the "spec" below):
 this guide names the concepts and the calls, and the spec has the exact definitions. Where the
@@ -18,7 +18,7 @@ spec was silent, the choice is a numbered entry in [DECISIONS.md](DECISIONS.md) 
 - **Node.** A set of ports that are one electrical point. A port in no declared node gets a node
   of its own (`nodes_of`, in `model.py`). Spec section 5.
 - **Path.** A typed link between two ports (`from`, `to`, a `kind` word and `through`). The kind is a string
-  from your set's `[vocabulary]`, such as `switch_open` in the IEC fixtures. Paths are the function as data,
+  from your set's `[vocabulary]`, such as `switch_open` in the example fixtures. Paths are the function as data,
   so a consumer can read connectivity without knowing any symbol. Spec section 5.
 - **Slot.** A box the symbol reserves for text: the `tag` and one `marking.<port>` per port. The
   box grows from the slot point towards its `side`. Spec section 6; `slot_box` returns it.
@@ -54,8 +54,8 @@ src/<package>/bundle.json   generated: every symbol, resolved
 
 ```toml
 #:schema https://olejbondahl.github.io/symdef/symbol.schema.json
-standard = "IEC 60617"
-title = "IEC 60617 symbols"
+standard = "Example set"
+title = "Example set symbols"
 number_pattern = '^S\d{5}$'
 port_format = "{k}.{port}"
 
@@ -88,8 +88,8 @@ The toolkit has no built-in list. A word not listed fails the load with the word
 line (D46). `required_slots` lists the slot ids every symbol must carry; `marking.<port>` means one per port.
 Both tables are strict: an unknown key is a finding. The `#:schema` line lets an editor check the file as you type.
 
-`src/<package>` is the standard lowercased with only letters and digits (`IEC 60617` gives
-`iec60617`). An optional `package = "name"` line in `library.toml` names the folder instead (D45).
+`src/<package>` is the standard lowercased with only letters and digits (`Example set` gives
+`exampleset`). An optional `package = "name"` line in `library.toml` names the folder instead (D45).
 
 A reference number must be a file stem: letters, digits, `_` and `-` in parts joined by single
 dots (D31). A set holds data only; the toolkit and its gates come from this package.
@@ -103,7 +103,7 @@ schema = 1
 name = "Make contact, general symbol"
 kind = "symbol"
 status = "unverified"
-reference = { standard = "IEC 60617", number = "S00227" }
+reference = { standard = "Example set", number = "S00227" }
 
 ports = [
   { id = "in",  at = [0, -2], dir = "N" },
@@ -210,8 +210,8 @@ build/README.md                the gallery table
 src/<package>/bundle.json      every symbol, resolved
 ```
 
-`<package>` is the standard normalised to lowercase letters and digits (D8): `IEC 60617` gives
-`iec60617`, and a standard with no letter or digit cannot be built (D35). Files are written as
+`<package>` is the standard normalised to lowercase letters and digits (D8): `Example set` gives
+`exampleset`, and a standard with no letter or digit cannot be built (D35). Files are written as
 bytes with LF endings and nothing is deleted. `stale_build` returns the files that are missing,
 differ, or sit under `build/resolved`, `build/svg` or `build/annotated` without a symbol behind
 them (D31). `symdef check` reports the same files as `stale-build`, so a committed build cannot go stale.
@@ -310,7 +310,7 @@ card = Symbol(
     name="Card",
     kind=SymbolKind.SYMBOL,
     status=Status.UNVERIFIED,
-    reference=Reference("IEC 60617", "C00001"),
+    reference=Reference("Example set", "C00001"),
     elements=(
         Polyline((Point(0, 0), Point(32, 0), Point(32, 8), Point(0, 8)), closed=True),
         *(Line(Point(x, 8), Point(x, 10), port=k) for k, x in xs.items()),

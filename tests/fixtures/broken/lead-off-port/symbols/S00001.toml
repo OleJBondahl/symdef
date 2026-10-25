@@ -2,7 +2,7 @@ schema = 1
 name = "Lead bound to a port that does not exist"
 kind = "element"
 status = "unverified"
-reference = { standard = "IEC 60617", number = "S00001" }
+reference = { standard = "Example set", number = "S00001" }
 
 ports = [
   { id = "in",  at = [0, -2], dir = "N" },

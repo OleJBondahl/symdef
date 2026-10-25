@@ -2,7 +2,7 @@ schema = 1
 name = "Change-over break before make contact"
 kind = "symbol"
 status = "unverified"
-reference = { standard = "IEC 60617", number = "S00230" }
+reference = { standard = "Example set", number = "S00230" }
 pole_pitch = 8          # 5.5 M wide with its markings, so it cannot repeat at 4 M
 
 ports = [

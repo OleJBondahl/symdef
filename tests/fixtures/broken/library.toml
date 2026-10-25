@@ -1,5 +1,5 @@
-standard = "IEC 60617"
-title = "IEC 60617 symbols"
+standard = "Example set"
+title = "Example set symbols"
 number_pattern = '^S\d{5}$'
 
 [font]

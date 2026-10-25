@@ -2,7 +2,7 @@ schema = 1
 name = "Port short of the body edge"
 kind = "element"
 status = "unverified"
-reference = { standard = "IEC 60617", number = "S00001" }
+reference = { standard = "Example set", number = "S00001" }
 
 ports = [
   { id = "in", at = [0, -1], dir = "N" },

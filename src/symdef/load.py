@@ -568,7 +568,7 @@ def symbol_from_data(data: Mapping[str, Any]) -> Symbol:
     )
 
 
-# A number is a file stem (`5.1.toml`, `ISO-14617-1.1.toml`) and `write_build` names files after
+# A number is a file stem (`5.1.toml`, `PIPE-1.1.toml`) and `write_build` names files after
 # it: letters, digits, `_` and `-`, in parts joined by single dots, so no separator, no `..`.
 _PACKAGE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 _STEM = re.compile(r"[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)*")

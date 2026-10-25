@@ -72,7 +72,7 @@ Cost if wrong: two extra keys in the bundle and one in `load_bundle`.
 ## D8. The bundle package name is the normalised standard
 
 Decided: `src/<package>/bundle.json`, with `<package>` = the standard lowercased with every
-non-alphanumeric character removed (`IEC 60617` -> `iec60617`, `ISA 5.1` -> `isa51`).
+non-alphanumeric character removed (`Example set` -> `exampleset`, `ISA 5.1` -> `isa51`).
 Why: `write_build(library, root)` gets no package name and `library.toml` has no key for it.
 Cost if wrong: an optional `package` key in `library.toml`; a rename of the output directory.
 
@@ -480,8 +480,8 @@ bundle builds the same bytes as the one loaded from the sources. A bundle is rea
 and `validate_bundle` (both in `load.py`, pure) and `library_from_bundle`; `validate_bundle` checks
 every symbol with `validate` and requires the resolved form (no `parts`, `ports` an array, slots
 tables) and a key that is a file stem and equals the symbol's `reference.number`. A file stem is
-letters, digits, `_` and `-` in parts joined by single dots (`5.1`, `ISO-14617-1.1`): the guide
-says the number is the file stem and later standards (ISA 5.1, ISO 14617) have dots in theirs, so
+letters, digits, `_` and `-` in parts joined by single dots (`5.1`, `PIPE-1.1`): the guide
+says the number is the file stem and later standards (ISA 5.1, Pipe set) have dots in theirs, so
 dots must load; a leading, trailing or doubled dot, a separator, a space or an empty name cannot
 name a file safely. `write_build` and `stale_build` raise `ValueError` for a library with a
 number that is not a file stem, before reading or writing anything (`is_file_stem` in `load.py`
@@ -731,7 +731,7 @@ are only as true as their tests: their prose is not run.
 ## Open questions for the owner
 
 - C1 (S00254 fails `pitch-overflow` as written): add `pole_pitch = 8` to the guide's example or
-  shorten the link. The real `iec60617` `S00171` may change the extent; report the outcome there.
+  shorten the link. The real `exampleset` `S00171` may change the extent; report the outcome there.
 - C2 (`id-format` versus `repeat`'s `<k>.` port ids): keep the prefix form permanently, or change
   the guide's id pattern.
 - C3 (`lint_allow` and the seven resolver-only rules): formally non-exemptable, or apply
@@ -759,7 +759,7 @@ wrong: add a bound and a `schema` finding, as D22 did for numbers and `repeat`.
 - In the annotated S00227 the sample text `-X1` covers the start of the `link` anchor label,
   because the guide's `tag` slot ends 1 M west of that anchor. Cosmetic, gallery only.
 
-## What `../iec60617` must do because of these decisions
+## What `../exampleset` must do because of these decisions
 
 - Add `.gitattributes` with `* text=auto eol=lf`; without it, on Windows with `core.autocrlf=true`,
   tracked build files become CRLF and `stale_build` reports everything stale.
@@ -809,7 +809,7 @@ already take the repo root, so they read the key from `root/library.toml` and pa
 `build_files(library, package)`; a root without a readable `library.toml` gets the folder D8 makes
 from the standard. This is the fix D8 named for itself.
 Why: a data package whose folder is not its standard's squashed name (`electrical_symbols` for
-`IEC 60617`) needs a way to say so.
+`Example set`) needs a way to say so.
 Cost if wrong: drop the key; the default rule is unchanged. A library built in memory and written
 to a root with no `library.toml` cannot name its folder.
 

@@ -6,7 +6,7 @@ schema = 1
 name = "Slot box that lands on a lead when turned"
 kind = "element"
 status = "unverified"
-reference = { standard = "IEC 60617", number = "S00002" }
+reference = { standard = "Example set", number = "S00002" }
 
 ports = [
   { id = "in",  at = [0, -2], dir = "N" },

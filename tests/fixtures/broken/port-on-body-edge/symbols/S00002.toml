@@ -2,7 +2,7 @@ schema = 1
 name = "Port on the body edge only in some orientations"
 kind = "element"
 status = "unverified"
-reference = { standard = "IEC 60617", number = "S00002" }
+reference = { standard = "Example set", number = "S00002" }
 
 # Text does not turn with the symbol. In R0 its box (4.8 M by 1 M, centred at (1, -1)) stays
 # below the top of the lead, so "in" is on the top side of the body box. After R90 the box is

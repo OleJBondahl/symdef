@@ -9,7 +9,7 @@ PLAIN = Symbol(
     name="Plain",
     kind=SymbolKind.ELEMENT,
     status=Status.UNVERIFIED,
-    reference=Reference("IEC 60617", "S00001"),
+    reference=Reference("Example set", "S00001"),
     elements=(Line(Point(0, 0), Point(0, 1)),),
 )
 
