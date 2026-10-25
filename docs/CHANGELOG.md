@@ -5,6 +5,7 @@ What changed in the public surface of each release: a name added, removed or mov
 ## 0.29.1
 
 - Changed (breaking): `port_format` is validated when a library has repeat or table symbols; the accessor is `str`. `library.toml` without the top-level `port_format` is refused with a `schema` finding naming the key and the fix, and `Library.port_format` and `LibraryConfig.port_format` are keyword-only `str`, never `None`; a bundle without `port_format` is invalid and `bundle_to_data` always writes it (D127).
+- Added: `text_divisions(grid, font, cap_height_mm)`, the em box of a text with that capital height in whole grid divisions, `ceil_divisions(grid, em_height(font, cap_height_mm / grid.module_mm))`; it measures the em box, not the capital's ink (D128).
 - Migrate: add `port_format = "{k}.{port}"` to the top level of every `library.toml`, before its first table, and pass `port_format=` to every `Library(...)` and `LibraryConfig(...)` call; regenerate `bundle.json` with `symdef build`.
 
 ## 0.29.0

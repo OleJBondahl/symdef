@@ -6,6 +6,7 @@ from types import MappingProxyType
 
 from symdef.errors import InvalidValueError
 from symdef.geometry import TEXT_WEIGHTS, Weight
+from symdef.units import Grid, ceil_divisions
 
 # What a text measures when a library declares no font: 0.6 em per character, cap height 0.72 em.
 DEFAULT_ADVANCE_EM = 0.6
@@ -90,3 +91,11 @@ def em_height(font: FontMetrics | None, cap: float) -> float:
     if font is None:
         return cap / DEFAULT_CAP_EM
     return cap * font.units_per_em / font.cap_height
+
+
+def text_divisions(grid: Grid, font: FontMetrics | None, cap_height_mm: float) -> int:
+    """Return the em box of a text whose capital is `cap_height_mm` tall, in whole grid divisions.
+
+    It measures the em box, the line a text occupies, not the ink of its capitals.
+    """
+    return ceil_divisions(grid, em_height(font, cap_height_mm / grid.module_mm))
