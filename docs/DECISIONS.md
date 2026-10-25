@@ -1766,3 +1766,15 @@ Cost if wrong: breaking for every `library.toml` without the key and every `Libr
 Decided: R871. New top-level `text_divisions(grid, font, cap_height_mm) -> int` in `font.py`: the em box of a text whose capital is `cap_height_mm` tall, in whole grid divisions, `ceil_divisions(grid, em_height(font, cap_height_mm / grid.module_mm))`. It measures the em box, not the capital's ink. No symdef code composed the two calls before, so nothing else changed.
 Why: an application stating text sizes in capital heights in mm repeated the same three-step conversion to get a grid size.
 Cost if wrong: an additive function; none to remove.
+
+## D129: `reference_cell`
+
+Decided: R891 (SY4). New top-level `reference_cell(columns, rows, width, height, point) -> tuple[str, str]` in `refgrid.py`, and `ReferenceCellError(InvalidValueError)` in `errors.py`. The page frame's reference grid is the content box (`width` by `height` whole grid divisions, origin at its min corner) cut evenly into one cell per label; `columns` run left to right, `rows` top to bottom (smallest y first). It returns the labels of the cell holding `point` (a `GridPoint`), as given. symdef holds no page-frame record, so the frame passes its own data as plain values: the labels, which stay the frame's (letters, numbers or a printed form), and the extent. A shared edge belongs to the cell on its max side and the far edge of the box to the last cell, so a point on the border of a sheet has a cell. A point outside the box raises `ReferenceCellError` naming the point and the grid; there is no clamp. An empty label list or an extent below one raises `InvalidValueError`. Cell index is `min(at * count // extent, count - 1)` per axis. Nothing is drawn.
+Why: an application stored the cell of a point with its own arithmetic that clamped silently; the arithmetic is the frame's.
+Cost if wrong: an additive function and one error subclass; a record that carried the frame's labels and extent would be a later keyword-compatible wrapper.
+
+## D130: `floor_divisions`
+
+Decided: R891 (SY4). New top-level `floor_divisions(grid, floor_mm) -> int` in `units.py`: the smallest whole number of grid divisions that holds a length floor in millimetres, `ceil_divisions(grid, floor_mm / grid.module_mm)`. It shares `ceil_divisions` with `text_divisions` (D128), so both round alike, including the tolerance that keeps a floor on a division at that division. A negative or non-finite floor raises `InvalidValueError`; 0 gives 0. It rounds up, as the order states; the extent of a sheet in divisions is a round-down and is not this function.
+Why: an application converted a printed text floor in mm to divisions with its own arithmetic.
+Cost if wrong: an additive function; none to remove.

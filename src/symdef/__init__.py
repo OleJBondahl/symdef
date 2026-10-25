@@ -6,6 +6,7 @@ from symdef.edge_pattern import pattern_ports
 from symdef.errors import (
     InvalidValueError,
     LibraryError,
+    ReferenceCellError,
     SymdefError,
     UnknownNameError,
     UnknownSymbolError,
@@ -54,6 +55,7 @@ from symdef.model import (
     nodes_of,
 )
 from symdef.orient import orient, orient_box, orient_direction, orient_point, translate
+from symdef.refgrid import reference_cell
 from symdef.repeat import pole_pitch, pole_port, repeat
 from symdef.shapes_mm import group_mm, line_mm, outline_mm, rect_mm
 from symdef.sheet_svg import bold_layer, sheet_svg
@@ -70,6 +72,7 @@ from symdef.units import (
     GRID_DIVISION,
     Grid,
     ceil_divisions,
+    floor_divisions,
     from_divisions,
     on_grid,
     snap,
@@ -108,6 +111,7 @@ __all__ = [
     "Polyline",
     "Port",
     "Reference",
+    "ReferenceCellError",
     "Severity",
     "Slot",
     "Status",
@@ -131,6 +135,7 @@ __all__ = [
     "em_height",
     "fitted_symbol",
     "fitted_table",
+    "floor_divisions",
     "from_divisions",
     "group_mm",
     "keepout_box",
@@ -152,6 +157,7 @@ __all__ = [
     "pole_pitch",
     "pole_port",
     "rect_mm",
+    "reference_cell",
     "repeat",
     "sheet_svg",
     "slot_box",

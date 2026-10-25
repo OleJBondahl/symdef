@@ -14,6 +14,10 @@ class InvalidValueError(SymdefError):
     """An argument or data is unusable; the message names the value, what is valid and the fix."""
 
 
+class ReferenceCellError(InvalidValueError):
+    """A point lies outside the reference grid of a page frame; the message names both."""
+
+
 class UnknownNameError(SymdefError):
     """A name is not in the set it was looked up in; the message lists the valid names."""
 
