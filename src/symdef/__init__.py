@@ -12,7 +12,7 @@ from symdef.errors import (
 )
 from symdef.files import load_bundle, load_library
 from symdef.fitted import fitted_symbol, fitted_table
-from symdef.font import FontMetrics, em_height, text_width
+from symdef.font import FontMetrics, em_height, text_divisions, text_width
 from symdef.fontmeasure import measure_font
 from symdef.freetext import corner_text, text_tag
 from symdef.geometry import (
@@ -163,6 +163,7 @@ __all__ = [
     "stretch_to_ports",
     "table",
     "tag_roots",
+    "text_divisions",
     "text_tag",
     "text_width",
     "to_divisions",

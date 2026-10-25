@@ -11,11 +11,12 @@ import pytest
 from symdef.boxes import body_box, keepout_box
 from symdef.errors import InvalidValueError, LibraryError
 from symdef.files import load_bundle, load_library
-from symdef.font import FontMetrics, cap_height, em_height, text_width
+from symdef.font import FontMetrics, cap_height, em_height, text_divisions, text_width
 from symdef.geometry import Box, Direction, Point, Text, Weight
 from symdef.load import library_from_bundle, parse_config, validate_bundle
 from symdef.model import Library, Reference, Slot, Status, Symbol, SymbolKind
 from symdef.serialize import bundle_to_data, to_json
+from symdef.units import DEFAULT_GRID
 
 GUIDE = Path(__file__).resolve().parent / "fixtures" / "guide"
 
@@ -305,3 +306,8 @@ def test_em_height_of_a_known_font():
     )
     assert em_height(real, 1.8) == pytest.approx(2.469, abs=1e-3)
     assert em_height(None, 0.72) == pytest.approx(1.0)
+
+
+def test_text_divisions_rounds_the_em_box_up_to_whole_divisions():
+    # 1.6 mm cap = 0.64 module; em 0.64 / 0.72 = 0.8889 module = 7.11 divisions; ceil is 8.
+    assert text_divisions(DEFAULT_GRID, None, 1.6) == 8
