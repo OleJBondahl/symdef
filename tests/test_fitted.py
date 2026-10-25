@@ -132,10 +132,6 @@ def test_the_x_axis_grows_the_columns_along_y():
 
 
 def test_errors_name_the_thing_and_the_fix():
-    with pytest.raises(InvalidValueError, match="font"):
-        fitted_table(
-            ROW, "y", [{"a": MID}], replace(LIB, font=None), HEIGHT, port_format="{k}.{port}"
-        )
     with pytest.raises(InvalidValueError, match="text height"):
         fitted_table(ROW, "y", [{"a": MID}], LIB, 0, port_format="{k}.{port}")
     with pytest.raises(UnknownNameError, match="no such slot: z"):

@@ -41,6 +41,7 @@ with a dated entry in the change list below and in <code>docs/DECISIONS.md</code
 <h2 id="changes">Change list</h2>
 <table>
 <tr><th>Date</th><th>Version</th><th>Change</th></tr>
+<tr><td>2026-10-25</td><td>0.29.0</td><td>New <code>group_mm(body, at, *, classes="")</code>: a fragment in one <code>&lt;g&gt;</code> translated to a point in mm (D125). New <code>Orientation.half_turn</code> (D126). <code>[font]</code> is required in <code>library.toml</code> and in the bundle, and <code>Library.font</code> and <code>LibraryConfig.font</code> are never None (D124, breaking).</td></tr>
 <tr><td>2026-10-24</td><td>0.28.0</td><td>Each font face carries its own default advance: <code>FontMetrics.default_advance</code> is a mapping per weight and <code>library.toml</code> takes <code>[font.default_advance]</code> (D119, breaking). <code>[grid] outline_margin</code>, <code>Grid.declared_outline_margin</code> and <code>Grid.outline_margin</code>, which raises when the library declares none (D120). <code>repeat(symbol, n, *, port_format)</code> takes the pole's port id template from the caller, with no default, and a part's <code>repeat</code> takes it from the top-level <code>port_format</code> key of <code>library.toml</code> (D121, D123, breaking). New <code>sheet_svg</code> and <code>bold_layer</code> (D122).</td></tr>
 <tr><td>2026-10-23</td><td>0.27.0</td><td>New <code>rect_mm</code>, <code>outline_mm</code> and <code>line_mm</code>: one SVG element each in millimetres, with the width from <code>library.lines[weight]</code> (no default weight), a dash named by a <code>library.dash</code> key, and the <code>stroke</code> and <code>fill</code> the caller gives (D117, D118). <code>text_tag</code> takes <code>classes</code>, <code>at</code> (<code>baseline</code>, <code>top</code> or <code>centre</code>) and <code>font</code>; the defaults leave its output unchanged. No <code>polyline_mm</code> and no sized <code>&lt;svg&gt;</code> call: a wire is <code>wire</code> drawn by <code>to_fragment_mm</code>, and the root is the caller's.</td></tr>
 <tr><td>2026-10-23</td><td>0.26.0</td><td>Line weights and dashes are library data (D115, D116). New <code>Weight.RULE</code> (0.18 mm at the default module), a <code>[lines] rule</code> key and a wire-style weight <code>rule</code>; a symbol element still has <code>normal</code> or <code>thick</code>. New <code>[dash]</code> table (name = lengths in mm) and <code>Library.dash</code>; <code>dashed</code> (two lengths) and <code>dash_dot</code> (four) are required by a library that uses that style, and a library that does not give one fails to load naming the key. <code>Library.with_settings(dash=)</code> replaces the table. <code>to_fragment_mm</code> takes keyword <code>library</code>; <code>weights_mm</code> and <code>dash_mm</code> become optional and, left out, come from <code>library.lines</code> and <code>library.dash</code>. The module-unit calls (<code>to_fragment</code>, <code>to_svg</code>, <code>to_placed_fragment</code>) keep the code weights. The bundle gains an optional <code>dash</code> object; the schema number stays 1.</td></tr>
@@ -509,7 +510,7 @@ Data repo gates require zero findings of either severity, so a warning is simply
 <p>The build flattens every file and writes JSON. This is the interface for consumers that are not Python, and for simple consumers of any kind: they never implement composition.</p>
 <ul>
   <li><code>build/resolved/&lt;number&gt;.json</code>: one flattened symbol. Same schema as the source, with <code>parts</code> gone, composite <code>ports</code> expanded to the array form, slot references expanded to tables, <code>nodes</code> listing every node explicitly, and two computed keys: <code>body_box</code> and <code>keepout_box</code>, each <code>[[min_x, min_y], [max_x, max_y]]</code> in base orientation. A <code>stretch</code> key, an array of <code>{ "axis", "at" }</code>, is written only when set.</li>
-  <li><code>src/&lt;package&gt;/bundle.json</code>: the bundle, shipped as package data: <code>{ "schema": 1, "standard": "IEC 60617", "symbols": { "S00227": { ... }, ... } }</code>. It is generated and tracked like <code>build/</code>, and <code>stale_build</code> covers it. An optional <code>wires</code> array of <code>{ "id", "weight", "style" }</code> is written only when the set has wire styles; a <code>port_format</code> string is written only when <code>library.toml</code> declares one (D123).</li>
+  <li><code>src/&lt;package&gt;/bundle.json</code>: the bundle, shipped as package data: <code>{ "schema": 1, "standard": "My symbols", "font": { ... }, "symbols": { "S00227": { ... }, ... } }</code>. It is generated and tracked like <code>build/</code>, and <code>stale_build</code> covers it. The <code>font</code> object is required (D124). An optional <code>wires</code> array of <code>{ "id", "weight", "style" }</code> is written only when the set has wire styles; a <code>port_format</code> string is written only when <code>library.toml</code> declares one (D123).</li>
   <li>Output is deterministic: UTF-8, LF line endings, 2-space indent, object keys sorted, arrays in source order, a whole number written without a decimal point and any other number in its shortest exact decimal form, one trailing newline. A symbol change shows up as a reviewable diff.</li>
 </ul>
 <p>A consumer in another language needs the bundle, the schema, and the orientation and slot-box rules from sections 3 and 6. That is about thirty lines of code.</p>
@@ -524,7 +525,7 @@ Node(ports, potential)          Path(from_port, to_port, kind, through)
 Anchor(id, position, direction) Slot(id, position, side, box)
 Reference(standard, number, edition, form)
 Symbol(name, kind, status, reference, elements, ports, nodes, paths, anchors, slots, pole_pitch, stretch)
-Library(standard, title, number_pattern, symbols, vocabulary, required_slots, wires)    get(number), __iter__ (sorted by number), __len__
+Library(standard, title, number_pattern, symbols, vocabulary, required_slots, wires, *, font)    get(number), __iter__ (sorted by number), __len__
 Finding(rule, severity, message, location, orientation)
 Stretch(axis, at, weight)      WireStyle(id, weight, style)
 
@@ -548,7 +549,7 @@ init(root) -&gt; tuple[Path, ...]    build(root) -&gt; tuple[Path, ...]    check
 <p><code>to_fragment_mm</code> writes the same placeable <code>&lt;g&gt;</code> fragment as <code>to_fragment</code>, in millimetres, with no scale transform, but for the <code>rotate(-90)</code> of a turned slot's text (D52, D65). Each coordinate and radius is multiplied by <code>module_mm</code>. Stroke widths come from <code>weights_mm</code>, one entry per weight, dash lengths from <code>dash_mm</code>, and the font size from <code>font_mm</code>; these are the caller's millimetres. Text capitals are centred on the anchor by <code>cap_ratio</code>, the capital height as a fraction of the font size. The caller passes the font family. A <code>dash_dot</code> element needs the keyword <code>dash_dot_mm</code>, the four lengths in mm of dash, gap, dot and gap; <code>to_fragment_mm</code> raises <code>ValueError</code> when one is drawn without it (D60). <code>to_svg</code> and <code>to_fragment</code> are unchanged.</p>
 <p><code>to_svg</code>, <code>to_fragment</code> and <code>to_fragment_mm</code> take the keyword <code>tint</code>, the colour of every <code>fill = "tint"</code> shape. It must be <code>#rgb</code>, <code>#rrggbb</code> or a letters-only name, or the call raises <code>ValueError</code>; with <code>None</code> a tinted shape draws <code>fill="none"</code>. Output without a tinted shape does not change (D57).</p>
 <p><code>to_fragment</code> and <code>to_fragment_mm</code> also take the keyword <code>muted</code>, a colour string checked like <code>tint</code>, or <code>None</code> (the default, which draws as before). A muted symbol is drawn as not installed: every stroke, every text and every solid or tint fill in that colour, every line style replaced by a dash and a gap each as long as the normal stroke width, and no stroke on a text; an unfilled shape stays unfilled. <code>dash_mm</code> and <code>dash_dot_mm</code> are then not used (D61).</p>
-<p><code>rect_mm(box, *, library, weight, stroke, fill, dash=None, classes="")</code>, <code>outline_mm(box, *, library, weight, stroke, dash=None, classes="")</code> and <code>line_mm(a, b, *, library, weight, stroke, dash=None, classes="")</code> return one SVG element in millimetres on an absolute sheet; <code>box</code> is <code>(x, y, width, height)</code>. The stroke width is <code>library.lines[weight]</code>, the dash is the named <code>library.dash</code> pattern or none, and <code>stroke</code> and <code>fill</code> are written as given (<code>#rgb</code>, <code>#rrggbb</code> or a colour name). A dashed <code>outline_mm</code> is four <code>&lt;line&gt;</code>s, top, bottom, left, right, each from its left or top end. Every number has at most four decimals. A missing weight or dash key raises <code>UnknownNameError</code>, a negative box or a bad colour <code>InvalidValueError</code> (D117, D118).</p>
+<p><code>rect_mm(box, *, library, weight, stroke, fill, dash=None, classes="")</code>, <code>outline_mm(box, *, library, weight, stroke, dash=None, classes="")</code> and <code>line_mm(a, b, *, library, weight, stroke, dash=None, classes="")</code> return one SVG element in millimetres on an absolute sheet; <code>box</code> is <code>(x, y, width, height)</code>. The stroke width is <code>library.lines[weight]</code>, the dash is the named <code>library.dash</code> pattern or none, and <code>stroke</code> and <code>fill</code> are written as given (<code>#rgb</code>, <code>#rrggbb</code> or a colour name). A dashed <code>outline_mm</code> is four <code>&lt;line&gt;</code>s, top, bottom, left, right, each from its left or top end. Every number has at most four decimals. <code>group_mm(body, at, *, classes="")</code> wraps a fragment in one <code>&lt;g&gt;</code> with <code>transform="translate(x y)</code>" in mm. A missing weight or dash key raises <code>UnknownNameError</code>, a negative box or a bad colour <code>InvalidValueError</code> (D117, D118).</p>
 <p>A set declares wire styles in <code>library.toml</code> as <code>[[wire]]</code> tables with <code>id</code>, <code>weight</code> (<code>normal</code> | <code>thick</code>) and <code>style</code> (<code>solid</code> | <code>dashed</code> | <code>dash_dot</code>). <code>wire</code> returns an element symbol of one open polyline in that style, with no ports; <code>points</code> are <code>Point</code>s or (x, y) pairs, at least two (D56).</p>
 <p>A data repo's Python package is a thin wrapper: <code>from my_symbols import LIBRARY</code>, loaded from the bundled JSON shipped as package data.</p>
 <h3>What a drawing library does</h3>
@@ -595,6 +596,21 @@ my-symbols/                              a data repo: data only (`symdef init` w
 title = "IEC 60617 symbols"
 number_pattern = '^S\d{5}$'
 port_format = "{k}.{port}"
+
+[font]
+name = "Neutral"
+units_per_em = 1000
+cap_height = 720
+ascent = 900
+descent = 200
+
+[font.advances.normal]
+
+[font.advances.thick]
+
+[font.default_advance]
+normal = 600
+thick = 600
 
 [vocabulary]
 path_kinds = ["conductor", "switch_open", "switch_closed", "impedance", "source", "diode"]

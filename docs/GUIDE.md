@@ -41,7 +41,7 @@ which `[grid]` in `library.toml` may change (see Measuring text and the grid); w
 ## Layout of a symbol set
 
 ```
-library.toml          standard, title, number_pattern, package (optional), vocabulary, rules
+library.toml          standard, title, number_pattern, font, package (optional), vocabulary, rules
 symbols/<number>.toml one file per symbol; the file stem is the reference number
 build/                generated: resolved JSON, SVGs, a gallery README
 src/<package>/bundle.json   generated: every symbol, resolved
@@ -58,6 +58,21 @@ standard = "IEC 60617"
 title = "IEC 60617 symbols"
 number_pattern = '^S\d{5}$'
 port_format = "{k}.{port}"
+
+[font]
+name = "Neutral"
+units_per_em = 1000
+cap_height = 720
+ascent = 900
+descent = 200
+
+[font.advances.normal]
+
+[font.advances.thick]
+
+[font.default_advance]
+normal = 600
+thick = 600
 
 [vocabulary]
 path_kinds = ["conductor", "switch_open", "switch_closed", "impedance", "source", "diode"]
@@ -577,8 +592,9 @@ and east for `E`. A one-line string is placed exactly as before.
 
 ## Measuring text and the grid
 
-A library may declare its font and its grid in `library.toml`; both are optional and frozen in the
-loaded `Library` (`Library.font`, `Library.grid`).
+A library declares its font and may declare its grid in `library.toml`. The `[font]` table is
+required: a `library.toml` or bundle without one is refused at load, naming the key (D124). Both are
+frozen in the loaded `Library` (`Library.font`, `Library.grid`).
 
 ```toml
 [grid]
@@ -611,8 +627,8 @@ body = 2.5
 
 `FontMetrics.family` is the family a renderer resolves the font by. In the `name` and `files` form it is read from the font file (the typographic family, name ID 16, else ID 1), and a `family` key there is an error.
 
-With no `[font]`, `Library.font` is `None` and a text measures 0.6 em per character and a capital
-0.72 em tall, as before. `text_width(font, text, height, weight=Weight.NORMAL)` is the width of a
+A library that wants the measure the toolkit used without a font declares `units_per_em = 1000`,
+`cap_height = 720`, empty advance tables and `default_advance` 600 for each weight. `text_width(font, text, height, weight=Weight.NORMAL)` is the width of a
 string; `em_height(font, cap)` is the text height whose capital is `cap` tall, so a drawing stated in capital heights converts once, here; `body_box(symbol, font)`, `keepout_box(symbol, font)` and `slot_box(slot, text, height,
 font, grid)` measure with it. `slot_text(slot, text, height, font, grid)` returns a `TextPlacement(point, anchor,
 turned)`: where the string sits for the slot's side.
@@ -649,6 +665,8 @@ of the em box; with `turn` the text reads upward centred on the point). `top` an
 ascent from `font=`, a `FontMetrics`, and raise `InvalidValueError` without one (D117).
 
 ## Bare shapes in millimetres
+
+`group_mm(body, at, *, classes="")` puts a fragment inside one `<g class="..." transform="translate(x y)">` that moves it to `at`, a point in millimetres; `classes` is left out when empty. The body is written as given (D125).
 
 `rect_mm(box, *, library, weight, stroke, fill, dash=None, classes="")`,
 `outline_mm(box, *, library, weight, stroke, dash=None, classes="")` and
@@ -824,7 +842,9 @@ marked = Symbol(
     ports=(Port("1", Point(0, 4), Direction.N),),
     slots=(Slot("tag", Point(3, 8), Direction.E, (1, 1)), Slot("marking.1", Point(0, 3), Direction.N, (1, 1))),
 )
-whole = Library("S", "S", "", {}, grid=Grid(divisions_per_module=1, wire_pitch=1, wire_pitch_fine=1))
+whole = Library(
+    "S", "S", "", {}, font=font, grid=Grid(divisions_per_module=1, wire_pitch=1, wire_pitch_fine=1)
+)
 roots = tag_roots(marked, Orientation.R0, whole, gap=0.5, marking_height=2)
 assert roots[0] == TextRoot(-2, 3, "right", "baseline")
 assert roots[3] == TextRoot(2, 13, "left", "top")

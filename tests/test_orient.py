@@ -366,3 +366,19 @@ def test_round_trip_check_can_fail_with_a_wrong_inverse():
     assert round_trips(s, Ori.R90, Ori.R270)
     assert not round_trips(s, Ori.R90, Ori.R90)
     assert not round_trips(s, Ori.R90, Ori.R0)
+
+
+@pytest.mark.parametrize("orientation", list(Orientation))
+def test_half_turn_is_the_orientation_turned_180_and_its_own_inverse(orientation):
+    point = Point(1.0, 2.0)
+    again = orient_point(point, orientation.half_turn)
+    assert again == orient_point(orient_point(point, orientation), Orientation.R180)
+    assert orientation.half_turn.half_turn is orientation
+    assert orientation.half_turn is not orientation
+
+
+def test_half_turn_keeps_the_mirror_and_moves_only_the_turn():
+    assert Orientation.R0.half_turn is Orientation.R180
+    assert Orientation.R90.half_turn is Orientation.R270
+    assert Orientation.MR0.half_turn is Orientation.MR180
+    assert Orientation.MR270.half_turn is Orientation.MR90

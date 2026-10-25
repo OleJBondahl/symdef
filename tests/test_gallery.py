@@ -3,6 +3,8 @@
 from dataclasses import replace
 from pathlib import Path
 
+from neutral_font import NEUTRAL_FONT
+
 from symdef.files import load_library
 from symdef.gallery import readme, sample_texts
 from symdef.model import Library, Status, SymbolKind
@@ -13,7 +15,7 @@ LIBRARY = load_library(GUIDE)
 
 def one_symbol_library(**changes) -> Library:
     symbol = replace(LIBRARY.get("S00227"), **changes)
-    return Library("IEC 60617", "a title", r"^S\d{5}$", {"S00227": symbol})
+    return Library("IEC 60617", "a title", r"^S\d{5}$", {"S00227": symbol}, font=NEUTRAL_FONT)
 
 
 def test_the_text_of_a_one_symbol_gallery_is_exact():
@@ -32,7 +34,7 @@ def test_the_text_of_a_one_symbol_gallery_is_exact():
 
 def test_rows_are_sorted_by_number_whatever_the_order_of_the_library():
     symbols = {n: LIBRARY.get(n) for n in ("S00305", "S00016", "S00254")}
-    rows = readme(Library("X", "t", "", symbols)).splitlines()[6:]
+    rows = readme(Library("X", "t", "", symbols, font=NEUTRAL_FONT)).splitlines()[6:]
     assert [row.split("]")[0] for row in rows] == ["| [S00016", "| [S00254", "| [S00305"]
 
 
@@ -68,12 +70,12 @@ def test_a_name_cannot_break_the_table():
 
 def test_a_lone_surrogate_in_a_number_does_not_raise():
     symbol = LIBRARY.get("S00227")
-    (row,) = readme(Library("X", "t", "", {"S\ud800": symbol})).splitlines()[6:]
+    (row,) = readme(Library("X", "t", "", {"S\ud800": symbol}, font=NEUTRAL_FONT)).splitlines()[6:]
     assert "resolved/S%3F.json" in row
 
 
 def test_a_library_without_symbols_has_the_header_only():
-    lines = readme(Library("X", "t", "", {})).splitlines()
+    lines = readme(Library("X", "t", "", {}, font=NEUTRAL_FONT)).splitlines()
     assert lines[4:] == [
         "| Number | Name | Kind | Status | Plain | Annotated |",
         "| --- | --- | --- | --- | --- | --- |",

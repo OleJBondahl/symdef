@@ -47,6 +47,21 @@ standard = "My symbols"
 title = "My symbols"
 number_pattern = '^[a-z][a-z0-9-]*$'
 
+[font]
+name = "Neutral"
+units_per_em = 1000
+cap_height = 720
+ascent = 900
+descent = 200
+
+[font.advances.normal]
+
+[font.advances.thick]
+
+[font.default_advance]
+normal = 600
+thick = 600
+
 [vocabulary]
 path_kinds = ["conductor", "impedance"]
 potentials = []
@@ -58,6 +73,7 @@ required_slots = ["tag", "marking.<port>"]
 
 - `standard` is the name of the standard or house style the set follows. It can be any text.
 - `number_pattern` is a regular expression every reference number must match.
+- `[font]` is the font text is measured with; the starter declares a neutral one (0.6 em per character) until you give it your own.
 - `[vocabulary]` lists the words your symbols may use: path kinds, node potentials and links.
   The toolkit has no built-in list, so a word you do not declare is an error.
 - `required_slots` lists the text slots every symbol must have. `marking.<port>` means one slot per port.

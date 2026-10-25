@@ -194,7 +194,7 @@ SECTION_11_FIELDS = {
     ],
     "Library": [
         *("standard", "title", "number_pattern", "symbols", "vocabulary", "required_slots"),
-        *("wires", "font", "grid", "lines", "dash", "port_format"),
+        *("wires", "grid", "lines", "dash", "port_format", "font"),
     ],
     "Finding": ["rule", "severity", "message", "location", "orientation"],
 }

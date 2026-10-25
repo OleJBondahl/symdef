@@ -2,6 +2,7 @@
 
 import pytest
 from fixture_pipeline import BROKEN, TOLERATED_EXTRA, run_fixture, run_fixture_by_file
+from neutral_font import NEUTRAL_FONT_TOML
 
 from symdef.lint import CHECKS, RULES
 
@@ -112,7 +113,8 @@ def test_a_fixture_may_bring_its_own_library_config(tmp_path):
     directory = tmp_path / "metadata" / "symbols"
     directory.mkdir(parents=True)
     (tmp_path / "metadata" / "library.toml").write_text(
-        'standard = "ISO 14617"\ntitle = "t"\nnumber_pattern = ".*"\n', encoding="utf-8"
+        'standard = "ISO 14617"\ntitle = "t"\nnumber_pattern = ".*"\n' + NEUTRAL_FONT_TOML,
+        encoding="utf-8",
     )
     (directory / "S00001.toml").write_text(
         (BROKEN / "metadata" / "symbols" / "S00001.toml")

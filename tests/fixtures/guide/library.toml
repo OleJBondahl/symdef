@@ -3,6 +3,21 @@ title = "IEC 60617 symbols"
 number_pattern = '^S\d{5}$'
 port_format = "{k}.{port}"
 
+[font]
+name = "Neutral"
+units_per_em = 1000
+cap_height = 720
+ascent = 900
+descent = 200
+
+[font.advances.normal]
+
+[font.advances.thick]
+
+[font.default_advance]
+normal = 600
+thick = 600
+
 [vocabulary]
 path_kinds = ["conductor", "switch_open", "switch_closed", "impedance", "source", "diode"]
 potentials = ["earth", "protective_earth", "functional_earth", "frame"]

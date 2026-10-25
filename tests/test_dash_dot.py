@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 from jsonschema import Draft202012Validator
+from neutral_font import NEUTRAL_FONT, NEUTRAL_FONT_TOML
 from roundtrip import round_trips
 
 from symdef.authoring import lint
@@ -107,10 +108,21 @@ def test_the_keyword_is_only_needed_by_a_symbol_that_uses_the_style():
 
 
 def test_a_wire_style_can_be_dash_dot():
-    text = 'standard = "IEC 60617"\ntitle = "t"\nnumber_pattern = "^S"\n[[wire]]\nid = "o"\n'
+    text = (
+        'standard = "IEC 60617"\ntitle = "t"\nnumber_pattern = "^S"\n'
+        + NEUTRAL_FONT_TOML
+        + '[[wire]]\nid = "o"\n'
+    )
     config, findings = parse_config(text + 'weight = "normal"\nstyle = "dash_dot"\n')
     assert findings == ()
     assert isinstance(config, LibraryConfig)
     assert config.wires == (WireStyle("o", Weight.NORMAL, DD),)
-    library = Library(config.standard, config.title, config.number_pattern, {}, wires=config.wires)
+    library = Library(
+        config.standard,
+        config.title,
+        config.number_pattern,
+        {},
+        wires=config.wires,
+        font=NEUTRAL_FONT,
+    )
     assert to_fragment(wire(library, "o", [(0, 0), (4, 0)])).count("1 0.25 0.0625 0.25") == 1

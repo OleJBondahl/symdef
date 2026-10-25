@@ -98,7 +98,10 @@ def library(tmp_path, font_toml: str) -> Path:
     (root / "r.ttf").write_bytes(REGULAR)
     (root / "b.ttf").write_bytes(BOLD)
     toml = root / "library.toml"
-    toml.write_text(toml.read_text(encoding="utf-8") + "\n" + font_toml, encoding="utf-8")
+    text = re.sub(
+        r"\[font\].*?(?=\[vocabulary\])", "", toml.read_text(encoding="utf-8"), flags=re.DOTALL
+    )
+    toml.write_text(text + "\n" + font_toml, encoding="utf-8")
     return root
 
 
@@ -173,14 +176,13 @@ class TestConfig:
         config, findings = parse_config(HEAD + FILES)
         assert findings == ()
         assert config is not None
-        assert config.font is None
         assert config.font_files == ("r.ttf", "b.ttf")
         assert config.font_name == "DejaVu Sans Condensed"
 
-    def test_no_font_leaves_no_files(self):
-        config, _ = parse_config(HEAD)
-        assert config is not None
-        assert (config.font_files, config.font_name) == (None, "")
+    def test_no_font_is_a_finding(self):
+        config, findings = parse_config(HEAD)
+        assert config is None
+        assert [f.message for f in findings if "'font'" in f.message] != []
 
     def test_the_two_forms_cannot_be_mixed(self):
         text = HEAD + FILES + "units_per_em = 2048\n"

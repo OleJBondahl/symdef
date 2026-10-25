@@ -98,13 +98,6 @@ def test_an_unknown_slot_id_raises():
         fitted_symbol(symbol, {"zz": SHORT}, LIB, HEIGHT)
 
 
-def test_a_library_without_a_font_raises():
-    symbol = build(Slot("a", Point(1, 1), Direction.E, (4, 2)))
-    bare = Library("S", "S", "", {}, font=None, grid=Grid(divisions_per_module=8))
-    with pytest.raises(InvalidValueError):
-        fitted_symbol(symbol, {"a": SHORT}, bare, HEIGHT)
-
-
 def test_a_text_height_of_zero_raises():
     symbol = build(Slot("a", Point(1, 1), Direction.E, (4, 2)))
     with pytest.raises(InvalidValueError):

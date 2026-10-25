@@ -1732,3 +1732,21 @@ Cost if wrong: additive; a number format the shapes use (four decimals) would be
 Decided: `library.toml` takes a top-level `port_format`, the template of D121 (a string with exactly the fields `{k}` and `{port}`; any other value is a schema finding at `/port_format`), carried as `LibraryConfig.port_format` and `Library.port_format` (last field, `None` when undeclared). `repeat`, `table`, `fitted_table`, `pattern_ports` and `pole_port` all require the format as a value with no default (`table` and `pattern_ports` rename a row's or copy's ports, bound leads and slots by it; `pole_port(k, port_id, port_format)` is the one function that fills it in, and `format_port` and `ROW_PORT_FORMAT` are gone); every caller passes `library.port_format`, and no `"{k}.{port}"` literal is left in the code. A part's `repeat = N` passes it to `repeat`. A part entry has no `port_format` key (unknown key, as any other). A library that uses `repeat` and declares no key fails to load: a `schema` finding at `/parts/<i>/repeat` naming `port_format`, `library.toml` and an example. Gate 3 repeats with it and is skipped when the library declares none. The bundle carries it as the optional `port_format` string, checked as in `library.toml`, so a library loaded from a bundle repeats and tables the same way.
 Why: R604, R607.2 and R613 B2: the format is the library's one electrical convention, stated once like `[font]` and `[grid]`, not on every part and not twice (rows and copies had a second, fixed spelling).
 Cost if wrong: a further library.toml key; lint's `<n>.` rule does not follow a custom format.
+
+## D124: a library has a font
+
+Decided: `Library.font` and `LibraryConfig.font` are `FontMetrics`, declared `field(kw_only=True)` with no default, so the positional order of the other fields stays. `parse_config` refuses a `library.toml` with no `[font]` (a `schema` finding at the root that names the key and both forms), `_BUNDLE` requires `font`, `bundle_to_data` always writes it, and `library_from_bundle` reads it. The `font is None` guards in `fitted_table`, `fitted_symbol`, `with_settings` and `bundle_to_data` are deleted. For the `[font]` files form the parse cannot measure TTFs, so `LibraryConfig.font` holds an unmeasured placeholder (one unit per em, empty tables, the file's `name`, `heights` and `text_block`); `load_library` replaces it by the measured metrics, and `font_files`, `font_name`, `font_heights` and `font_text_block` stay as they were. The starter set, the tutorial set and the fixtures declare the neutral literal font: 1000 units per em, cap height 720, empty advance tables, default advance 600 for both weights, which measures what no font measured before (0.6 em per character, capital 0.72 em).
+Why: an application that holds a `Library` should not branch on a missing font; the optional font was a second measure for the same text (KI-125).
+Cost if wrong: breaking for every library and every `Library(...)` call without a font; the functions that take `FontMetrics | None` as an argument (`text_width`, `slot_text`, `body_box`) still do, since this order does not name them.
+
+## D125: `group_mm`
+
+Decided: `group_mm(body, at, *, classes="") -> str` in `shapes_mm.py`, exported from `symdef`: `<g class="..." transform="translate(x y)">body</g>`, `at` an (x, y) pair in mm, numbers by the shared four-decimal format, `class` first and left out when empty, `body` written as given. It takes a fragment, not a symbol: `to_placed_fragment` stays the call for a symbol. No rotation or scale: a caller that needs them draws the symbol turned.
+Why: applications typed the same group literal in three places.
+Cost if wrong: an additive function; a rotate argument would be a later keyword.
+
+## D126: `Orientation.half_turn`
+
+Decided: a read-only property `Orientation.half_turn` returns the orientation turned a further half turn clockwise, mirror kept: `R0` gives `R180`, `R90` gives `R270`, `MR0` gives `MR180`, and it is its own inverse. It is a property beside `Direction.opposite`, not a function, and adds no public name to `surface.toml`. A map from a side to an orientation is not added: which way a symbol faces at `R0` is that symbol's data.
+Why: an application flipping a symbol to the other side typed the pair `R0`/`R180` by hand.
+Cost if wrong: an additive member of an enum; none to remove.

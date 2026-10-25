@@ -4,6 +4,7 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
+from neutral_font import NEUTRAL_FONT
 
 from symdef import load_library
 from symdef.errors import InvalidValueError
@@ -39,6 +40,7 @@ def symbol(number="S1", height=0.5):
 def library(*symbols, **fields):
     chosen = symbols or (symbol(),)
     wires = (WireStyle("w", Weight.THICK, Style.SOLID),)
+    fields.setdefault("font", NEUTRAL_FONT)
     return Library("s", "s", "", {s.reference.number: s for s in chosen}, wires=wires, **fields)
 
 
@@ -98,11 +100,6 @@ def test_heights_alone_replace_them():
 def test_bad_heights_raise(bad):
     with pytest.raises(InvalidValueError, match="height"):
         library(font=FONT).with_settings(heights=bad)
-
-
-def test_heights_without_any_font_raise():
-    with pytest.raises(InvalidValueError, match="need a font"):
-        library().with_settings(heights={"body": 2.0})
 
 
 def test_lines_alone_replace_them():

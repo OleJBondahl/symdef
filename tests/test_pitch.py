@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
+from neutral_font import NEUTRAL_FONT
 from test_build_load import GUIDE
 
 from symdef.errors import InvalidValueError, LibraryError
@@ -89,7 +90,7 @@ def test_the_guide_library_loads_on_its_default_pitch():
 
 
 def test_the_pitches_round_trip_through_the_bundle():
-    library = Library("S", "S", "", {}, grid=Grid(2.5, 8, 16, 8))
+    library = Library("S", "S", "", {}, grid=Grid(2.5, 8, 16, 8), font=NEUTRAL_FONT)
     data = json.loads(to_json(bundle_to_data(library)))
     assert data["grid"]["wire_pitch"] == 16
     assert validate_bundle(data) == ()

@@ -4,8 +4,9 @@ import re
 import xml.etree.ElementTree as ET
 
 import pytest
+from neutral_font import NEUTRAL_FONT
 
-from symdef import Library, Weight, line_mm, outline_mm, rect_mm
+from symdef import Library, Weight, group_mm, line_mm, outline_mm, rect_mm
 from symdef.errors import InvalidValueError, UnknownNameError
 
 LONG = (4.0, 1.0)
@@ -20,6 +21,7 @@ def lib(normal=0.25, thick=0.5, dash=None) -> Library:
         {},
         lines=lines,
         dash={"long": LONG, "dot": (0.5, 0.5, 0.1, 0.5)} | (dash or {}),
+        font=NEUTRAL_FONT,
     )
 
 
@@ -138,7 +140,7 @@ def test_an_unknown_dash_key_names_it_and_the_fix():
     ):
         rect(dash="nope")
     with pytest.raises(UnknownNameError, match="it has none"):
-        rect(Library("s", "s", "", {}, lines={Weight.NORMAL: 0.25}), dash="long")
+        rect(Library("s", "s", "", {}, lines={Weight.NORMAL: 0.25}, font=NEUTRAL_FONT), dash="long")
 
 
 def test_a_weight_the_library_lacks_raises_and_names_what_it_has():
@@ -147,7 +149,7 @@ def test_a_weight_the_library_lacks_raises_and_names_what_it_has():
     ):
         rect(weight=Weight.RULE)
     with pytest.raises(UnknownNameError, match="it has none"):
-        rect(Library("s", "s", "", {}), weight=Weight.NORMAL)
+        rect(Library("s", "s", "", {}, font=NEUTRAL_FONT), weight=Weight.NORMAL)
 
 
 @pytest.mark.parametrize("box", [(0, 0, -1, 1), (0, 0, 1, -1)])
@@ -177,3 +179,14 @@ def test_weight_is_required_on_every_shape():
         line_mm((0, 0), (1, 1), library=lib(), stroke="#000")  # ty: ignore[missing-argument] - the weight is required
     with pytest.raises(TypeError):
         outline_mm((0, 0, 1, 1), library=lib(), stroke="#000")  # ty: ignore[missing-argument] - the weight is required
+
+
+def test_group_mm_translates_a_fragment_and_keeps_its_body():
+    out = group_mm("<line/>", (1.5, -2.25), classes="a b")
+    assert out == '<g class="a b" transform="translate(1.5 -2.25)"><line/></g>'
+    root = ET.fromstring(out)  # noqa: S314 - our own output
+    assert root.get("class") == "a b"
+
+
+def test_group_mm_leaves_out_an_empty_class_and_rounds_to_four_decimals():
+    assert group_mm("", (0.123456, 0)) == '<g transform="translate(0.1235 0)"></g>'

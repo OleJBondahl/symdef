@@ -1,7 +1,7 @@
 """The symbol data model: frozen values, deliberately without validation."""
 
 from collections.abc import Iterator, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from types import MappingProxyType
 from typing import Literal
@@ -251,14 +251,15 @@ class LibraryConfig:
     """The standard-specific settings from `library.toml`.
 
     `required_slots` is `[rules] required_slots`: slot ids every `kind = "symbol"` file carries,
-    where `marking.<port>` stands for one slot per port. `wires` is the `[[wire]]` tables. `font` is
-    the `[font]` table, or None when the library declares none; `grid` is the `[grid]` table,
+    where `marking.<port>` stands for one slot per port. `wires` is the `[[wire]]` tables. `font`
+    (keyword-only, required) is the `[font]` table; `grid` is the `[grid]` table,
     or today's grid (2.5 mm, 8 divisions) when it declares none. `lines` is the `[lines]` table and
     `dash` the `[dash]` table.
     `font_files` is the (regular, bold) paths of the `[font]` files form, relative to the folder
     holding `library.toml`, `font_name` its name and `font_heights` its `heights`; then `font`
-    is None until the files are read. `port_format` is the top-level key naming a repeated pole's
-    port id, the value a part's `repeat` passes to the function (D123).
+    is an unmeasured placeholder (one unit per em, empty tables) until the files are read.
+    `port_format` is the top-level key naming a repeated pole's port id, the value a part's
+    `repeat` passes to the function (D123).
     """
 
     standard: str
@@ -268,7 +269,6 @@ class LibraryConfig:
     vocabulary: Vocabulary = Vocabulary()
     required_slots: tuple[str, ...] = ()
     wires: tuple[WireStyle, ...] = ()
-    font: FontMetrics | None = None
     grid: Grid = DEFAULT_GRID
     lines: Mapping[Weight, float] = MappingProxyType({})
     dash: Mapping[str, tuple[float, ...]] = MappingProxyType({})
@@ -277,6 +277,7 @@ class LibraryConfig:
     font_heights: Mapping[str, float] = MappingProxyType({})
     font_text_block: str = "cap"
     port_format: str | None = None
+    font: FontMetrics = field(kw_only=True)
 
     def __post_init__(self) -> None:
         """Copy `lines`, `dash` and `font_heights` into read-only mappings."""
@@ -290,7 +291,7 @@ class Library:
     """The symbols of one standard, keyed by reference number.
 
     Iterating yields the symbols sorted by reference number; `len` is their count. `font` is the
-    metrics text is measured with, or None, which measures 0.6 em per character; `grid` is the
+    metrics text is measured with (keyword-only, required: D124); `grid` is the
     drawing grid; `lines` is the stroke width in millimetres of each `Weight`, empty when the
     library declares none; `dash` is the named dash patterns in millimetres, empty when none;
     `port_format` is the template of a repeated pole's port id (D123), None when undeclared.
@@ -303,11 +304,11 @@ class Library:
     vocabulary: Vocabulary = Vocabulary()
     required_slots: tuple[str, ...] = ()
     wires: tuple[WireStyle, ...] = ()
-    font: FontMetrics | None = None
     grid: Grid = DEFAULT_GRID
     lines: Mapping[Weight, float] = MappingProxyType({})
     dash: Mapping[str, tuple[float, ...]] = MappingProxyType({})
     port_format: str | None = None
+    font: FontMetrics = field(kw_only=True)
 
     def __post_init__(self) -> None:
         """Copy `lines` and `dash` into read-only mappings."""

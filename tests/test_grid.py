@@ -4,6 +4,7 @@ import json
 import re
 
 import pytest
+from neutral_font import NEUTRAL_FONT
 from test_font import CONFIG
 
 from symdef.errors import InvalidValueError
@@ -36,7 +37,7 @@ def test_the_default_grid_is_todays():
 
 
 def config(table):
-    config, findings = parse_config(CONFIG.split("[font]")[0] + table)
+    config, findings = parse_config(CONFIG + table)
     return config, sorted(f.message for f in findings)
 
 
@@ -64,7 +65,7 @@ def test_a_grid_needs_both_keys_and_no_others():
 
 
 def library(grid):
-    return Library("S", "S", "", {"1": symbol(1)}, grid=grid)
+    return Library("S", "S", "", {"1": symbol(1)}, grid=grid, font=NEUTRAL_FONT)
 
 
 def test_a_bundle_round_trips_a_non_default_grid():
@@ -93,8 +94,8 @@ def test_lint_checks_against_the_librarys_own_grid():
 
 
 def test_the_project_lints_with_the_librarys_grid():
-    coarse = Library("S", "S", "", {"1": symbol(0.125)}, grid=COARSE)
-    plain = Library("S", "S", "", {"1": symbol(0.125)})
+    coarse = Library("S", "S", "", {"1": symbol(0.125)}, grid=COARSE, font=NEUTRAL_FONT)
+    plain = Library("S", "S", "", {"1": symbol(0.125)}, font=NEUTRAL_FONT)
     assert any(f.rule == "off-drawing-grid" for f in _lint_findings(coarse))
     assert not any(f.rule == "off-drawing-grid" for f in _lint_findings(plain))
 

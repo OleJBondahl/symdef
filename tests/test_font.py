@@ -1,6 +1,7 @@
 """Font metrics as library data: text width, text boxes and the bundle and TOML shapes (D73)."""
 
 import json
+import re
 import shutil
 from dataclasses import replace
 from pathlib import Path
@@ -108,10 +109,8 @@ def test_a_bundle_round_trips_its_font():
     assert library_from_bundle(data).font == FONT
 
 
-def test_a_library_without_a_font_has_no_font_key_and_no_font():
-    data = bundle_to_data(library(None))
-    assert "font" not in data
-    assert library_from_bundle(json.loads(to_json(data))).font is None
+def test_a_bundle_always_has_a_font_key():
+    assert "font" in bundle_to_data(library(FONT))
 
 
 def test_a_bad_font_in_a_bundle_is_reported():
@@ -173,12 +172,6 @@ def test_library_toml_declares_the_font():
     assert config.font == FONT
 
 
-def test_library_toml_without_a_font_has_none():
-    config, _ = parse_config(CONFIG.split("[font]")[0])
-    assert config is not None
-    assert config.font is None
-
-
 def test_library_toml_rejects_a_bad_font_and_an_unknown_key():
     _, findings = parse_config(CONFIG.replace("A = 500", "AB = 500").replace("ascent", "up"))
     assert sorted(f.message for f in findings) == [
@@ -188,13 +181,17 @@ def test_library_toml_rejects_a_bad_font_and_an_unknown_key():
     ]
 
 
+def without_font(toml) -> str:
+    """The fixture library.toml text with its own neutral `[font]` block removed."""
+    return re.sub(
+        r"\[font\].*?(?=\[vocabulary\])", "", toml.read_text(encoding="utf-8"), flags=re.DOTALL
+    )
+
+
 def test_load_library_carries_the_font_into_the_library_and_its_bundle(tmp_path):
     shutil.copytree(GUIDE, tmp_path / "lib")
     toml = tmp_path / "lib" / "library.toml"
-    toml.write_text(
-        toml.read_text(encoding="utf-8") + "\n" + CONFIG.split("[font]")[1].join(["[font]", ""]),
-        encoding="utf-8",
-    )
+    toml.write_text(without_font(toml) + "\n[font]" + CONFIG.split("[font]")[1], encoding="utf-8")
     loaded = load_library(tmp_path / "lib")
     assert loaded.font == FONT
     bundle = tmp_path / "bundle.json"
@@ -218,10 +215,7 @@ elements = [
 def test_load_library_rejects_a_fixed_text_that_outgrows_its_body(tmp_path):
     shutil.copytree(GUIDE, tmp_path / "lib")
     toml = tmp_path / "lib" / "library.toml"
-    toml.write_text(
-        toml.read_text(encoding="utf-8") + "\n" + CONFIG.split("[font]")[1].join(["[font]", ""]),
-        encoding="utf-8",
-    )
+    toml.write_text(without_font(toml) + "\n[font]" + CONFIG.split("[font]")[1], encoding="utf-8")
     load_library(tmp_path / "lib")
     (tmp_path / "lib" / "symbols" / "S99999.toml").write_text(OVERFLOWING, encoding="utf-8")
     with pytest.raises(LibraryError) as raised:
@@ -251,8 +245,7 @@ def test_font_heights_round_trip_through_the_bundle(tmp_path):
     shutil.copytree(GUIDE, tmp_path / "lib")
     toml = tmp_path / "lib" / "library.toml"
     toml.write_text(
-        toml.read_text(encoding="utf-8") + "\n[font]" + CONFIG.split("[font]")[1] + HEIGHTS,
-        encoding="utf-8",
+        without_font(toml) + "\n[font]" + CONFIG.split("[font]")[1] + HEIGHTS, encoding="utf-8"
     )
     loaded = load_library(tmp_path / "lib")
     assert loaded.font is not None

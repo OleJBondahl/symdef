@@ -543,10 +543,28 @@ def test_symbol_from_data_turns_integral_floats_into_ints():
 
 # parse_config
 
-CONFIG = """standard = "IEC 60617"
+FONT_TOML = """
+[font]
+name = "Neutral"
+units_per_em = 1000
+cap_height = 720
+ascent = 900
+descent = 200
+
+[font.advances.normal]
+
+[font.advances.thick]
+
+[font.default_advance]
+normal = 600
+thick = 600
+"""
+
+CONFIG_KEYS = """standard = "IEC 60617"
 title = "IEC 60617 symbols"
 number_pattern = '^S\\d{5}$'
 """
+CONFIG = CONFIG_KEYS + FONT_TOML
 
 
 def test_parse_config_reads_the_three_strings():
@@ -555,6 +573,13 @@ def test_parse_config_reads_the_three_strings():
     assert config is not None
     assert (config.standard, config.title) == ("IEC 60617", "IEC 60617 symbols")
     assert re.fullmatch(config.number_pattern, "S00227")
+
+
+def test_parse_config_requires_a_font():
+    config, findings = parse_config(CONFIG_KEYS)
+    assert config is None
+    assert [(f.rule, f.location) for f in findings] == [("schema", None)]
+    assert "'font'" in findings[0].message
 
 
 def test_parse_config_reports_a_syntax_error():
@@ -590,7 +615,7 @@ def test_parse_config_requires_a_pattern_that_compiles():
 
 
 def test_parse_config_reports_every_problem():
-    config, findings = parse_config('title = 3\nnumber_pattern = "("\n')
+    config, findings = parse_config('title = 3\nnumber_pattern = "("\n' + FONT_TOML)
     assert config is None
     assert {(f.location, f.message.split(" ")[0]) for f in findings} == {
         (None, "missing"),
@@ -817,7 +842,7 @@ class TestNonStringKeys:
 
 
 def test_parse_config_reads_the_optional_package_key():
-    config, findings = parse_config(CONFIG + 'package = "my_pkg"\n')
+    config, findings = parse_config(CONFIG_KEYS + 'package = "my_pkg"\n' + FONT_TOML)
     assert findings == ()
     assert config is not None
     assert config.package == "my_pkg"
@@ -831,6 +856,6 @@ def test_parse_config_without_the_package_key_leaves_it_empty():
 
 @pytest.mark.parametrize("value", ['"a/b"', '"1x"', '"a-b"', "3", "true"])
 def test_parse_config_refuses_a_package_that_is_not_a_package_name(value):
-    config, findings = parse_config(CONFIG + f"package = {value}\n")
+    config, findings = parse_config(CONFIG_KEYS + f"package = {value}\n" + FONT_TOML)
     assert config is None
     assert [f.location for f in findings] == ["/package"]

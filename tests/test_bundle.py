@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
+from neutral_font import NEUTRAL_FONT_TOML
 from roundtrip import normalised
 from words import WORDS
 
@@ -75,7 +76,12 @@ class TestValidateBundle:
         assert validate_bundle(bundle_data()) == ()
 
     def test_a_bundle_with_no_symbols_is_valid(self):
-        assert validate_bundle({"schema": 1, "standard": "X", "symbols": {}}) == ()
+        assert (
+            validate_bundle(
+                {"schema": 1, "standard": "X", "symbols": {}, "font": bundle_data()["font"]}
+            )
+            == ()
+        )
 
     @pytest.mark.parametrize("data", [None, [], "x", 1])
     def test_a_bundle_must_be_a_table(self, data):
@@ -188,7 +194,9 @@ class TestLoadBundle:
         repo = tmp_path / "repo"
         (repo / "symbols").mkdir(parents=True)
         (repo / "library.toml").write_text(
-            "standard = 'ISA 5.1'\ntitle = 't'\nnumber_pattern = '^[0-9A-Za-z.-]+$'\n" + WORDS,
+            "standard = 'ISA 5.1'\ntitle = 't'\nnumber_pattern = '^[0-9A-Za-z.-]+$'\n"
+            + NEUTRAL_FONT_TOML
+            + WORDS,
             encoding="utf-8",
         )
         source = (GUIDE / "symbols" / "S00227.toml").read_text(encoding="utf-8")
