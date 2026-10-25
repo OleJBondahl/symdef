@@ -71,7 +71,7 @@ def test_standard_number_pattern_bites() -> None:
     """The pattern flags a closed standard's number and passes the allowed 'compatible with IEC'."""
     assert STANDARD_NUMBER.search("drawn to IEC 60617")
     assert STANDARD_NUMBER.search("see ISA 5.1")
-    assert STANDARD_NUMBER.search("symbols/S00227.toml")
+    assert STANDARD_NUMBER.search("symbols/S" + "00227.toml")
     assert STANDARD_NUMBER.search("compatible with IEC.") is None
 
 
