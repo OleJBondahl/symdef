@@ -1775,6 +1775,6 @@ Cost if wrong: an additive function and one error subclass; a record that carrie
 
 ## D130: `floor_divisions`
 
-Decided: R891 (SY4). New top-level `floor_divisions(grid, floor_mm) -> int` in `units.py`: the smallest whole number of grid divisions that holds a length floor in millimetres, `ceil_divisions(grid, floor_mm / grid.module_mm)`. It shares `ceil_divisions` with `text_divisions` (D128), so both round alike, including the tolerance that keeps a floor on a division at that division. A negative or non-finite floor raises `InvalidValueError`; 0 gives 0. It rounds up, as the order states; the extent of a sheet in divisions is a round-down and is not this function.
+Decided: R891 (SY4), amended by R893. New top-level `floor_divisions(grid, mm) -> int` in `units.py`: a length in millimetres rounded DOWN to whole grid divisions, the mirror of `ceil_divisions`, with the same tolerance (a value within 1e-9 below a division counts as that division). R891 first built it rounding up, a second spelling of `ceil_divisions` under a name that says the opposite; R893 refused that. A negative or non-finite length raises `InvalidValueError`; 0 gives 0.
 Why: an application converted a printed text floor in mm to divisions with its own arithmetic.
 Cost if wrong: an additive function; none to remove.

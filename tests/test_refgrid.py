@@ -5,7 +5,6 @@ import math
 import pytest
 
 from symdef.errors import InvalidValueError, ReferenceCellError
-from symdef.font import text_divisions
 from symdef.gridtypes import GridPoint
 from symdef.refgrid import reference_cell
 from symdef.units import DEFAULT_GRID, Grid, floor_divisions
@@ -71,18 +70,15 @@ def test_an_unusable_grid_is_refused(columns, rows, width, height, match):
         reference_cell(columns, rows, width, height, GridPoint(0, 0))
 
 
-def test_floor_divisions_is_the_smallest_whole_count_that_holds_the_floor():
+def test_floor_divisions_rounds_down():
     # 2.5 mm module, 8 divisions: one division is 0.3125 mm.
     assert floor_divisions(DEFAULT_GRID, 0) == 0
-    assert floor_divisions(DEFAULT_GRID, 0.3125) == 1
-    assert floor_divisions(DEFAULT_GRID, 0.32) == 2
-    assert floor_divisions(DEFAULT_GRID, 2.5) == 8
-    assert floor_divisions(Grid(module_mm=5.0, divisions_per_module=4), 1.3) == 2
-
-
-def test_floor_divisions_rounds_as_text_divisions_does():
-    # 1.6 mm cap: the em box is 1.6 / 0.72 mm; the same floor in mm gives the same count.
-    assert floor_divisions(DEFAULT_GRID, 1.6 / 0.72) == text_divisions(DEFAULT_GRID, None, 1.6)
+    assert floor_divisions(DEFAULT_GRID, 0.3125) == 1  # on grid
+    assert floor_divisions(DEFAULT_GRID, 2.5) == 8  # on grid
+    assert floor_divisions(DEFAULT_GRID, 0.3124999999999) == 1  # float noise below a division
+    assert floor_divisions(DEFAULT_GRID, 0.62) == 1  # off grid, just under two
+    assert floor_divisions(DEFAULT_GRID, 0.32) == 1  # off grid, just over one
+    assert floor_divisions(Grid(module_mm=5.0, divisions_per_module=4), 1.3) == 1
 
 
 @pytest.mark.parametrize("bad", [-0.1, math.inf, math.nan])

@@ -5,7 +5,7 @@ What changed in the public surface of each release: a name added, removed or mov
 ## 0.30.0
 
 - Added: `reference_cell(columns, rows, width, height, point)`, the (column label, row label) of the reference-grid cell holding a point of a page frame's content box, and `ReferenceCellError`, raised for a point outside it with no clamp (D129).
-- Added: `floor_divisions(grid, floor_mm)`, the smallest whole number of grid divisions that holds a length floor in millimetres, rounded as `ceil_divisions` (D130).
+- Added: `floor_divisions(grid, mm)`, a length in millimetres rounded down to whole grid divisions, the mirror of `ceil_divisions` (D130).
 - Unchanged: `Library.font.heights` already carries `[font.heights]` as a read-only mapping (0.16.0); no field was added.
 
 ## 0.29.1
