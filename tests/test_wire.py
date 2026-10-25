@@ -27,6 +27,7 @@ LIBRARY = Library(
     wires=WIRES,
     dash={"dashed": (1.25, 0.625)},
     font=NEUTRAL_FONT,
+    port_format="{k}.{port}",
 )
 PATH = [(0, 0), (4, 0), (4, 6)]
 
@@ -151,7 +152,9 @@ def test_a_library_with_wires_round_trips_through_the_bundle():
 
 
 def test_a_bundle_without_wires_has_no_wires_key():
-    data = bundle_to_data(Library("Example set", "Example set", "", {}, font=NEUTRAL_FONT))
+    data = bundle_to_data(
+        Library("Example set", "Example set", "", {}, font=NEUTRAL_FONT, port_format="{k}.{port}")
+    )
     assert "wires" not in data
     assert library_from_bundle(data).wires == ()
 
@@ -162,6 +165,7 @@ def test_bad_bundle_wire_entries_are_findings():
         "standard": "Example set",
         "symbols": {},
         "font": json.loads(to_json(bundle_to_data(LIBRARY)))["font"],
+        "port_format": "{k}.{port}",
         "wires": [{"id": "a", "weight": "heavy", "style": "solid"}, 4],
     }
     found = validate_bundle(data)
@@ -175,6 +179,7 @@ MARKER_LIBRARY = Library(
     {},
     wires=(WireStyle("marker", Weight.NORMAL, Style.SOLID),),
     font=NEUTRAL_FONT,
+    port_format="{k}.{port}",
 )
 
 

@@ -46,7 +46,9 @@ QUARTERS = build(
     slots=(Slot("tag", Point(2.25, 0.5), Direction.E, (1.5, 0.5)),),
     ports=(Port("a", Point(0, 1), Direction.S),),
 )
-EIGHT = Library("S", "S", "", {}, font=FONT, grid=Grid(divisions_per_module=8))
+EIGHT = Library(
+    "S", "S", "", {}, font=FONT, grid=Grid(divisions_per_module=8), port_format="{k}.{port}"
+)
 FOUR = replace(EIGHT, grid=Grid(divisions_per_module=4))
 
 
@@ -235,7 +237,7 @@ FRAME = replace(
 @pytest.mark.parametrize("orientation", list(Orientation))
 @pytest.mark.parametrize("length", [9, 20, 33, 112])
 def test_measure_with_a_stretch_equals_measure_of_the_stretched_symbol(orientation, length):
-    for lib in (EIGHT, Library("S", "S", "", {}, font=FONT)):
+    for lib in (EIGHT, Library("S", "S", "", {}, font=FONT, port_format="{k}.{port}")):
         for axis in ("x", "y"):
             direct = measure(FRAME, orientation, lib, stretch={axis: length})
             built = measure(stretch(FRAME, axis, length, grid=lib.grid), orientation, lib)

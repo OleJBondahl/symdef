@@ -78,7 +78,13 @@ class TestValidateBundle:
     def test_a_bundle_with_no_symbols_is_valid(self):
         assert (
             validate_bundle(
-                {"schema": 1, "standard": "X", "symbols": {}, "font": bundle_data()["font"]}
+                {
+                    "schema": 1,
+                    "standard": "X",
+                    "symbols": {},
+                    "font": bundle_data()["font"],
+                    "port_format": "{k}.{port}",
+                }
             )
             == ()
         )

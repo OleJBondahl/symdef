@@ -258,8 +258,8 @@ class LibraryConfig:
     `font_files` is the (regular, bold) paths of the `[font]` files form, relative to the folder
     holding `library.toml`, `font_name` its name and `font_heights` its `heights`; then `font`
     is an unmeasured placeholder (one unit per em, empty tables) until the files are read.
-    `port_format` is the top-level key naming a repeated pole's port id, the value a part's
-    `repeat` passes to the function (D123).
+    `port_format` (keyword-only, required: D127) is the top-level key naming a repeated pole's port id,
+    the value a part's `repeat` passes to the function (D123).
     """
 
     standard: str
@@ -276,8 +276,8 @@ class LibraryConfig:
     font_name: str = ""
     font_heights: Mapping[str, float] = MappingProxyType({})
     font_text_block: str = "cap"
-    port_format: str | None = None
     font: FontMetrics = field(kw_only=True)
+    port_format: str = field(kw_only=True)
 
     def __post_init__(self) -> None:
         """Copy `lines`, `dash` and `font_heights` into read-only mappings."""
@@ -294,7 +294,7 @@ class Library:
     metrics text is measured with (keyword-only, required: D124); `grid` is the
     drawing grid; `lines` is the stroke width in millimetres of each `Weight`, empty when the
     library declares none; `dash` is the named dash patterns in millimetres, empty when none;
-    `port_format` is the template of a repeated pole's port id (D123), None when undeclared.
+    `port_format` is the template of a repeated pole's port id (keyword-only, required: D123, D127).
     """
 
     standard: str
@@ -307,8 +307,8 @@ class Library:
     grid: Grid = DEFAULT_GRID
     lines: Mapping[Weight, float] = MappingProxyType({})
     dash: Mapping[str, tuple[float, ...]] = MappingProxyType({})
-    port_format: str | None = None
     font: FontMetrics = field(kw_only=True)
+    port_format: str = field(kw_only=True)
 
     def __post_init__(self) -> None:
         """Copy `lines` and `dash` into read-only mappings."""

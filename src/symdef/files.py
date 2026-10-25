@@ -133,8 +133,8 @@ def load_library(root: Path) -> Library:
         config.grid,
         config.lines,
         config.dash,
-        config.port_format,
         font=font,
+        port_format=config.port_format,
     )
     overflow = tuple(
         found

@@ -24,7 +24,11 @@ from symdef.repeat import repeat
 P = Point
 GUIDE = Path(__file__).resolve().parent / "fixtures" / "guide"
 CONFIG = LibraryConfig(
-    "Example set", "Example set symbols", r"^[a-z][a-z0-9]*(-[a-z0-9]+)*$", font=NEUTRAL_FONT
+    "Example set",
+    "Example set symbols",
+    r"^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+    font=NEUTRAL_FONT,
+    port_format="{k}.{port}",
 )
 
 
@@ -118,7 +122,7 @@ class TestMetadataFindings:
         assert "differs from the file name" in found.message
 
     def test_a_pattern_that_does_not_compile_matches_nothing(self):
-        config = LibraryConfig("Example set", "t", "(", font=NEUTRAL_FONT)
+        config = LibraryConfig("Example set", "t", "(", font=NEUTRAL_FONT, port_format="{k}.{port}")
         (found,) = metadata_findings("sym-a", file_data(), config)
         assert "does not match" in found.message
 

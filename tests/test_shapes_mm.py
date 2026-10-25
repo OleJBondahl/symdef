@@ -22,6 +22,7 @@ def lib(normal=0.25, thick=0.5, dash=None) -> Library:
         lines=lines,
         dash={"long": LONG, "dot": (0.5, 0.5, 0.1, 0.5)} | (dash or {}),
         font=NEUTRAL_FONT,
+        port_format="{k}.{port}",
     )
 
 
@@ -140,7 +141,18 @@ def test_an_unknown_dash_key_names_it_and_the_fix():
     ):
         rect(dash="nope")
     with pytest.raises(UnknownNameError, match="it has none"):
-        rect(Library("s", "s", "", {}, lines={Weight.NORMAL: 0.25}, font=NEUTRAL_FONT), dash="long")
+        rect(
+            Library(
+                "s",
+                "s",
+                "",
+                {},
+                lines={Weight.NORMAL: 0.25},
+                font=NEUTRAL_FONT,
+                port_format="{k}.{port}",
+            ),
+            dash="long",
+        )
 
 
 def test_a_weight_the_library_lacks_raises_and_names_what_it_has():
@@ -149,7 +161,10 @@ def test_a_weight_the_library_lacks_raises_and_names_what_it_has():
     ):
         rect(weight=Weight.RULE)
     with pytest.raises(UnknownNameError, match="it has none"):
-        rect(Library("s", "s", "", {}, font=NEUTRAL_FONT), weight=Weight.NORMAL)
+        rect(
+            Library("s", "s", "", {}, font=NEUTRAL_FONT, port_format="{k}.{port}"),
+            weight=Weight.NORMAL,
+        )
 
 
 @pytest.mark.parametrize("box", [(0, 0, -1, 1), (0, 0, 1, -1)])

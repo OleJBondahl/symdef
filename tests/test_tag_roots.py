@@ -14,7 +14,13 @@ from symdef.units import Grid
 
 # One division is one module, so a module-unit coordinate is its division.
 ONE = Library(
-    "S", "S", "", {}, font=FONT, grid=Grid(divisions_per_module=1, wire_pitch=1, wire_pitch_fine=1)
+    "S",
+    "S",
+    "",
+    {},
+    font=FONT,
+    grid=Grid(divisions_per_module=1, wire_pitch=1, wire_pitch_fine=1),
+    port_format="{k}.{port}",
 )
 HEIGHT = 2  # cap height 1.4 with FONT
 

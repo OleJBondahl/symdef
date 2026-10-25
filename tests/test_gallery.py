@@ -21,6 +21,7 @@ def one_symbol_library(**changes) -> Library:
         r"^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
         {"make-contact": symbol},
         font=NEUTRAL_FONT,
+        port_format="{k}.{port}",
     )
 
 
@@ -41,7 +42,9 @@ def test_the_text_of_a_one_symbol_gallery_is_exact():
 
 def test_rows_are_sorted_by_number_whatever_the_order_of_the_library():
     symbols = {n: LIBRARY.get(n) for n in ("relay-coil", "connection-point", "push-button")}
-    rows = readme(Library("X", "t", "", symbols, font=NEUTRAL_FONT)).splitlines()[6:]
+    rows = readme(
+        Library("X", "t", "", symbols, font=NEUTRAL_FONT, port_format="{k}.{port}")
+    ).splitlines()[6:]
     assert [row.split("]")[0] for row in rows] == [
         "| [connection-point",
         "| [push-button",
@@ -81,12 +84,16 @@ def test_a_name_cannot_break_the_table():
 
 def test_a_lone_surrogate_in_a_number_does_not_raise():
     symbol = LIBRARY.get("make-contact")
-    (row,) = readme(Library("X", "t", "", {"S\ud800": symbol}, font=NEUTRAL_FONT)).splitlines()[6:]
+    (row,) = readme(
+        Library("X", "t", "", {"S\ud800": symbol}, font=NEUTRAL_FONT, port_format="{k}.{port}")
+    ).splitlines()[6:]
     assert "resolved/S%3F.json" in row
 
 
 def test_a_library_without_symbols_has_the_header_only():
-    lines = readme(Library("X", "t", "", {}, font=NEUTRAL_FONT)).splitlines()
+    lines = readme(
+        Library("X", "t", "", {}, font=NEUTRAL_FONT, port_format="{k}.{port}")
+    ).splitlines()
     assert lines[4:] == [
         "| Number | Name | Kind | Status | Plain | Annotated |",
         "| --- | --- | --- | --- | --- | --- |",

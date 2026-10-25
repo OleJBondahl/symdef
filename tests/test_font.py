@@ -99,7 +99,9 @@ def test_keepout_box_passes_the_font_to_the_body():
 
 
 def library(font):
-    return Library("Example set", "Example set", "", {"1": symbol()}, font=font)
+    return Library(
+        "Example set", "Example set", "", {"1": symbol()}, font=font, port_format="{k}.{port}"
+    )
 
 
 def test_a_bundle_round_trips_its_font():

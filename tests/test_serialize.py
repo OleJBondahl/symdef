@@ -139,6 +139,7 @@ class TestGolden:
                 "connection-point": LIBRARY.get("connection-point"),
             },
             font=NEUTRAL_FONT,
+            port_format="{k}.{port}",
         )
         golden = (EXPECTED / "bundle.json").read_bytes()
         assert to_json(bundle_to_data(library)).encode("utf-8") == golden

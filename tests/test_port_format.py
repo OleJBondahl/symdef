@@ -4,8 +4,10 @@ import shutil
 from pathlib import Path
 
 import pytest
+from neutral_font import NEUTRAL_FONT
 from test_resolve import composite
 
+from symdef import Library
 from symdef.errors import LibraryError
 from symdef.files import load_library
 from symdef.load import library_from_bundle, parse_config, validate_bundle
@@ -73,8 +75,11 @@ def test_the_library_and_its_bundle_carry_the_format():
     assert data["port_format"] == "{k}.{port}"
     assert validate_bundle(data) == ()
     assert library_from_bundle(data).port_format == "{k}.{port}"
-    assert (
-        library_from_bundle({k: v for k, v in data.items() if k != "port_format"}).port_format
-        is None
-    )
+    (missing,) = validate_bundle({k: v for k, v in data.items() if k != "port_format"})
+    assert "port_format" in missing.message
     assert validate_bundle({**data, "port_format": "{k}"})[0].location == "/port_format"
+
+
+def test_a_library_cannot_be_built_without_a_port_format():
+    with pytest.raises(TypeError, match="port_format"):
+        Library("S", "S", "", {}, font=NEUTRAL_FONT)  # ty: ignore[missing-argument]  # the point of the test

@@ -244,9 +244,8 @@ def bundle_to_data(library: Library) -> dict[str, Any]:
     A library with wire styles adds the `wires` array; a grid other than the default adds the `grid`
     object (`module_mm`, `divisions_per_module`, the two wire pitches, and `stretch_split` when
     "whole"); one with line widths adds the `lines` object (millimetres by weight name); one with
-    dash patterns adds the `dash` object (millimetres by name); one with a `port_format` adds that
-    string; one with none of these has none
-    of the keys.
+    dash patterns adds the `dash` object (millimetres by name); the `port_format` string is always written; one with none of the others has
+    none of their keys.
     """
     data: dict[str, Any] = {
         "schema": _SCHEMA_VERSION,
@@ -267,8 +266,7 @@ def bundle_to_data(library: Library) -> dict[str, Any]:
         data["lines"] = {w.name.lower(): library.lines[w] for w in Weight if w in library.lines}
     if library.dash:
         data["dash"] = {name: list(library.dash[name]) for name in sorted(library.dash)}
-    if library.port_format is not None:
-        data["port_format"] = library.port_format
+    data["port_format"] = library.port_format
     return data
 
 

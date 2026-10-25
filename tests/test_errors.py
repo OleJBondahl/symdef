@@ -29,7 +29,9 @@ from symdef.model import Slot
 from symdef.units import to_divisions
 
 SRC = Path(__file__).resolve().parent.parent / "src" / "symdef"
-LIBRARY = Library("Example set", "Example set", "", {}, wires=(), font=NEUTRAL_FONT)
+LIBRARY = Library(
+    "Example set", "Example set", "", {}, wires=(), font=NEUTRAL_FONT, port_format="{k}.{port}"
+)
 
 
 def with_port():

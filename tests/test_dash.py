@@ -36,7 +36,9 @@ def guide_with(tmp_path: Path, dash: str) -> Path:
 def lib(dash=None, style=Style.SOLID):
     line = Line(Point(0, 0), Point(1, 0), Weight.NORMAL, style)
     symbol = Symbol("t", SymbolKind.SYMBOL, Status.UNVERIFIED, Reference("X", "S1"), (line,))
-    return Library("s", "s", "", {"S1": symbol}, dash=dash or {}, font=NEUTRAL_FONT)
+    return Library(
+        "s", "s", "", {"S1": symbol}, dash=dash or {}, font=NEUTRAL_FONT, port_format="{k}.{port}"
+    )
 
 
 def test_the_table_parses_into_tuples_and_free_keys_are_data():
@@ -194,7 +196,13 @@ def test_with_settings_rejects_a_bad_table(bad, fragment):
 
 def test_with_settings_rejects_a_table_missing_a_pattern_a_wire_uses():
     base = Library(
-        "s", "s", "", {}, wires=(WireStyle("w", Weight.RULE, Style.DASH_DOT),), font=NEUTRAL_FONT
+        "s",
+        "s",
+        "",
+        {},
+        wires=(WireStyle("w", Weight.RULE, Style.DASH_DOT),),
+        font=NEUTRAL_FONT,
+        port_format="{k}.{port}",
     )
     with pytest.raises(InvalidValueError, match="'dash_dot'"):
         base.with_settings(dash={"dashed": (1, 2)})

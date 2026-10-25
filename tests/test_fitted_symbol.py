@@ -15,7 +15,9 @@ from symdef.slottext import text_box
 from symdef.units import Grid
 
 HEIGHT = 2
-LIB = Library("S", "S", "", {}, font=FONT, grid=Grid(divisions_per_module=8))
+LIB = Library(
+    "S", "S", "", {}, font=FONT, grid=Grid(divisions_per_module=8), port_format="{k}.{port}"
+)
 SHORT, MID, WIDE = "AB", "ABiAB", "ABiABAB"
 BODY = (Line(Point(0, 0), Point(10, 0)), Line(Point(0, 4), Point(10, 4)))
 

@@ -913,7 +913,8 @@ class TestFileRules:
     def test_metadata_is_checked_against_the_config_and_the_stem(self):
         data = tomllib.loads(LINK_E)
         resolution = resolve_library(
-            LibraryConfig("Pipe set", "t", r"^X\d+$", font=NEUTRAL_FONT), {"sym-z-099": data}
+            LibraryConfig("Pipe set", "t", r"^X\d+$", font=NEUTRAL_FONT, port_format="{k}.{port}"),
+            {"sym-z-099": data},
         )
         assert located(resolution, "sym-z-099") == [
             ("metadata", "/reference/number"),
@@ -1212,7 +1213,9 @@ class TestPatternTotality:
         ids=["overflow", "nesting", "open", "range"],
     )
     def test_such_a_pattern_matches_nothing_and_does_not_raise(self, pattern):
-        config = LibraryConfig("Example set", "t", pattern, font=NEUTRAL_FONT)
+        config = LibraryConfig(
+            "Example set", "t", pattern, font=NEUTRAL_FONT, port_format="{k}.{port}"
+        )
         resolution = resolve_library(config, files(LINK_E))
         assert located(resolution, "sym-j") == [("metadata", "/reference/number")]
         assert "does not match" in resolution.findings["sym-j"][0].message
@@ -1292,20 +1295,6 @@ def test_resolving_never_raises_on_damaged_files(stem, pick, action, value, key)
 
 
 class TestRepeatPortFormat:
-    def test_a_repeat_in_a_library_without_port_format_names_the_key_and_the_fix(self):
-        top = composite("sym-z-094", 'parts = [{ as = "a", use = "make-contact", repeat = 2 }]\n')
-        bare = LibraryConfig(
-            "Example set",
-            "Example set symbols",
-            r"^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
-            font=NEUTRAL_FONT,
-        )
-        resolution = resolve_library(bare, guide_sources() | files(top))
-        assert located(resolution, "sym-z-094") == [("schema", "/parts/0/repeat")]
-        message = resolution.findings["sym-z-094"][0].message
-        assert all(word in message for word in ("port_format", "library.toml", "{k}.{port}"))
-        assert "sym-z-094" not in resolution.symbols
-
     def test_the_library_format_reaches_the_ports(self):
         config = LibraryConfig(
             "Example set",

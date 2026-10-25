@@ -65,7 +65,9 @@ def test_a_grid_needs_both_keys_and_no_others():
 
 
 def library(grid):
-    return Library("S", "S", "", {"1": symbol(1)}, grid=grid, font=NEUTRAL_FONT)
+    return Library(
+        "S", "S", "", {"1": symbol(1)}, grid=grid, font=NEUTRAL_FONT, port_format="{k}.{port}"
+    )
 
 
 def test_a_bundle_round_trips_a_non_default_grid():
@@ -94,8 +96,10 @@ def test_lint_checks_against_the_librarys_own_grid():
 
 
 def test_the_project_lints_with_the_librarys_grid():
-    coarse = Library("S", "S", "", {"1": symbol(0.125)}, grid=COARSE, font=NEUTRAL_FONT)
-    plain = Library("S", "S", "", {"1": symbol(0.125)}, font=NEUTRAL_FONT)
+    coarse = Library(
+        "S", "S", "", {"1": symbol(0.125)}, grid=COARSE, font=NEUTRAL_FONT, port_format="{k}.{port}"
+    )
+    plain = Library("S", "S", "", {"1": symbol(0.125)}, font=NEUTRAL_FONT, port_format="{k}.{port}")
     assert any(f.rule == "off-drawing-grid" for f in _lint_findings(coarse))
     assert not any(f.rule == "off-drawing-grid" for f in _lint_findings(plain))
 

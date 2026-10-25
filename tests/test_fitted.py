@@ -18,7 +18,9 @@ from symdef.table import table
 from symdef.units import Grid
 
 HEIGHT = 2
-LIB = Library("S", "S", "", {}, font=FONT, grid=Grid(divisions_per_module=8))
+LIB = Library(
+    "S", "S", "", {}, font=FONT, grid=Grid(divisions_per_module=8), port_format="{k}.{port}"
+)
 SHORT, MID, WIDE = "AB", "ABiAB", "ABiABAB"
 
 

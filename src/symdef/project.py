@@ -70,11 +70,9 @@ def build(root: Path) -> tuple[Path, ...]:
 def _through_repeats(library: Library) -> tuple[Finding, ...]:
     """Gate 3: every symbol with a through path also lints clean as `repeat(symbol, 3)`.
 
-    The library's `port_format` names the repeated ports; a library that declares none has no gate.
+    The library's `port_format` names the repeated ports.
     """
     port_format = library.port_format
-    if port_format is None:
-        return ()
     found = []
     for symbol in library:
         if any(path.through for path in symbol.paths):
