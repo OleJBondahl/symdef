@@ -2,6 +2,12 @@
 
 What changed in the public surface of each release: a name added, removed or moved, and a type that widened. Every change to `surface.toml` has a line here. The reasons are in [the decisions](DECISIONS.md).
 
+## 0.30.0
+
+- Added: `reference_cell(columns, rows, width, height, point)`, the (column label, row label) of the reference-grid cell holding a point of a page frame's content box, and `ReferenceCellError`, raised for a point outside it with no clamp (D129).
+- Added: `floor_divisions(grid, floor_mm)`, the smallest whole number of grid divisions that holds a length floor in millimetres, rounded as `ceil_divisions` (D130).
+- Unchanged: `Library.font.heights` already carries `[font.heights]` as a read-only mapping (0.16.0); no field was added.
+
 ## 0.29.1
 
 - Changed (breaking): `port_format` is validated when a library has repeat or table symbols; the accessor is `str`. `library.toml` without the top-level `port_format` is refused with a `schema` finding naming the key and the fix, and `Library.port_format` and `LibraryConfig.port_format` are keyword-only `str`, never `None`; a bundle without `port_format` is invalid and `bundle_to_data` always writes it (D127).
