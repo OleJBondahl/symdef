@@ -166,15 +166,16 @@ def ceil_divisions(grid: Grid, v: float) -> int:
     return math.ceil(v * grid.divisions_per_module - _DIVISION_TOLERANCE)
 
 
-def floor_divisions(grid: Grid, floor_mm: float) -> int:
-    """Return the smallest whole number of grid divisions that holds a length floor in millimetres.
+def floor_divisions(grid: Grid, mm: float) -> int:
+    """Round a length in millimetres down to whole grid divisions, the mirror of `ceil_divisions`.
 
-    It rounds as `ceil_divisions` does, so a floor on a division counts as that division.
+    A value within the tolerance below a multiple counts as that multiple, so float noise
+    does not drop a division.
 
     Raises:
-        InvalidValueError: `floor_mm` is negative or not finite.
+        InvalidValueError: `mm` is negative or not finite.
     """
-    if not math.isfinite(floor_mm) or floor_mm < 0:
-        msg = f"floor {floor_mm!r} is not a length; give a finite number of millimetres, 0 or more"
+    if not math.isfinite(mm) or mm < 0:
+        msg = f"length {mm!r} is not a length; give a finite number of millimetres, 0 or more"
         raise InvalidValueError(msg)
-    return ceil_divisions(grid, floor_mm / grid.module_mm)
+    return math.floor(mm / grid.module_mm * grid.divisions_per_module + _DIVISION_TOLERANCE)
