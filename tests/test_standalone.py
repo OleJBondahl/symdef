@@ -61,3 +61,29 @@ def test_no_tracked_file_names_an_application() -> None:
         if found:
             bad[rel] = found
     assert not bad, f"files naming an application: {sorted(bad)}"
+
+
+STANDARD_NUMBER = re.compile(r"\b(IEC|ISO|EN|ISA)\s?\d")
+SHIPPED_TEXT = ("README.md", "design.md", "docs/", "src/symdef/docs/")
+
+
+def test_standard_number_pattern_bites() -> None:
+    """The pattern flags a closed standard's number and passes the allowed 'compatible with IEC'."""
+    assert STANDARD_NUMBER.search("drawn to IEC 60617")
+    assert STANDARD_NUMBER.search("see ISA 5.1")
+    assert STANDARD_NUMBER.search("compatible with IEC.") is None
+
+
+def test_shipped_text_cites_no_standard_number() -> None:
+    bad: dict[str, list[str]] = {}
+    for rel in _tracked():
+        if not rel.startswith(SHIPPED_TEXT):
+            continue
+        try:
+            text = (ROOT / rel).read_text(encoding="utf-8")
+        except UnicodeDecodeError, IsADirectoryError:
+            continue
+        found = [m.group(0) for m in STANDARD_NUMBER.finditer(text)]
+        if found:
+            bad[rel] = found
+    assert not bad, f"shipped text cites a standard number: {bad}"

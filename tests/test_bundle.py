@@ -194,19 +194,19 @@ class TestLoadBundle:
         repo = tmp_path / "repo"
         (repo / "symbols").mkdir(parents=True)
         (repo / "library.toml").write_text(
-            "standard = 'ISA 5.1'\ntitle = 't'\nnumber_pattern = '^[0-9A-Za-z.-]+$'\n"
+            "standard = 'Plant set 1.1'\ntitle = 't'\nnumber_pattern = '^[0-9A-Za-z.-]+$'\n"
             + NEUTRAL_FONT_TOML
             + WORDS,
             encoding="utf-8",
         )
         source = (GUIDE / "symbols" / "S00227.toml").read_text(encoding="utf-8")
         for number in ("5.1", "PIPE-1.1"):
-            text = source.replace('"S00227"', f'"{number}"').replace("Example set", "ISA 5.1")
+            text = source.replace('"S00227"', f'"{number}"').replace("Example set", "Plant set 1.1")
             (repo / "symbols" / f"{number}.toml").write_text(text, encoding="utf-8")
         library = load_library(repo)
         assert sorted(library.symbols) == ["5.1", "PIPE-1.1"]
         write_build(library, repo)
-        bundle = repo / "src" / "isa51" / "bundle.json"
+        bundle = repo / "src" / "plantset11" / "bundle.json"
         assert bundle.is_file()
         loaded = load_bundle(bundle)
         assert sorted(loaded.symbols) == ["5.1", "PIPE-1.1"]

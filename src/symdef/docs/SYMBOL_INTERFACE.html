@@ -101,7 +101,7 @@ with a dated entry in the change list below and in <code>docs/DECISIONS.md</code
 <table>
 <tr><th>Layer</th><th>What it is</th><th>Example</th><th>Owner</th></tr>
 <tr><td>Symbol</td><td>the graphic concept in the standard</td><td>make contact, S00227</td><td>the symbol set (a data repo)</td></tr>
-<tr><td>Device terminal marking</td><td>numbers printed on the real part (EN 50005 / EN 50011)</td><td><code>13/14</code>, <code>23/24</code>, <code>A1/A2</code></td><td>the drawing's device or catalog model</td></tr>
+<tr><td>Device terminal marking</td><td>numbers printed on the real part (the usual convention for terminal marking)</td><td><code>13/14</code>, <code>23/24</code>, <code>A1/A2</code></td><td>the drawing's device or catalog model</td></tr>
 <tr><td>Placement</td><td>tag, position, orientation, rendered text</td><td><code>-K1</code> at (40, 120)</td><td>the drawing library</td></tr>
 </table>
 <ul>
@@ -127,14 +127,14 @@ with a dated entry in the change list below and in <code>docs/DECISIONS.md</code
 <h2 id="s3">3. Conventions</h2>
 <table>
 <tr><th>Item</th><th>Rule</th></tr>
-<tr><td>Unit</td><td>The module <code>M</code>. Default <code>M = 2.5 mm</code> (ISO 81714-1, Pipe set). Files never contain millimetres.</td></tr>
+<tr><td>Unit</td><td>The module <code>M</code>. Default <code>M = 2.5 mm</code> (the Pipe set's module). Files never contain millimetres.</td></tr>
 <tr><td>Axes</td><td>SVG axes: x right, y down. Angles in degrees, clockwise on screen from +x.</td></tr>
 <tr><td>Drawing grid</td><td><code>0.125 M</code>. Every shape coordinate, radius, text height, anchor, slot point and slot box size is a multiple of it. 0.125 is exact in binary floating point.</td></tr>
 <tr><td>Wiring grid</td><td><code>1 M</code>. Every port position is a multiple of it. The origin is on it by definition.</td></tr>
 <tr><td>Pole pitch</td><td><code>4 M</code> (10 mm). The only pitch <code>repeat</code> uses by default. A symbol too wide for it declares <code>pole_pitch</code>, a multiple of 4.</td></tr>
 <tr><td>Same-side port spacing</td><td>Two ports with the same <code>dir</code> are a multiple of <code>2 M</code> apart, measured along the side (x for N and S ports, y for E and W ports).</td></tr>
 <tr><td>Base orientation</td><td>The through path (section 5) is vertical: its two ports are at <code>(0, -a)</code> pointing N and <code>(0, a)</code> pointing S, with <code>a</code> a whole number of M. Horizontal use is an orientation, never a second file.</td></tr>
-<tr><td>Line weight</td><td><code>normal</code> = 0.1 M (ISO 81714-1, width : module = 1 : 10), <code>thick</code> = 0.2 M (provisional).</td></tr>
+<tr><td>Line weight</td><td><code>normal</code> = 0.1 M (width : module = 1 : 10), <code>thick</code> = 0.2 M (provisional).</td></tr>
 <tr><td>Line style</td><td><code>solid</code>, <code>dashed</code> or <code>dash_dot</code>. Dashed means dash 0.5 M, gap 0.25 M; dash-dot means dash 1 M, gap 0.25 M, dot 0.0625 M, gap 0.25 M; renderers implement the pattern, files never spell out dash segments.</td></tr>
 <tr><td>Text elements</td><td>Text that is part of the symbol itself (the <code>M</code> in a motor). Height at most 1 M. Stays upright in every orientation; only its position transforms.</td></tr>
 <tr><td>Extents</td><td>All boxes ignore stroke width. A line or polyline extends over its points, a circle over its full diameter, an arc over its true swept extent. A text element counts as a box centred on <code>at</code>, <code>height</code> tall and <code>0.6 &times; height &times; character count</code> wide.</td></tr>
@@ -333,7 +333,7 @@ lint_allow = [
 
 <p class="note">The examples in this guide are normative for the format and have been machine-checked: they parse as TOML, every reference resolves, and the four atomic ones pass
 <code>port-off-geometry</code>, <code>port-on-body-edge</code>, <code>port-lane-clear</code>, <code>port-spacing</code>, <code>through-axis</code>, <code>slot-overlap-body</code>, <code>slot-overlap-slot</code>, <code>pitch-overflow</code> and <code>allow-unused</code> in all 8 orientations, using a throwaway checker written from the definitions in this guide.
-The toolkit's first test fixture is these five files: they must load and lint clean. If the real linter disagrees with an example, stop and resolve which one is wrong before going on. The shapes themselves are unverified against IEC drawings, like all geometry.</p>
+The toolkit's first test fixture is these five files: they must load and lint clean. If the real linter disagrees with an example, stop and resolve which one is wrong before going on. The shapes themselves are unverified against standard drawings, like all geometry.</p>
 
 <h2 id="s5">5. Connectivity model</h2>
 <p>This is what keeps the electrical function explicit. It is declarative data only; the toolkit never simulates anything.</p>
@@ -426,7 +426,7 @@ tag           = { at = [-3.5, 0], side = "W", box = [6, 1] }
 "marking.in"  = "contact.marking.in"
 "marking.out" = "contact.marking.out"
 </code></pre>
-<p><code>S00171</code> stands for the Part 2 qualifier "operated by pushing". Its number, like every number in this guide, must be confirmed against the IEC database overview before the file is committed.</p>
+<p><code>S00171</code> stands for the Part 2 qualifier "operated by pushing". Its number, like every number in this guide, must be confirmed against a standard's own symbol database before the file is committed.</p>
 
 <h3><code>repeat</code>: the only multi-pole mechanism</h3>
 <p><code>repeat(symbol, n, *, port_format)</code> places <code>n</code> copies along +x in base orientation and returns an ordinary symbol. Pole <code>k</code> (counting from 1) is the symbol translated by <code>((k - 1) &times; pitch, 0)</code>, where <code>pitch</code> is the symbol's <code>pole_pitch</code>, default 4. It requires <code>n &gt;= 1</code> and a symbol with a through path; <code>repeat(symbol, 1)</code> still renames the ports. <code>port_format</code> is required: the template of a pole's port id with the fields <code>{k}</code> and <code>{port}</code>, such as <code>"{k}.{port}"</code>; symdef keeps no spelling of a pole prefix, and a missing or malformed one raises <code>InvalidValueError</code> naming it (D121).</p>
@@ -643,7 +643,7 @@ dash_dot = [2.5, 0.625, 0.15625, 0.625]</code></pre>
 </ul>
 <h3>Constraints carried over</h3>
 <p>Python <code>&gt;=3.14</code>, <code>uv</code> only, every dependency pinned to the exact latest stable version, ruff, ty, pytest with hypothesis, vulture. There is no runtime dependency. TOML is read with the standard library's <code>tomllib</code>.
-Geometry is unverified until compared with the IEC database drawings; the gallery shows the status next to each symbol.</p>
+Geometry is unverified until compared with a standard's own drawings; the gallery shows the status next to each symbol.</p>
 
 <h2 id="s13">13. What is not built</h2>
 <ul>
@@ -653,11 +653,11 @@ Geometry is unverified until compared with the IEC database drawings; the galler
 <h2 id="s14">14. Deferred and open</h2>
 <ul>
   <li><strong>Coupling between paths</strong> (a coil actuating contacts, magnetically coupled windings). In detached representation this lives between separately placed symbols, so it belongs to the consumer's device model. Revisit for attached composites such as a contactor drawn as one symbol.</li>
-  <li><strong>Conventional marking hints.</strong> EN 50005 function digits (make = 3/4, break = 1/2, change-over = 1/2/4) could be optional per-port data so consumers without a catalog get sensible defaults. Not in schema 1.</li>
+  <li><strong>Conventional marking hints.</strong> Conventional function digits of terminal marking (make = 3/4, break = 1/2, change-over = 1/2/4) could be optional per-port data so consumers without a catalog get sensible defaults. Not in schema 1.</li>
   <li><strong>Connections between parts</strong> inside a composite (merging two parts' nodes). Not needed for IEC composites found so far.</li>
   <li><strong>Small symbols</strong> such as the terminal (S00017), whose natural port positions are on a 0.5 M circle. Decide per symbol: leads to the wiring grid, or a declared exemption as for the connection point.</li>
-  <li><strong>Reference numbers</strong> quoted here (S00230, S00171, S00287) come from memory of the IEC database overview and must be confirmed before use.</li>
-  <li><strong>Verification.</strong> The IEC drawings are behind a subscription. Until bought, every symbol stays <code>unverified</code>.</li>
+  <li><strong>Reference numbers</strong> quoted here (S00230, S00171, S00287) come from memory of a standard's own symbol database and must be confirmed before use.</li>
+  <li><strong>Verification.</strong> Reference drawings are not bundled here. Until they are compared, every symbol stays <code>unverified</code>.</li>
 </ul>
 
 </main>
