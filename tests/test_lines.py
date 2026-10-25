@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
+from neutral_font import NEUTRAL_FONT
 from test_build_load import CONFIG, data_repo
 
 from symdef.errors import LibraryError
@@ -94,7 +95,7 @@ def test_lines_problems_names_each_missing_weight_once():
 
 
 def bare(lines) -> Library:
-    return Library("S", "S", "", {}, lines=lines)
+    return Library("S", "S", "", {}, lines=lines, font=NEUTRAL_FONT)
 
 
 def test_the_bundle_round_trips_the_widths():

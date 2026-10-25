@@ -708,9 +708,23 @@ def _font_table(value: object, location: str) -> list[Finding]:
     return _FONT_FILES(value, location)
 
 
-def _literal_font(data: Mapping[str, Any]) -> bool:
-    """Whether a checked config has a `[font]` of the literal form."""
-    return "font" in data and "files" not in data["font"]
+_NO_FONT = (
+    "missing required key 'font'; add a `[font]` table, the literal form (units_per_em, "
+    "cap_height, ascent, descent, advances, default_advance, name) or the files form (name, "
+    "files.regular, files.bold)"
+)
+
+
+def _config_font(data: Mapping[str, Any]) -> FontMetrics:
+    """Return a checked config's `[font]`; the files form gives an unmeasured placeholder (D124)."""
+    font = data["font"]
+    if "files" not in font:
+        return font_from_data(font)
+    empty = {w: {} for w in TEXT_WEIGHTS}
+    return FontMetrics(
+        font["name"], 1, 1, 1, 0, empty, dict.fromkeys(TEXT_WEIGHTS, 1),
+        font.get("heights", {}), text_block=font.get("text_block", "cap"),
+    )  # fmt: skip
 
 
 def _font_files(
@@ -853,7 +867,7 @@ _BUNDLE = _table(
         "dash": _dash_table,
         "port_format": _port_format_key,
     },
-    required=("schema", "standard", "symbols"),
+    required=("schema", "standard", "symbols", "font"),
 )
 
 
@@ -914,7 +928,7 @@ def library_from_bundle(data: Mapping[str, Any]) -> Library:
         "",
         MappingProxyType(symbols),
         wires=_wires_from_data(data.get("wires", [])),
-        font=font_from_data(data["font"]) if "font" in data else None,
+        font=font_from_data(data["font"]),
         grid=grid_from_data(data["grid"]) if "grid" in data else DEFAULT_GRID,
         lines=lines_from_data(data.get("lines", {})),
         dash=dash_from_data(data.get("dash", {})),
@@ -980,7 +994,7 @@ def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
     data, findings = parse_toml(text)
     if data is None:
         return None, findings
-    problems: list[Finding] = []
+    problems = [] if "font" in data else [_finding("", _NO_FONT)]
     for key in ("standard", "title", "number_pattern"):
         if key not in data:
             problems.append(_finding("", f"missing required key {key!r}"))
@@ -1017,10 +1031,10 @@ def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
         words,
         required,
         _wires_from_data(data.get("wire", [])),
-        font_from_data(data["font"]) if _literal_font(data) else None,
         grid_from_data(data["grid"]) if "grid" in data else DEFAULT_GRID,
         lines_from_data(data.get("lines", {})),
         dash_from_data(data.get("dash", {})),
         *_font_files(data),
         data.get("port_format"),
+        font=_config_font(data),
     ), ()

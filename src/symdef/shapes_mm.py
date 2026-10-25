@@ -1,4 +1,4 @@
-"""Bare shapes in millimetres: a rectangle, a box outline and a line (D117)."""
+"""Bare shapes in millimetres: a rectangle, a box outline, a line and a group (D117, D125)."""
 
 from xml.sax.saxutils import quoteattr
 
@@ -137,3 +137,13 @@ def outline_mm(  # noqa: PLR0913 - one outline is these things
         line_mm(a, b, library=library, weight=weight, stroke=stroke, dash=dash, classes=classes)
         for a, b in edges
     )
+
+
+def group_mm(body: str, at: Pt, *, classes: str = "") -> str:
+    """Return `body` inside one `<g>` moved to `at` (x, y) in mm by `translate`.
+
+    `classes` is the group's `class`, written first and left out when empty. `body` is written
+    as given, so a fragment already in mm keeps its numbers; `at` has at most four decimals.
+    """
+    head = f" class={quoteattr(classes)}" if classes else ""
+    return f'<g{head} transform="translate({_num(at[0])} {_num(at[1])})">{body}</g>'

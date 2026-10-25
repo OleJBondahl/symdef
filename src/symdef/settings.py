@@ -34,21 +34,20 @@ def _is_font_pair(font: object) -> bool:
     )
 
 
-def _font(library: Library, font: object, heights: object) -> FontMetrics | None:
+def _font(library: Library, font: object, heights: object) -> FontMetrics:
     """Return the library's font with the measured `font` and the given `heights` applied."""
     metrics = library.font
     if font is not None:
         if not _is_font_pair(font):
             msg = f"font {type(font).__name__} is not a pair of bytes; give (regular_ttf, bold_ttf)"
             raise InvalidValueError(msg)
-        kept = metrics.heights if metrics else {}
-        block = metrics.text_block if metrics else "cap"
-        metrics = replace(measure_font(*font), heights=kept, text_block=block)  # ty: ignore[not-iterable] - font is a checked pair
+        metrics = replace(
+            measure_font(*font),  # ty: ignore[not-iterable] - font is a checked pair
+            heights=metrics.heights,
+            text_block=metrics.text_block,
+        )
     if heights is None:
         return metrics
-    if metrics is None:
-        msg = "heights need a font; the library has none, so pass font too"
-        raise InvalidValueError(msg)
     if not isinstance(heights, Mapping) or not all(isinstance(k, str) for k in heights):
         msg = "heights is not a mapping of names to millimetres; fix its shape"
         raise InvalidValueError(msg)

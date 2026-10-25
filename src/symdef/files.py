@@ -47,7 +47,7 @@ def _read_config(path: Path) -> tuple[LibraryConfig | None, tuple[Finding, ...]]
     return config, _named(path.name, problems)
 
 
-def _read_font(root: Path, config: LibraryConfig) -> tuple[FontMetrics | None, tuple[Finding, ...]]:
+def _read_font(root: Path, config: LibraryConfig) -> tuple[FontMetrics, tuple[Finding, ...]]:
     """Measure the two TTF files of a `[font]` files form; one that fails is a `schema` finding."""
     if config.font_files is None:
         return config.font, ()
@@ -57,7 +57,9 @@ def _read_font(root: Path, config: LibraryConfig) -> tuple[FontMetrics | None, t
         try:
             faces.append((root / name).read_bytes())
         except OSError as error:
-            return None, _named("library.toml", (rule_finding("schema", str(error), location),))
+            return config.font, _named(
+                "library.toml", (rule_finding("schema", str(error), location),)
+            )
     try:
         return replace(
             measure_font(*faces),
@@ -66,7 +68,7 @@ def _read_font(root: Path, config: LibraryConfig) -> tuple[FontMetrics | None, t
             text_block=config.font_text_block,
         ), ()
     except InvalidValueError as error:
-        return None, _named("library.toml", (rule_finding("schema", str(error), location),))
+        return config.font, _named("library.toml", (rule_finding("schema", str(error), location),))
 
 
 def _read_symbol(
@@ -128,20 +130,19 @@ def load_library(root: Path) -> Library:
         config.vocabulary,
         config.required_slots,
         config.wires,
-        font,
         config.grid,
         config.lines,
         config.dash,
         config.port_format,
+        font=font,
     )
-    if font is not None:
-        overflow = tuple(
-            found
-            for symbol in library
-            for found in text_outside_body(symbol, font, config.grid.module_mm)
-        )
-        if overflow:
-            raise LibraryError(overflow)
+    overflow = tuple(
+        found
+        for symbol in library
+        for found in text_outside_body(symbol, font, config.grid.module_mm)
+    )
+    if overflow:
+        raise LibraryError(overflow)
     return library
 
 

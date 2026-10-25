@@ -138,8 +138,8 @@ def test_a_bold_text_is_measured_with_the_bold_table():
     assert (narrow.width, wide.width) == (up(2.4, 8), up(2.74, 8))
 
 
-def test_the_value_is_read_only_and_a_library_with_no_font_still_measures():
-    result = measure(WIDE, Orientation.R0, replace(EIGHT, font=None))
+def test_the_value_is_read_only_and_measures():
+    result = measure(WIDE, Orientation.R0, EIGHT)
     assert isinstance(result, Measure)
     with pytest.raises(TypeError):
         result.slots["x"] = result.body  # ty: ignore[invalid-assignment]  # frozen on purpose

@@ -4,6 +4,7 @@ import json
 from typing import Any
 
 import pytest
+from neutral_font import NEUTRAL_FONT, NEUTRAL_FONT_TOML
 
 from symdef import to_fragment, to_fragment_mm
 from symdef.errors import InvalidValueError, UnknownNameError
@@ -18,13 +19,18 @@ WIRES = (
     WireStyle("trunk", Weight.THICK, Style.SOLID),
     WireStyle("wire", Weight.NORMAL, Style.SOLID),
 )
-LIBRARY = Library("IEC 60617", "IEC 60617", "", {}, wires=WIRES, dash={"dashed": (1.25, 0.625)})
+LIBRARY = Library(
+    "IEC 60617", "IEC 60617", "", {}, wires=WIRES, dash={"dashed": (1.25, 0.625)}, font=NEUTRAL_FONT
+)
 PATH = [(0, 0), (4, 0), (4, 6)]
 
-CONFIG = """standard = "IEC 60617"
+CONFIG = (
+    """standard = "IEC 60617"
 title = "IEC 60617 symbols"
 number_pattern = '^S\\d{5}$'
 """
+    + NEUTRAL_FONT_TOML
+)
 GOOD_WIRE = """
 [[wire]]
 id = "link"
@@ -117,7 +123,7 @@ def test_a_bad_wire_table_is_a_finding(body, location, message):
 
 
 def test_a_wire_entry_that_is_not_a_table_is_a_finding():
-    config, findings = parse_config(CONFIG + "wire = [1]\n")
+    config, findings = parse_config(CONFIG.replace("\n[font]", "wire = [1]\n\n[font]", 1))
     assert config is None
     assert [f.location for f in findings] == ["/wire/0"]
 
@@ -138,7 +144,7 @@ def test_a_library_with_wires_round_trips_through_the_bundle():
 
 
 def test_a_bundle_without_wires_has_no_wires_key():
-    data = bundle_to_data(Library("IEC 60617", "IEC 60617", "", {}))
+    data = bundle_to_data(Library("IEC 60617", "IEC 60617", "", {}, font=NEUTRAL_FONT))
     assert "wires" not in data
     assert library_from_bundle(data).wires == ()
 
@@ -148,6 +154,7 @@ def test_bad_bundle_wire_entries_are_findings():
         "schema": 1,
         "standard": "IEC 60617",
         "symbols": {},
+        "font": json.loads(to_json(bundle_to_data(LIBRARY)))["font"],
         "wires": [{"id": "a", "weight": "heavy", "style": "solid"}, 4],
     }
     found = validate_bundle(data)
@@ -155,7 +162,12 @@ def test_bad_bundle_wire_entries_are_findings():
 
 
 MARKER_LIBRARY = Library(
-    "IEC 60617", "IEC 60617", "", {}, wires=(WireStyle("marker", Weight.NORMAL, Style.SOLID),)
+    "IEC 60617",
+    "IEC 60617",
+    "",
+    {},
+    wires=(WireStyle("marker", Weight.NORMAL, Style.SOLID),),
+    font=NEUTRAL_FONT,
 )
 
 

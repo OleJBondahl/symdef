@@ -55,7 +55,7 @@ from symdef.model import (
 )
 from symdef.orient import orient, orient_box, orient_direction, orient_point, translate
 from symdef.repeat import pole_pitch, pole_port, repeat
-from symdef.shapes_mm import line_mm, outline_mm, rect_mm
+from symdef.shapes_mm import group_mm, line_mm, outline_mm, rect_mm
 from symdef.sheet_svg import bold_layer, sheet_svg
 from symdef.slottext import TextPlacement, slot_lines, slot_text
 from symdef.stretch import stretch
@@ -132,6 +132,7 @@ __all__ = [
     "fitted_symbol",
     "fitted_table",
     "from_divisions",
+    "group_mm",
     "keepout_box",
     "leads",
     "line_mm",

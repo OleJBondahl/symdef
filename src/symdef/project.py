@@ -137,6 +137,7 @@ def _bundle(library: Library, root: Path) -> tuple[Finding, ...]:
                 library.vocabulary,
                 library.required_slots,
                 port_format=library.port_format,
+                font=library.font,
             ),
             " in the bundle",
         ),

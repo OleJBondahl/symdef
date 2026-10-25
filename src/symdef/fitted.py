@@ -143,7 +143,6 @@ def _fit_step(  # noqa: PLR0913 - the row, axis, texts, library, height and the 
 def _check_args(  # noqa: PLR0913 - everything fitted_table checks
     row: Symbol,
     texts: Sequence[Mapping[str, str]],
-    library: Library,
     text_height: float,
     *,
     head: Symbol | None,
@@ -151,9 +150,6 @@ def _check_args(  # noqa: PLR0913 - everything fitted_table checks
     fit: str,
 ) -> None:
     """Raise unless the library, height, fit, head and every text are usable."""
-    if library.font is None:
-        msg = "fitted_table needs a library with a font to measure the texts; load one with [font]"
-        raise InvalidValueError(msg)
     if not text_height > 0:
         msg = f"fitted_table needs a text height above zero, got {text_height!r}"
         raise InvalidValueError(msg)
@@ -213,11 +209,11 @@ def fitted_table(  # noqa: PLR0913 - the ruled signature: row, axis, texts, libr
 
     Raises:
         UnknownNameError: If a text names a slot its symbol does not have.
-        InvalidValueError: If the library has no font, `text_height` is not above zero, a text's
+        InvalidValueError: If `text_height` is not above zero, a text's
             slot has no cut across its box, the head lacks a cut where the rows grow, or the
             row count is out of range, or `fit` is neither "cross" nor "step".
     """
-    _check_args(row, texts, library, text_height, head=head, head_texts=head_texts, fit=fit)
+    _check_args(row, texts, text_height, head=head, head_texts=head_texts, fit=fit)
     if fit == "step":
         row, head = _fit_step(row, axis, texts, library, text_height, heads=(head, head_texts))
     else:
@@ -238,12 +234,9 @@ def fitted_symbol(
 
     Raises:
         UnknownNameError: If a text names a slot the symbol does not have.
-        InvalidValueError: If the library has no font, `text_height` is not above zero, or a slot
+        InvalidValueError: If `text_height` is not above zero, or a slot
             that must grow has no cut across its box on that axis.
     """
-    if library.font is None:
-        msg = "fitted_symbol needs a library with a font to measure the texts; load one with [font]"
-        raise InvalidValueError(msg)
     if not text_height > 0:
         msg = f"fitted_symbol needs a text height above zero, got {text_height!r}"
         raise InvalidValueError(msg)

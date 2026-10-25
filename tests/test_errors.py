@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 from build_symbol import PLAIN
+from neutral_font import NEUTRAL_FONT
 
 from symdef import (
     Direction,
@@ -28,7 +29,7 @@ from symdef.model import Slot
 from symdef.units import to_divisions
 
 SRC = Path(__file__).resolve().parent.parent / "src" / "symdef"
-LIBRARY = Library("IEC 60617", "IEC 60617", "", {}, wires=())
+LIBRARY = Library("IEC 60617", "IEC 60617", "", {}, wires=(), font=NEUTRAL_FONT)
 
 
 def with_port():

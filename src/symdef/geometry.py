@@ -72,6 +72,10 @@ class Style(Enum):
     DASH_DOT = "dash_dot"
 
 
+_HALF_TURN_DEG = 180
+_FULL_TURN_DEG = 360
+
+
 class Orientation(Enum):
     """One of the 8 orientations: an optional mirror (flip x), then a clockwise turn by n.
 
@@ -86,6 +90,13 @@ class Orientation(Enum):
     MR90 = "MR90"
     MR180 = "MR180"
     MR270 = "MR270"
+
+    @property
+    def half_turn(self) -> Self:
+        """The orientation turned a further half turn: R0 gives R180, MR90 gives MR270 (D126)."""
+        prefix = "MR" if self.value.startswith("M") else "R"
+        degrees = int(self.value.removeprefix(prefix))
+        return type(self)(f"{prefix}{(degrees + _HALF_TURN_DEG) % _FULL_TURN_DEG}")
 
 
 @dataclass(frozen=True, slots=True)

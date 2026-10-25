@@ -1,6 +1,7 @@
 import dataclasses
 
 import pytest
+from neutral_font import NEUTRAL_FONT
 
 from symdef.errors import LibraryError, SymdefError, UnknownSymbolError
 from symdef.geometry import Direction, Line, Orientation, Point
@@ -117,7 +118,7 @@ def test_nodes_of_keeps_malformed_declarations_as_declared():
 
 def test_library_get_returns_the_symbol_and_raises_when_unknown():
     a = sym("S00001")
-    lib = Library("X", "t", r"^S\d{5}$", {"S00001": a})
+    lib = Library("X", "t", r"^S\d{5}$", {"S00001": a}, font=NEUTRAL_FONT)
     assert lib.get("S00001") is a
     with pytest.raises(UnknownSymbolError):
         lib.get("S99999")
@@ -125,10 +126,10 @@ def test_library_get_returns_the_symbol_and_raises_when_unknown():
 
 def test_library_iterates_sorted_by_number_and_has_a_length():
     symbols = {n: sym(n) for n in ("S00030", "S00002", "S00100")}
-    lib = Library("X", "t", "", symbols)
+    lib = Library("X", "t", "", symbols, font=NEUTRAL_FONT)
     assert [s.reference.number for s in lib] == ["S00002", "S00030", "S00100"]
     assert len(lib) == 3
-    assert len(Library("X", "t", "", {})) == 0
+    assert len(Library("X", "t", "", {}, font=NEUTRAL_FONT)) == 0
 
 
 def test_error_hierarchy():

@@ -8,6 +8,7 @@ import pytest
 from damage import HUGE_INTEGERS, ODD_VALUES, damage
 from hypothesis import given, settings
 from hypothesis import strategies as st
+from neutral_font import NEUTRAL_FONT
 from orientations import inverse
 
 from symdef.geometry import Direction, Line, Orientation, Point, Style, Weight
@@ -26,7 +27,9 @@ from symdef.orient import orient_direction, orient_point
 from symdef.resolve import Resolution, resolve_library
 
 GUIDE = FilePath(__file__).resolve().parent / "fixtures" / "guide"
-CONFIG = LibraryConfig("IEC 60617", "IEC 60617 symbols", r"^S\d{5}$", port_format="{k}.{port}")
+CONFIG = LibraryConfig(
+    "IEC 60617", "IEC 60617 symbols", r"^S\d{5}$", port_format="{k}.{port}", font=NEUTRAL_FONT
+)
 N, E, S, W = Direction.N, Direction.E, Direction.S, Direction.W
 
 HEAD = """schema = 1
@@ -893,7 +896,9 @@ class TestFileRules:
 
     def test_metadata_is_checked_against_the_config_and_the_stem(self):
         data = tomllib.loads(LINK_E)
-        resolution = resolve_library(LibraryConfig("ISO 14617", "t", r"^X\d+$"), {"S00099": data})
+        resolution = resolve_library(
+            LibraryConfig("ISO 14617", "t", r"^X\d+$", font=NEUTRAL_FONT), {"S00099": data}
+        )
         assert located(resolution, "S00099") == [
             ("metadata", "/reference/number"),
             ("metadata", "/reference/number"),
@@ -1187,7 +1192,7 @@ class TestPatternTotality:
         ids=["overflow", "nesting", "open", "range"],
     )
     def test_such_a_pattern_matches_nothing_and_does_not_raise(self, pattern):
-        config = LibraryConfig("IEC 60617", "t", pattern)
+        config = LibraryConfig("IEC 60617", "t", pattern, font=NEUTRAL_FONT)
         resolution = resolve_library(config, files(LINK_E))
         assert located(resolution, "S00010") == [("metadata", "/reference/number")]
         assert "does not match" in resolution.findings["S00010"][0].message
@@ -1267,7 +1272,7 @@ def test_resolving_never_raises_on_damaged_files(stem, pick, action, value, key)
 class TestRepeatPortFormat:
     def test_a_repeat_in_a_library_without_port_format_names_the_key_and_the_fix(self):
         top = composite("S00094", 'parts = [{ as = "a", use = "S00227", repeat = 2 }]\n')
-        bare = LibraryConfig("IEC 60617", "IEC 60617 symbols", r"^S\d{5}$")
+        bare = LibraryConfig("IEC 60617", "IEC 60617 symbols", r"^S\d{5}$", font=NEUTRAL_FONT)
         resolution = resolve_library(bare, guide_sources() | files(top))
         assert located(resolution, "S00094") == [("schema", "/parts/0/repeat")]
         message = resolution.findings["S00094"][0].message
@@ -1276,7 +1281,11 @@ class TestRepeatPortFormat:
 
     def test_the_library_format_reaches_the_ports(self):
         config = LibraryConfig(
-            "IEC 60617", "IEC 60617 symbols", r"^S\d{5}$", port_format="P{k}_{port}"
+            "IEC 60617",
+            "IEC 60617 symbols",
+            r"^S\d{5}$",
+            port_format="P{k}_{port}",
+            font=NEUTRAL_FONT,
         )
         names = ("P1_in", "P1_out", "P2_in", "P2_out")
         exports = ", ".join(f'{n} = "a.{n}"' for n in names)

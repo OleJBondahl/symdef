@@ -239,10 +239,9 @@ def _grid(grid: Grid) -> dict[str, Any]:
 
 
 def bundle_to_data(library: Library) -> dict[str, Any]:
-    """Return the bundle: the schema version, the standard and every symbol, by number (D7).
+    """Return the bundle: the schema version, standard, `font` object and every symbol (D7).
 
-    A library with wire styles adds the `wires` array; one with a font adds the `font` object
-    (the font's fields and an `advances` object); a grid other than the default adds the `grid`
+    A library with wire styles adds the `wires` array; a grid other than the default adds the `grid`
     object (`module_mm`, `divisions_per_module`, the two wire pitches, and `stretch_split` when
     "whole"); one with line widths adds the `lines` object (millimetres by weight name); one with
     dash patterns adds the `dash` object (millimetres by name); one with a `port_format` adds that
@@ -252,6 +251,7 @@ def bundle_to_data(library: Library) -> dict[str, Any]:
     data: dict[str, Any] = {
         "schema": _SCHEMA_VERSION,
         "standard": library.standard,
+        "font": _font(library.font),
         "symbols": {
             number: symbol_to_data(library.symbols[number]) for number in sorted(library.symbols)
         },
@@ -261,8 +261,6 @@ def bundle_to_data(library: Library) -> dict[str, Any]:
             {"id": w.id, "weight": w.weight.name.lower(), "style": w.style.value}
             for w in library.wires
         ]
-    if library.font is not None:
-        data["font"] = _font(library.font)
     if library.grid != DEFAULT_GRID:
         data["grid"] = _grid(library.grid)
     if library.lines:

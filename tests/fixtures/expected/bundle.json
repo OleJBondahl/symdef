@@ -1,4 +1,20 @@
 {
+  "font": {
+    "advances": {
+      "normal": {},
+      "thick": {}
+    },
+    "ascent": 900,
+    "cap_height": 720,
+    "default_advance": {
+      "normal": 600,
+      "thick": 600
+    },
+    "descent": 200,
+    "family": "Neutral",
+    "name": "Neutral",
+    "units_per_em": 1000
+  },
   "schema": 1,
   "standard": "IEC 60617",
   "symbols": {

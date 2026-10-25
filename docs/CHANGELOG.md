@@ -2,6 +2,14 @@
 
 What changed in the public surface of each release: a name added, removed or moved, and a type that widened. Every change to `surface.toml` has a line here. The reasons are in [the decisions](DECISIONS.md).
 
+## 0.29.0
+
+- Added: `group_mm(body, at, *, classes="")`, one `<g class="..." transform="translate(x y)">` around a fragment, `at` in mm (D125).
+- Added: `Orientation.half_turn`, the orientation turned a further half turn, mirror kept (D126).
+- Changed: the closed-standard number in the bundle example of the design is gone; it says "My symbols".
+- Changed (breaking): `Library.font` and `LibraryConfig.font` are `FontMetrics`, keyword-only and required, never `None` (D124). A `library.toml` without `[font]` is refused with a `schema` finding that names the key and both forms, and a bundle without a `font` object fails `validate_bundle`. `bundle_to_data` always writes `font`. `fitted_table` and `fitted_symbol` no longer check for a font. For the `[font]` files form `LibraryConfig.font` is an unmeasured placeholder until `load_library` measures the files.
+- Migrate: add a `[font]` table to every `library.toml` (literal form, or `name` and `files`); a library that wants the measure of no font declares `units_per_em = 1000`, `cap_height = 720`, empty `[font.advances.normal]` and `[font.advances.thick]`, and `[font.default_advance]` `normal = 600` and `thick = 600`. Add `font=` to every `Library(...)` and `LibraryConfig(...)` call, and a `font` object to a hand-written bundle.
+
 ## 0.28.0
 
 - Changed (breaking): `FontMetrics.default_advance` is a `Mapping[Weight, float]`, one number per text weight, required for every weight like `advances`. `library.toml` takes `[font.default_advance]` with `normal` and `thick` (a single number is a schema finding); the bundle's `font.default_advance` is an object. `measure_font` derives each from its own face, and `text_width(..., weight=Weight.THICK)` charges the bold default for an unlisted character (D119).

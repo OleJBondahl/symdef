@@ -10,6 +10,21 @@ standard = "My symbols"
 title = "My symbols"
 number_pattern = '^[a-z][a-z0-9-]*$'
 
+[font]
+name = "Neutral"
+units_per_em = 1000
+cap_height = 720
+ascent = 900
+descent = 200
+
+[font.advances.normal]
+
+[font.advances.thick]
+
+[font.default_advance]
+normal = 600
+thick = 600
+
 [vocabulary]
 path_kinds = ["conductor", "impedance"]
 potentials = []

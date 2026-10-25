@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "symdef"
-version = "0.28.0"
+version = "0.29.0"
 description = "Standard-agnostic core for graphical symbols as strict, typed, immutable Python values"
 readme = "README.md"
 requires-python = ">=3.14"
@@ -107,5 +107,5 @@ convention = "google"
 # vulture, which scans src alone, sees no use. Names match globally: add one only when it is a
 # member of the public data model, or a property of it that consumers read (Grid.outline_margin).
 ignore_names = [
-    "THICK", "VERIFIED", "UNVERIFIED", "ELEMENT", "QUALIFIER", "outline_margin",
+    "THICK", "VERIFIED", "UNVERIFIED", "ELEMENT", "QUALIFIER", "outline_margin", "half_turn",
 ]

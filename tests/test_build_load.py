@@ -4,6 +4,7 @@ import shutil
 from pathlib import Path
 
 import pytest
+from neutral_font import NEUTRAL_FONT_TOML
 from words import WORDS
 
 import symdef
@@ -15,7 +16,11 @@ FIXTURES = Path(__file__).resolve().parent / "fixtures"
 GUIDE = FIXTURES / "guide"
 BROKEN = FIXTURES / "broken"
 
-CONFIG = 'standard = "IEC 60617"\ntitle = "t"\nnumber_pattern = \'^S\\d{5}$\'\n' + WORDS
+CONFIG = (
+    'standard = "IEC 60617"\ntitle = "t"\nnumber_pattern = \'^S\\d{5}$\'\n'
+    + WORDS
+    + NEUTRAL_FONT_TOML
+)
 
 
 def broken_library(rule_id: str, tmp_path: Path) -> Path:
@@ -122,6 +127,7 @@ class TestFailures:
         with pytest.raises(LibraryError) as raised:
             load_library(root)
         assert [f.message.split(":")[0] for f in raised.value.findings] == [
+            "library.toml",
             "library.toml",
             "library.toml",
             "S00001.toml",

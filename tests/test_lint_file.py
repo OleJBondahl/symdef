@@ -6,6 +6,7 @@ import pytest
 from build_symbol import plain_symbol
 from hypothesis import given
 from hypothesis import strategies as st
+from neutral_font import NEUTRAL_FONT
 
 from symdef.files import load_library
 from symdef.geometry import Direction, Point
@@ -22,7 +23,7 @@ from symdef.repeat import repeat
 
 P = Point
 GUIDE = Path(__file__).resolve().parent / "fixtures" / "guide"
-CONFIG = LibraryConfig("IEC 60617", "IEC 60617 symbols", r"^S\d{5}$")
+CONFIG = LibraryConfig("IEC 60617", "IEC 60617 symbols", r"^S\d{5}$", font=NEUTRAL_FONT)
 
 
 def file_data(**changes):
@@ -115,7 +116,7 @@ class TestMetadataFindings:
         assert "differs from the file name" in found.message
 
     def test_a_pattern_that_does_not_compile_matches_nothing(self):
-        config = LibraryConfig("IEC 60617", "t", "(")
+        config = LibraryConfig("IEC 60617", "t", "(", font=NEUTRAL_FONT)
         (found,) = metadata_findings("S00001", file_data(), config)
         assert "does not match" in found.message
 
