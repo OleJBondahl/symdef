@@ -966,6 +966,19 @@ def _tables_problems(data: Mapping[str, Any]) -> list[Finding]:
     return found
 
 
+def _required_problems(data: Mapping[str, Any]) -> list[Finding]:
+    """Check the required keys: `[font]`, `port_format` (D127) and the three strings."""
+    problems = [] if "font" in data else [_finding("", _NO_FONT)]
+    if "port_format" not in data:
+        problems.append(_finding("", _NO_PORT_FORMAT))
+    for key in ("standard", "title", "number_pattern"):
+        if key not in data:
+            problems.append(_finding("", f"missing required key {key!r}"))
+        elif not isinstance(data[key], str):
+            problems.append(_finding(_child("", key), "must be a string"))
+    return problems
+
+
 def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
     """Read `library.toml`: `standard`, `title` and `number_pattern`, all strings, the last a regex.
 
@@ -1001,14 +1014,7 @@ def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
     data, findings = parse_toml(text)
     if data is None:
         return None, findings
-    problems = [] if "font" in data else [_finding("", _NO_FONT)]
-    if "port_format" not in data:
-        problems.append(_finding("", _NO_PORT_FORMAT))
-    for key in ("standard", "title", "number_pattern"):
-        if key not in data:
-            problems.append(_finding("", f"missing required key {key!r}"))
-        elif not isinstance(data[key], str):
-            problems.append(_finding(_child("", key), "must be a string"))
+    problems = _required_problems(data)
     package = data.get("package", "")
     if not isinstance(package, str) or (package and not _PACKAGE.fullmatch(package)):
         problems.append(_finding("/package", "must be a Python package name: letters, digits, _"))

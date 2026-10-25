@@ -17,9 +17,8 @@ GUIDE = FIXTURES / "guide"
 BROKEN = FIXTURES / "broken"
 
 CONFIG = (
-    'standard = "Example set"\ntitle = "t"\nnumber_pattern = \'^[a-z][a-z0-9]*(-[a-z0-9]+)*$\'\nport_format = "{k}.{port}"\n'
-    + WORDS
-    + NEUTRAL_FONT_TOML
+    'standard = "Example set"\ntitle = "t"\nnumber_pattern = \'^[a-z][a-z0-9]*(-[a-z0-9]+)*$\'\n'
+    'port_format = "{k}.{port}"\n' + WORDS + NEUTRAL_FONT_TOML
 )
 
 
