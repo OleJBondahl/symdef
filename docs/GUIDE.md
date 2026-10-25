@@ -475,7 +475,7 @@ font = FontMetrics(
     advances={Weight.NORMAL: {"A": 650, "B": 650, "i": 250}, Weight.THICK: {}},
     default_advance={Weight.NORMAL: 600, Weight.THICK: 600},
 )
-sized = Library("S", "S", "", {}, font=font, grid=Grid(divisions_per_module=8))
+sized = Library("S", "S", "", {}, font=font, grid=Grid(divisions_per_module=8), port_format="{k}.{port}")
 row = Symbol(
     "row",
     SymbolKind.SYMBOL,
@@ -953,7 +953,8 @@ marked = Symbol(
     ),
 )
 whole = Library(
-    "S", "S", "", {}, font=font, grid=Grid(divisions_per_module=1, wire_pitch=1, wire_pitch_fine=1)
+    "S", "S", "", {}, font=font, grid=Grid(divisions_per_module=1, wire_pitch=1, wire_pitch_fine=1),
+    port_format="{k}.{port}",
 )
 roots = tag_roots(marked, Orientation.R0, whole, gap=0.5, marking_height=2)
 assert roots[0] == TextRoot(-2, 3, "right", "baseline")

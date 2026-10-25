@@ -95,7 +95,7 @@ def test_lines_problems_names_each_missing_weight_once():
 
 
 def bare(lines) -> Library:
-    return Library("S", "S", "", {}, lines=lines, font=NEUTRAL_FONT)
+    return Library("S", "S", "", {}, lines=lines, font=NEUTRAL_FONT, port_format="{k}.{port}")
 
 
 def test_the_bundle_round_trips_the_widths():

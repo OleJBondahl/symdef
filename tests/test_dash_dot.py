@@ -124,5 +124,6 @@ def test_a_wire_style_can_be_dash_dot():
         {},
         wires=config.wires,
         font=NEUTRAL_FONT,
+        port_format="{k}.{port}",
     )
     assert to_fragment(wire(library, "o", [(0, 0), (4, 0)])).count("1 0.25 0.0625 0.25") == 1

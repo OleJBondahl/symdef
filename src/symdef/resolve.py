@@ -85,7 +85,7 @@ def _form_findings(data: Mapping[str, Any]) -> tuple[Finding, ...]:
 
 
 def _prepare(
-    index: int, part: Mapping[str, Any], base: Symbol, port_format: str | None
+    index: int, part: Mapping[str, Any], base: Symbol, port_format: str
 ) -> tuple[Symbol | None, tuple[Finding, ...]]:
     """Apply the part's `repeat` first and its `orient` second.
 
@@ -98,12 +98,6 @@ def _prepare(
         count = int(part["repeat"])
         if not 1 <= count <= MAX_REPEAT:
             message = f"repeat must be between 1 and {MAX_REPEAT}"
-            return None, (rule_finding("schema", message, where),)
-        if port_format is None:
-            message = (
-                "repeat needs the library key port_format in library.toml, the template of a "
-                'pole\'s port id with the fields {k} and {port}, such as port_format = "{k}.{port}"'
-            )
             return None, (rule_finding("schema", message, where),)
         symbol = repeat(base, count, port_format=port_format)
     return orient(symbol, Orientation(part.get("orient", "R0"))), ()
@@ -223,7 +217,7 @@ def _namespace_leads(elements: tuple[Element, ...], name: str) -> tuple[Element,
 
 
 def _place_parts(
-    parts: list[Mapping[str, Any]], bases: Mapping[str, Symbol], port_format: str | None
+    parts: list[Mapping[str, Any]], bases: Mapping[str, Symbol], port_format: str
 ) -> tuple[dict[str, Symbol], tuple[Element, ...], tuple[Finding, ...]]:
     """Place every part in file order.
 
@@ -409,7 +403,7 @@ def _part_bodies(
 
 
 def _compose(
-    data: Mapping[str, Any], bases: Mapping[str, Symbol], port_format: str | None
+    data: Mapping[str, Any], bases: Mapping[str, Symbol], port_format: str
 ) -> tuple[Symbol | None, tuple[Finding, ...]]:
     """Flatten a composite whose part files are all resolved (`bases`, by file stem).
 
@@ -470,7 +464,7 @@ class _Walk:
     progress: dict[str, int]
     bases: dict[str, dict[str, Symbol]]
     broken: set[str]
-    port_format: str | None
+    port_format: str
 
 
 def _cycle_findings(stack: list[str], progress: Mapping[str, int], use: str) -> _Found:
@@ -520,7 +514,7 @@ def _finish(walk: _Walk, stem: str) -> tuple[Symbol | None, tuple[Finding, ...]]
 
 
 def _walk(
-    sources: Mapping[str, Mapping[str, Any]], valid: frozenset[str], port_format: str | None
+    sources: Mapping[str, Mapping[str, Any]], valid: frozenset[str], port_format: str
 ) -> tuple[dict[str, Symbol | None], _Found]:
     """Resolve every valid file, part files first, with an explicit stack instead of recursion.
 

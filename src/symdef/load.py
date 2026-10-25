@@ -873,7 +873,7 @@ _BUNDLE = _table(
         "dash": _dash_table,
         "port_format": _port_format_key,
     },
-    required=("schema", "standard", "symbols", "font"),
+    required=("schema", "standard", "symbols", "font", "port_format"),
 )
 
 
@@ -939,7 +939,7 @@ def library_from_bundle(data: Mapping[str, Any]) -> Library:
         grid=grid_from_data(data["grid"]) if "grid" in data else DEFAULT_GRID,
         lines=lines_from_data(data.get("lines", {})),
         dash=dash_from_data(data.get("dash", {})),
-        port_format=data.get("port_format"),
+        port_format=data["port_format"],
     )
 
 
@@ -1044,6 +1044,6 @@ def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
         lines_from_data(data.get("lines", {})),
         dash_from_data(data.get("dash", {})),
         *_font_files(data),
-        data.get("port_format"),
         font=_config_font(data),
+        port_format=data["port_format"],
     ), ()

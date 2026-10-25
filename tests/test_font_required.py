@@ -27,7 +27,7 @@ def test_a_loaded_directory_without_a_font_fails_with_that_finding(tmp_path):
 
 
 def test_a_bundle_without_a_font_object_is_invalid():
-    data = bundle_to_data(Library("S", "S", "", {}, font=NEUTRAL_FONT))
+    data = bundle_to_data(Library("S", "S", "", {}, font=NEUTRAL_FONT, port_format="{k}.{port}"))
     assert validate_bundle(data) == ()
     del data["font"]
     (found,) = validate_bundle(data)

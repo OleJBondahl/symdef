@@ -41,6 +41,7 @@ def library(*symbols, **fields):
     chosen = symbols or (symbol(),)
     wires = (WireStyle("w", Weight.THICK, Style.SOLID),)
     fields.setdefault("font", NEUTRAL_FONT)
+    fields.setdefault("port_format", "{k}.{port}")
     return Library("s", "s", "", {s.reference.number: s for s in chosen}, wires=wires, **fields)
 
 

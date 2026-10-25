@@ -75,21 +75,35 @@ def expected(elements, library):
 
 @given(LINES, DASH, st.lists(ELEMENTS, min_size=1, max_size=6))
 def test_every_width_and_dash_of_a_symbol_is_the_librarys(lines, dash, elements):
-    library = Library("s", "s", "", {}, lines=lines, dash=dash, font=NEUTRAL_FONT)
+    library = Library(
+        "s", "s", "", {}, lines=lines, dash=dash, font=NEUTRAL_FONT, port_format="{k}.{port}"
+    )
     assert tags(draw(sym(*elements), library)) == expected(elements, library)
 
 
 @given(LINES, DASH, st.sampled_from(Weight), st.sampled_from(["solid", "dashed", "dash_dot"]))
 def test_every_width_and_dash_of_a_wire_is_the_librarys(lines, dash, weight, style):
     wires = (WireStyle("w", weight, Style(style)),)
-    library = Library("s", "s", "", {}, wires=wires, lines=lines, dash=dash, font=NEUTRAL_FONT)
+    library = Library(
+        "s",
+        "s",
+        "",
+        {},
+        wires=wires,
+        lines=lines,
+        dash=dash,
+        font=NEUTRAL_FONT,
+        port_format="{k}.{port}",
+    )
     drawn = wire(library, "w", [(0, 0), (4, 0), (4, 6)])
     assert tags(draw(drawn, library)) == expected(drawn.elements, library)
 
 
 @given(LINES, DASH, st.lists(ELEMENTS, min_size=1, max_size=3), st.integers(1, 4))
 def test_every_width_and_dash_of_a_table_is_the_librarys(lines, dash, elements, n):
-    library = Library("s", "s", "", {}, lines=lines, dash=dash, font=NEUTRAL_FONT)
+    library = Library(
+        "s", "s", "", {}, lines=lines, dash=dash, font=NEUTRAL_FONT, port_format="{k}.{port}"
+    )
     drawn = table(sym(*elements), n, "y", port_format="{k}.{port}")
     assert tags(draw(drawn, library)) == expected(drawn.elements, library)
 
@@ -102,6 +116,7 @@ LIBRARY = Library(
     lines=dict.fromkeys(Weight, 0.3),
     dash={"dashed": (1, 2), "dash_dot": (3, 4, 5, 6)},
     font=NEUTRAL_FONT,
+    port_format="{k}.{port}",
 )
 DASHED = sym(Line(P, Point(1, 0), Weight.RULE, Style.DASHED))
 
@@ -128,20 +143,40 @@ def test_a_call_without_a_library_keeps_the_explicit_output():
 def test_a_missing_width_names_the_weight_and_the_two_ways_to_give_it():
     solid = sym(Line(P, Point(1, 0), Weight.RULE))
     with pytest.raises(UnknownNameError, match=r"no width for RULE.*weights_mm.*\[lines\]"):
-        draw(solid, Library("s", "s", "", {}, lines={Weight.NORMAL: 0.2}, font=NEUTRAL_FONT))
+        draw(
+            solid,
+            Library(
+                "s",
+                "s",
+                "",
+                {},
+                lines={Weight.NORMAL: 0.2},
+                font=NEUTRAL_FONT,
+                port_format="{k}.{port}",
+            ),
+        )
     with pytest.raises(UnknownNameError, match="no width for RULE"):
         draw(solid)
 
 
 def test_a_missing_dashed_pattern_names_the_key():
-    library = Library("s", "s", "", {}, lines={Weight.RULE: 0.2}, font=NEUTRAL_FONT)
+    library = Library(
+        "s", "s", "", {}, lines={Weight.RULE: 0.2}, font=NEUTRAL_FONT, port_format="{k}.{port}"
+    )
     with pytest.raises(UnknownNameError, match=r"dashed.*dash_mm.*\[dash\]"):
         draw(DASHED, library)
 
 
 def test_a_missing_dash_dot_pattern_names_the_key_and_the_argument():
     library = Library(
-        "s", "s", "", {}, lines={Weight.RULE: 0.2}, dash={"dashed": (1, 1)}, font=NEUTRAL_FONT
+        "s",
+        "s",
+        "",
+        {},
+        lines={Weight.RULE: 0.2},
+        dash={"dashed": (1, 1)},
+        font=NEUTRAL_FONT,
+        port_format="{k}.{port}",
     )
     dotted = sym(Line(P, Point(1, 0), Weight.RULE, Style.DASH_DOT))
     with pytest.raises(InvalidValueError, match=r"dash_dot_mm.*dash_dot"):

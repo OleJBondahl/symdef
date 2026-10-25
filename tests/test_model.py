@@ -118,7 +118,14 @@ def test_nodes_of_keeps_malformed_declarations_as_declared():
 
 def test_library_get_returns_the_symbol_and_raises_when_unknown():
     a = sym("sym-a")
-    lib = Library("X", "t", r"^[a-z][a-z0-9]*(-[a-z0-9]+)*$", {"sym-a": a}, font=NEUTRAL_FONT)
+    lib = Library(
+        "X",
+        "t",
+        r"^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+        {"sym-a": a},
+        font=NEUTRAL_FONT,
+        port_format="{k}.{port}",
+    )
     assert lib.get("sym-a") is a
     with pytest.raises(UnknownSymbolError):
         lib.get("sym-missing")
@@ -126,10 +133,10 @@ def test_library_get_returns_the_symbol_and_raises_when_unknown():
 
 def test_library_iterates_sorted_by_number_and_has_a_length():
     symbols = {n: sym(n) for n in ("sym-z-030", "sym-b", "sym-z-100")}
-    lib = Library("X", "t", "", symbols, font=NEUTRAL_FONT)
+    lib = Library("X", "t", "", symbols, font=NEUTRAL_FONT, port_format="{k}.{port}")
     assert [s.reference.number for s in lib] == ["sym-b", "sym-z-030", "sym-z-100"]
     assert len(lib) == 3
-    assert len(Library("X", "t", "", {}, font=NEUTRAL_FONT)) == 0
+    assert len(Library("X", "t", "", {}, font=NEUTRAL_FONT, port_format="{k}.{port}")) == 0
 
 
 def test_error_hierarchy():

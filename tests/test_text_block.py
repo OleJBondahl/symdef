@@ -74,7 +74,14 @@ def test_the_cap_rule_keeps_the_cap_pitch_and_centre():
 
 
 def test_the_bundle_carries_a_grid_rule_and_leaves_the_cap_default_out():
-    grid = bundle_to_data(Library("S", "S", "", {}, font=GRID_FONT))["font"]
+    grid = bundle_to_data(Library("S", "S", "", {}, font=GRID_FONT, port_format="{k}.{port}"))[
+        "font"
+    ]
     assert grid["text_block"] == "grid"
     assert font_from_data(grid).text_block == "grid"
-    assert "text_block" not in bundle_to_data(Library("S", "S", "", {}, font=CAP_FONT))["font"]
+    assert (
+        "text_block"
+        not in bundle_to_data(Library("S", "S", "", {}, font=CAP_FONT, port_format="{k}.{port}"))[
+            "font"
+        ]
+    )

@@ -15,6 +15,7 @@
     "name": "Neutral",
     "units_per_em": 1000
   },
+  "port_format": "{k}.{port}",
   "schema": 1,
   "standard": "Example set",
   "symbols": {
