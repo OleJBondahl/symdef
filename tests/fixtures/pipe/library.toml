@@ -1,6 +1,7 @@
 standard = "Pipe set"
 title = "Pipe set symbols"
 number_pattern = '^P\d{5}$'
+port_format = "{k}.{port}"
 
 [font]
 name = "Neutral"

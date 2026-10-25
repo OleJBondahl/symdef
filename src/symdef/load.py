@@ -846,6 +846,12 @@ def dash_findings(
     return [_finding("/dash", m) for m in dash_problems(symbols, wires, dash)]
 
 
+_NO_PORT_FORMAT = (
+    "missing required key 'port_format'; add port_format to library.toml, the template of a "
+    'repeated pole\'s port id with the fields {k} and {port}, such as port_format = "{k}.{port}"'
+)
+
+
 def _port_format_key(value: object, location: str) -> list[Finding]:
     """Check the library-wide `port_format`: a template with exactly `{k}` and `{port}` (D123)."""
     try:
@@ -984,7 +990,7 @@ def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
     lengths above zero; `dashed` has two and `dash_dot` four. Which of the two a library needs
     is checked when its symbols are known.
     The optional top-level `port_format` is the template of a repeated pole's port id, with the
-    fields `{k}` and `{port}` (D123); a part's `repeat` needs it.
+    fields `{k}` and `{port}` (D123, D127); it is required.
 
     Args:
         text: The file's TOML text.
@@ -996,6 +1002,8 @@ def parse_config(text: str) -> tuple[LibraryConfig | None, tuple[Finding, ...]]:
     if data is None:
         return None, findings
     problems = [] if "font" in data else [_finding("", _NO_FONT)]
+    if "port_format" not in data:
+        problems.append(_finding("", _NO_PORT_FORMAT))
     for key in ("standard", "title", "number_pattern"):
         if key not in data:
             problems.append(_finding("", f"missing required key {key!r}"))

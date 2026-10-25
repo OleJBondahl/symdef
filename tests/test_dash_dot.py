@@ -109,7 +109,7 @@ def test_the_keyword_is_only_needed_by_a_symbol_that_uses_the_style():
 
 def test_a_wire_style_can_be_dash_dot():
     text = (
-        'standard = "Example set"\ntitle = "t"\nnumber_pattern = "^S"\n'
+        'standard = "Example set"\ntitle = "t"\nnumber_pattern = "^S"\nport_format = "{k}.{port}"\n'
         + NEUTRAL_FONT_TOML
         + '[[wire]]\nid = "o"\n'
     )

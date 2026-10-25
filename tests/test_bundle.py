@@ -194,7 +194,7 @@ class TestLoadBundle:
         repo = tmp_path / "repo"
         (repo / "symbols").mkdir(parents=True)
         (repo / "library.toml").write_text(
-            "standard = 'Plant set 1.1'\ntitle = 't'\nnumber_pattern = '^[0-9A-Za-z.-]+$'\n"
+            "standard = 'Plant set 1.1'\ntitle = 't'\nnumber_pattern = '^[0-9A-Za-z.-]+$'\nport_format = '{k}.{port}'\n"
             + NEUTRAL_FONT_TOML
             + WORDS,
             encoding="utf-8",
