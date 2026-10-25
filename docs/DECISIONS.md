@@ -72,7 +72,7 @@ Cost if wrong: two extra keys in the bundle and one in `load_bundle`.
 ## D8. The bundle package name is the normalised standard
 
 Decided: `src/<package>/bundle.json`, with `<package>` = the standard lowercased with every
-non-alphanumeric character removed (`Example set` -> `exampleset`, `ISA 5.1` -> `isa51`).
+non-alphanumeric character removed (`Example set` -> `exampleset`, `Plant set 1.1` -> `plantset11`).
 Why: `write_build(library, root)` gets no package name and `library.toml` has no key for it.
 Cost if wrong: an optional `package` key in `library.toml`; a rename of the output directory.
 
@@ -481,7 +481,7 @@ and `validate_bundle` (both in `load.py`, pure) and `library_from_bundle`; `vali
 every symbol with `validate` and requires the resolved form (no `parts`, `ports` an array, slots
 tables) and a key that is a file stem and equals the symbol's `reference.number`. A file stem is
 letters, digits, `_` and `-` in parts joined by single dots (`5.1`, `PIPE-1.1`): the guide
-says the number is the file stem and later standards (ISA 5.1, Pipe set) have dots in theirs, so
+says the number is the file stem and later sets (Plant set 1.1, Pipe set) have dots in theirs, so
 dots must load; a leading, trailing or doubled dot, a separator, a space or an empty name cannot
 name a file safely. `write_build` and `stale_build` raise `ValueError` for a library with a
 number that is not a file stem, before reading or writing anything (`is_file_stem` in `load.py`
@@ -912,11 +912,11 @@ dependency, `zensical==0.0.68`, the latest stable) in `--strict` mode, so a brok
 build. The interface spec and the JSON schema are published at the site root, the schema at its
 `$id`. `tests/test_site.py` proves a broken link fails the build; `tests/test_tutorial.py` runs
 every `symdef` command, edit step and python block of the tutorial in an empty folder. The
-`markdown` dev dependency goes. The gallery set is the six IEC fixtures, plus a gate valve, a pump
+`markdown` dev dependency goes. The gallery set is the six standard-style fixtures, plus a gate valve, a pump
 and a check valve drawn here (S90001 to S90003, path kind `pipe`, which shows a set declaring its
 own word). S00254 carries `pole_pitch = 8`, the fix D-concern C1 names, because `symdef check`
 refuses the fixture's pitch overflow; the other five files are byte-equal to the guide fixtures.
-No page names a user of the toolkit. The README carries the provenance line for every IEC-style
+No page names a user of the toolkit. The README carries the provenance line for every standard-style
 example: original drawings, `unverified`. Both workflows run on `ubuntu-24.04` with an exact uv
 version.
 Why: the site must cover everything a newcomer needs, with no other repository to read.

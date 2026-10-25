@@ -47,7 +47,7 @@ def built(tmp_path) -> Path:
 class TestPackageName:
     @pytest.mark.parametrize(
         ("standard", "package"),
-        [("Example set", "exampleset"), ("ISA 5.1", "isa51"), ("Pipe set", "pipeset")],
+        [("Example set", "exampleset"), ("Plant set 1.1", "plantset11"), ("Pipe set", "pipeset")],
     )
     def test_the_standard_lowercased_without_non_alphanumerics(self, standard, package):
         assert package_name(standard) == package

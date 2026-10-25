@@ -15,7 +15,7 @@ v0.1.0 to v0.3.0 were git tags named `graphical-symbols`.
 
 Every example symbol in this repository, the docs and the gallery included, is drawn
 independently in the style of a published standard (for the `S000xx` numbers). None
-is copied from the IEC database or from any standard's own drawings. Each is marked
+is copied from a standard's own symbol database or drawings. Each is marked
 `status = "unverified"`: nobody has checked it against the standard.
 
 Documentation: <https://olejbondahl.github.io/symdef/> (tutorial, guide, symbol interface, API
