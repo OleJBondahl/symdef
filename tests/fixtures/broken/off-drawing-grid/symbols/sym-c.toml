@@ -1,0 +1,12 @@
+schema = 1
+name = "Slot point off the grid"
+kind = "element"
+status = "unverified"
+reference = { standard = "Example set", number = "sym-c" }
+
+elements = [
+  { line = [[0, 0], [0, 1]] },
+]
+
+[slots]
+tag = { at = [-1.1, 2], side = "W", box = [6, 1] }

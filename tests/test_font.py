@@ -203,7 +203,7 @@ OVERFLOWING = """schema = 1
 name = "Boxed"
 kind = "qualifier"
 status = "unverified"
-reference = { standard = "Example set", number = "S99999" }
+reference = { standard = "Example set", number = "sym-missing" }
 anchors = [{ id = "link", at = [0, 0], dir = "E" }]
 elements = [
   { line = [[0, 0], [2, 0]] },
@@ -217,12 +217,12 @@ def test_load_library_rejects_a_fixed_text_that_outgrows_its_body(tmp_path):
     toml = tmp_path / "lib" / "library.toml"
     toml.write_text(without_font(toml) + "\n[font]" + CONFIG.split("[font]")[1], encoding="utf-8")
     load_library(tmp_path / "lib")
-    (tmp_path / "lib" / "symbols" / "S99999.toml").write_text(OVERFLOWING, encoding="utf-8")
+    (tmp_path / "lib" / "symbols" / "sym-missing.toml").write_text(OVERFLOWING, encoding="utf-8")
     with pytest.raises(LibraryError) as raised:
         load_library(tmp_path / "lib")
     (found,) = raised.value.findings
     assert found.rule == "text-outside-body"
-    assert "symbol S99999" in found.message
+    assert "symbol sym-missing" in found.message
     assert "'BBBBBBBBBB'" in found.message
     assert "mm; shorten the text" in found.message
 

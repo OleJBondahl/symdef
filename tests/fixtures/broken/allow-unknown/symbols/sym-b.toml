@@ -1,0 +1,13 @@
+schema = 1
+name = "Exemption without a reason"
+kind = "element"
+status = "unverified"
+reference = { standard = "Example set", number = "sym-b" }
+
+lint_allow = [
+  { rule = "off-drawing-grid", reason = "  " },
+]
+
+elements = [
+  { circle = [0, 0], r = 0.3 },
+]

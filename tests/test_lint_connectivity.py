@@ -447,7 +447,7 @@ class TestFixtures:
 
     def test_the_through_axis_fixture_has_a_case_for_each_way_to_be_off(self):
         found = run_fixture_by_file("through-axis")
-        assert set(found) == {"S00001", "S00002", "S00003"}
+        assert set(found) == {"sym-a", "sym-b", "sym-c"}
         assert all(any(f.rule == "through-axis" for f in fs) for fs in found.values())
 
 
@@ -479,11 +479,20 @@ class TestInEveryOrientation:
 
 
 class TestGuideExamples:
-    @pytest.mark.parametrize("number", ["S00227", "S00230", "S00305", "S00171", "S00016"])
+    @pytest.mark.parametrize(
+        "number",
+        [
+            "make-contact",
+            "change-over-contact",
+            "relay-coil",
+            "operated-by-pushing",
+            "connection-point",
+        ],
+    )
     def test_the_guide_examples_trip_no_connectivity_rule(self, library, number):
         assert [f for f in lint(library.get(number)) if f.rule in CONNECTIVITY_RULES] == []
 
     def test_the_change_over_contact_has_a_through_path_and_a_second_path(self, library):
-        symbol = library.get("S00230")
+        symbol = library.get("change-over-contact")
         assert sum(p.through for p in symbol.paths) == 1
         assert len(symbol.paths) == 2

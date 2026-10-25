@@ -3,11 +3,11 @@ schema = 1
 name = "Fixture"
 kind = "symbol"
 status = "unverified"
-reference = { standard = "Example set", number = "S00001" }
+reference = { standard = "Example set", number = "sym-a" }
 
 parts = [
-  { use = "S00227" },
-  { as = "actuator", use = "S00171", attach = "link", to = "contact.link", length = 2 },
+  { use = "make-contact" },
+  { as = "actuator", use = "operated-by-pushing", attach = "link", to = "contact.link", length = 2 },
 ]
 
 ports = { in = "contact.in", out = "contact.out" }

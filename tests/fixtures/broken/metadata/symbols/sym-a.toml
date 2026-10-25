@@ -1,0 +1,9 @@
+schema = 1
+name = ""
+kind = "element"
+status = "unverified"
+reference = { standard = "Example set", number = "sym-a" }
+
+elements = [
+  { line = [[0, 0], [0, 1]] },
+]

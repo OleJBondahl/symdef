@@ -2,11 +2,11 @@ schema = 1.0
 name = "Integral floats"
 kind = "symbol"
 status = "unverified"
-reference = { standard = "Example set", number = "S00001" }
+reference = { standard = "Example set", number = "sym-a" }
 pole_pitch = 8.0
 
 parts = [
-  { as = "main", use = "S00227", repeat = 3.0 },
+  { as = "main", use = "make-contact", repeat = 3.0 },
 ]
 
 [slots]

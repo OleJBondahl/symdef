@@ -2,7 +2,7 @@ schema = 1
 name = "Fixture"
 kind = "symbol"
 status = "unverified"
-reference = { standard = "Example set", number = "S00001" }
+reference = { standard = "Example set", number = "sym-a" }
 
 ports = [
   { id = "in", at = [0, -2], dir = "N" },

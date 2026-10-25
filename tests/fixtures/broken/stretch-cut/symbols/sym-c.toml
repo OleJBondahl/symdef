@@ -1,0 +1,10 @@
+schema = 1
+name = "Two cuts at the same place"
+kind = "element"
+status = "unverified"
+reference = { standard = "Example set", number = "sym-c" }
+
+stretch = [{ axis = "x", at = 0 }, { axis = "x", at = 0 }]
+elements = [
+  { line = [[-1, 0], [1, 0]] },
+]

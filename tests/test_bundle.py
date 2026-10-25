@@ -115,33 +115,33 @@ class TestValidateBundle:
 
     def test_a_symbol_that_fails_validation_is_located_inside_the_bundle(self):
         data = bundle_data()
-        data["symbols"]["S00227"]["ports"][0]["dir"] = "up"
+        data["symbols"]["make-contact"]["ports"][0]["dir"] = "up"
         (finding,) = validate_bundle(data)
-        assert (finding.rule, finding.location) == ("schema", "/symbols/S00227/ports/0/dir")
+        assert (finding.rule, finding.location) == ("schema", "/symbols/make-contact/ports/0/dir")
 
     def test_a_whole_symbol_problem_is_located_at_the_symbol(self):
         data = bundle_data()
-        del data["symbols"]["S00227"]["elements"]
+        del data["symbols"]["make-contact"]["elements"]
         (finding,) = validate_bundle(data)
-        assert finding.location == "/symbols/S00227"
+        assert finding.location == "/symbols/make-contact"
 
     def test_a_symbol_that_is_not_a_table_is_reported(self):
         data = bundle_data()
-        data["symbols"]["S00227"] = 3
+        data["symbols"]["make-contact"] = 3
         (finding,) = validate_bundle(data)
-        assert finding.location == "/symbols/S00227"
+        assert finding.location == "/symbols/make-contact"
 
     def test_a_bundle_symbol_must_be_resolved(self):
         data = bundle_data()
-        symbol = data["symbols"]["S00227"]
+        symbol = data["symbols"]["make-contact"]
         symbol["parts"] = []
         symbol["ports"] = {"in": "x.in"}
         symbol["slots"]["tag"] = "x.tag"
         locations = {f.location for f in validate_bundle(data)}
         assert locations == {
-            "/symbols/S00227/parts",
-            "/symbols/S00227/ports",
-            "/symbols/S00227/slots/tag",
+            "/symbols/make-contact/parts",
+            "/symbols/make-contact/ports",
+            "/symbols/make-contact/slots/tag",
         }
 
     @pytest.mark.parametrize(
@@ -150,35 +150,35 @@ class TestValidateBundle:
     )
     def test_a_key_that_is_not_a_file_name_stem_is_reported(self, key):
         data = bundle_data()
-        symbol = data["symbols"].pop("S00227")
+        symbol = data["symbols"].pop("make-contact")
         symbol["reference"]["number"] = key
         data["symbols"][key] = symbol
         (finding,) = validate_bundle(data)
         assert finding.location == f"/symbols/{key.replace('/', '~1')}"
         assert "file name" in finding.message
 
-    @pytest.mark.parametrize("key", ["a.b", "5.1", "PIPE-1.1", "A_b-c.d.e", "S00227"])
+    @pytest.mark.parametrize("key", ["a.b", "5.1", "PIPE-1.1", "A_b-c.d.e", "make-contact"])
     def test_a_key_with_interior_dots_is_a_file_name_stem(self, key):
         data = bundle_data()
-        symbol = data["symbols"].pop("S00227")
+        symbol = data["symbols"].pop("make-contact")
         symbol["reference"]["number"] = key
         data["symbols"][key] = symbol
         assert validate_bundle(data) == ()
 
     def test_a_key_must_equal_the_reference_number_of_its_symbol(self):
         data = bundle_data()
-        data["symbols"]["S00227"]["reference"]["number"] = "S00228"
+        data["symbols"]["make-contact"]["reference"]["number"] = "make-contact-2"
         (finding,) = validate_bundle(data)
         assert finding.rule == "schema"
-        assert finding.location == "/symbols/S00227/reference/number"
-        assert "S00227" in finding.message
+        assert finding.location == "/symbols/make-contact/reference/number"
+        assert "make-contact" in finding.message
 
     @pytest.mark.parametrize("value", [float("nan"), float("inf"), 1e7])
     def test_numbers_are_bounded_like_in_a_source_file(self, value):
         data = bundle_data()
-        data["symbols"]["S00227"]["body_box"][0][0] = value
+        data["symbols"]["make-contact"]["body_box"][0][0] = value
         (finding,) = validate_bundle(data)
-        assert finding.location == "/symbols/S00227/body_box/0/0"
+        assert finding.location == "/symbols/make-contact/body_box/0/0"
 
 
 class TestLoadBundle:
@@ -199,9 +199,11 @@ class TestLoadBundle:
             + WORDS,
             encoding="utf-8",
         )
-        source = (GUIDE / "symbols" / "S00227.toml").read_text(encoding="utf-8")
+        source = (GUIDE / "symbols" / "make-contact.toml").read_text(encoding="utf-8")
         for number in ("5.1", "PIPE-1.1"):
-            text = source.replace('"S00227"', f'"{number}"').replace("Example set", "Plant set 1.1")
+            text = source.replace('"make-contact"', f'"{number}"').replace(
+                "Example set", "Plant set 1.1"
+            )
             (repo / "symbols" / f"{number}.toml").write_text(text, encoding="utf-8")
         library = load_library(repo)
         assert sorted(library.symbols) == ["5.1", "PIPE-1.1"]
@@ -257,22 +259,22 @@ class TestLoadBundle:
 
     def test_a_symbol_failing_validation_raises_library_error_naming_it(self, tmp_path):
         data = bundle_data()
-        del data["symbols"]["S00227"]["name"]
+        del data["symbols"]["make-contact"]["name"]
         with pytest.raises(LibraryError) as raised:
             load_bundle(bundle_file(tmp_path, data))
         (finding,) = raised.value.findings
-        assert finding.location == "/symbols/S00227"
+        assert finding.location == "/symbols/make-contact"
         assert "'name'" in finding.message
 
     def test_every_problem_is_reported_at_once(self, tmp_path):
         data = bundle_data()
         data["schema"] = 2
-        data["symbols"]["S00227"]["kind"] = "thing"
-        data["symbols"]["S00016"]["status"] = "maybe"
+        data["symbols"]["make-contact"]["kind"] = "thing"
+        data["symbols"]["connection-point"]["status"] = "maybe"
         with pytest.raises(LibraryError) as raised:
             load_bundle(bundle_file(tmp_path, data))
         assert sorted(str(f.location) for f in raised.value.findings) == [
             "/schema",
-            "/symbols/S00016/status",
-            "/symbols/S00227/kind",
+            "/symbols/connection-point/status",
+            "/symbols/make-contact/kind",
         ]

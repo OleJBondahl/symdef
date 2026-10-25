@@ -14,8 +14,14 @@ LIBRARY = load_library(GUIDE)
 
 
 def one_symbol_library(**changes) -> Library:
-    symbol = replace(LIBRARY.get("S00227"), **changes)
-    return Library("Example set", "a title", r"^S\d{5}$", {"S00227": symbol}, font=NEUTRAL_FONT)
+    symbol = replace(LIBRARY.get("make-contact"), **changes)
+    return Library(
+        "Example set",
+        "a title",
+        r"^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+        {"make-contact": symbol},
+        font=NEUTRAL_FONT,
+    )
 
 
 def test_the_text_of_a_one_symbol_gallery_is_exact():
@@ -27,15 +33,20 @@ def test_the_text_of_a_one_symbol_gallery_is_exact():
         "\n"
         "| Number | Name | Kind | Status | Plain | Annotated |\n"
         "| --- | --- | --- | --- | --- | --- |\n"
-        "| [S00227](resolved/S00227.json) | Make contact, general symbol | symbol | unverified"
-        " | ![S00227](svg/S00227.svg) | ![S00227 annotated](annotated/S00227.svg) |\n"
+        "| [make-contact](resolved/make-contact.json) | Make contact, general symbol | symbol"
+        " | unverified | ![make-contact](svg/make-contact.svg)"
+        " | ![make-contact annotated](annotated/make-contact.svg) |\n"
     )
 
 
 def test_rows_are_sorted_by_number_whatever_the_order_of_the_library():
-    symbols = {n: LIBRARY.get(n) for n in ("S00305", "S00016", "S00254")}
+    symbols = {n: LIBRARY.get(n) for n in ("relay-coil", "connection-point", "push-button")}
     rows = readme(Library("X", "t", "", symbols, font=NEUTRAL_FONT)).splitlines()[6:]
-    assert [row.split("]")[0] for row in rows] == ["| [S00016", "| [S00254", "| [S00305"]
+    assert [row.split("]")[0] for row in rows] == [
+        "| [connection-point",
+        "| [push-button",
+        "| [relay-coil",
+    ]
 
 
 def test_the_status_of_every_symbol_is_shown_next_to_it():
@@ -50,8 +61,8 @@ def test_the_kind_is_shown():
 
 def test_plain_and_annotated_images_sit_in_the_same_row_with_relative_links():
     (row,) = readme(one_symbol_library()).splitlines()[6:]
-    assert row.index("![S00227](svg/S00227.svg)") < row.index(
-        "![S00227 annotated](annotated/S00227.svg)"
+    assert row.index("![make-contact](svg/make-contact.svg)") < row.index(
+        "![make-contact annotated](annotated/make-contact.svg)"
     )
 
 
@@ -69,7 +80,7 @@ def test_a_name_cannot_break_the_table():
 
 
 def test_a_lone_surrogate_in_a_number_does_not_raise():
-    symbol = LIBRARY.get("S00227")
+    symbol = LIBRARY.get("make-contact")
     (row,) = readme(Library("X", "t", "", {"S\ud800": symbol}, font=NEUTRAL_FONT)).splitlines()[6:]
     assert "resolved/S%3F.json" in row
 
@@ -91,7 +102,7 @@ def test_the_text_is_deterministic_with_lf_and_one_trailing_newline():
 
 
 def test_the_sample_texts_of_the_make_contact():
-    assert sample_texts(LIBRARY.get("S00227")) == {
+    assert sample_texts(LIBRARY.get("make-contact")) == {
         "tag": "-X1",
         "value": "10 A",
         "marking.in": "1",
@@ -100,12 +111,12 @@ def test_the_sample_texts_of_the_make_contact():
 
 
 def test_a_marking_is_the_one_based_position_of_its_port():
-    texts = sample_texts(LIBRARY.get("S00230"))
+    texts = sample_texts(LIBRARY.get("change-over-contact"))
     assert [texts[f"marking.{p}"] for p in ("com", "no", "nc")] == ["1", "2", "3"]
 
 
 def test_ports_that_share_an_id_share_the_first_position():
-    symbol = LIBRARY.get("S00016")
+    symbol = LIBRARY.get("connection-point")
     doubled = replace(
         symbol, ports=(*symbol.ports, replace(symbol.ports[0], position=symbol.ports[1].position))
     )
@@ -113,4 +124,7 @@ def test_ports_that_share_an_id_share_the_first_position():
 
 
 def test_a_symbol_without_ports_still_has_a_tag_and_a_value():
-    assert sample_texts(replace(LIBRARY.get("S00227"), ports=())) == {"tag": "-X1", "value": "10 A"}
+    assert sample_texts(replace(LIBRARY.get("make-contact"), ports=())) == {
+        "tag": "-X1",
+        "value": "10 A",
+    }

@@ -3,7 +3,7 @@ schema = 1
 name = "Fixture"
 kind = "element"
 status = "unverified"
-reference = { standard = "Example set", number = "S00001" }
+reference = { standard = "Example set", number = "sym-a" }
 
 elements = [
   { circle = [0, 0], r = -inf },

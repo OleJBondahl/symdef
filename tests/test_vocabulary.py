@@ -89,7 +89,7 @@ class TestAnUndeclaredWordIsALoadError:
         text = (GUIDE / "library.toml").read_text(encoding="utf-8")
         config = text.replace('links = ["mechanical_link"]', "links = []")
         assert messages(copy_of(GUIDE, tmp_path, config)) == [
-            undeclared("S00254", "link", "mechanical_link", "links", 9)
+            undeclared("push-button", "link", "mechanical_link", "links", 9)
         ]
 
     def test_a_word_used_twice_is_reported_once_at_its_first_line(self, tmp_path):

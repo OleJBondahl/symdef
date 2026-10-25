@@ -33,7 +33,7 @@ PATH = [(0, 0), (4, 0), (4, 6)]
 CONFIG = (
     """standard = "Example set"
 title = "Example set symbols"
-number_pattern = '^S\\d{5}$'
+number_pattern = '^[a-z][a-z0-9]*(-[a-z0-9]+)*$'
 """
     + NEUTRAL_FONT_TOML
 )

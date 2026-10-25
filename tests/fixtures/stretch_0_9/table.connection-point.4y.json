@@ -1,0 +1,265 @@
+{
+  "anchors": [],
+  "body_box": [
+    [
+      -0.25,
+      -0.25
+    ],
+    [
+      0.25,
+      1.75
+    ]
+  ],
+  "elements": [
+    {
+      "circle": [
+        0,
+        0
+      ],
+      "fill": "solid",
+      "r": 0.25,
+      "weight": "normal"
+    },
+    {
+      "circle": [
+        0,
+        0.5
+      ],
+      "fill": "solid",
+      "r": 0.25,
+      "weight": "normal"
+    },
+    {
+      "circle": [
+        0,
+        1
+      ],
+      "fill": "solid",
+      "r": 0.25,
+      "weight": "normal"
+    },
+    {
+      "circle": [
+        0,
+        1.5
+      ],
+      "fill": "solid",
+      "r": 0.25,
+      "weight": "normal"
+    }
+  ],
+  "keepout_box": [
+    [
+      -0.25,
+      -0.25
+    ],
+    [
+      0.25,
+      1.75
+    ]
+  ],
+  "kind": "symbol",
+  "lint_allow": [
+    {
+      "reason": "junction: wires meet at the centre of the dot",
+      "rule": "port-on-body-edge"
+    },
+    {
+      "reason": "junction: wires start inside the dot",
+      "rule": "port-lane-clear"
+    },
+    {
+      "reason": "a junction carries no tag or markings",
+      "rule": "slot-missing"
+    }
+  ],
+  "name": "Connection point",
+  "nodes": [
+    {
+      "ports": [
+        "1.n",
+        "1.e",
+        "1.s",
+        "1.w"
+      ]
+    },
+    {
+      "ports": [
+        "2.n",
+        "2.e",
+        "2.s",
+        "2.w"
+      ]
+    },
+    {
+      "ports": [
+        "3.n",
+        "3.e",
+        "3.s",
+        "3.w"
+      ]
+    },
+    {
+      "ports": [
+        "4.n",
+        "4.e",
+        "4.s",
+        "4.w"
+      ]
+    }
+  ],
+  "paths": [],
+  "ports": [
+    {
+      "at": [
+        0,
+        0
+      ],
+      "description": "",
+      "dir": "N",
+      "id": "1.n"
+    },
+    {
+      "at": [
+        0,
+        0
+      ],
+      "description": "",
+      "dir": "E",
+      "id": "1.e"
+    },
+    {
+      "at": [
+        0,
+        0
+      ],
+      "description": "",
+      "dir": "S",
+      "id": "1.s"
+    },
+    {
+      "at": [
+        0,
+        0
+      ],
+      "description": "",
+      "dir": "W",
+      "id": "1.w"
+    },
+    {
+      "at": [
+        0,
+        0.5
+      ],
+      "description": "",
+      "dir": "N",
+      "id": "2.n"
+    },
+    {
+      "at": [
+        0,
+        0.5
+      ],
+      "description": "",
+      "dir": "E",
+      "id": "2.e"
+    },
+    {
+      "at": [
+        0,
+        0.5
+      ],
+      "description": "",
+      "dir": "S",
+      "id": "2.s"
+    },
+    {
+      "at": [
+        0,
+        0.5
+      ],
+      "description": "",
+      "dir": "W",
+      "id": "2.w"
+    },
+    {
+      "at": [
+        0,
+        1
+      ],
+      "description": "",
+      "dir": "N",
+      "id": "3.n"
+    },
+    {
+      "at": [
+        0,
+        1
+      ],
+      "description": "",
+      "dir": "E",
+      "id": "3.e"
+    },
+    {
+      "at": [
+        0,
+        1
+      ],
+      "description": "",
+      "dir": "S",
+      "id": "3.s"
+    },
+    {
+      "at": [
+        0,
+        1
+      ],
+      "description": "",
+      "dir": "W",
+      "id": "3.w"
+    },
+    {
+      "at": [
+        0,
+        1.5
+      ],
+      "description": "",
+      "dir": "N",
+      "id": "4.n"
+    },
+    {
+      "at": [
+        0,
+        1.5
+      ],
+      "description": "",
+      "dir": "E",
+      "id": "4.e"
+    },
+    {
+      "at": [
+        0,
+        1.5
+      ],
+      "description": "",
+      "dir": "S",
+      "id": "4.s"
+    },
+    {
+      "at": [
+        0,
+        1.5
+      ],
+      "description": "",
+      "dir": "W",
+      "id": "4.w"
+    }
+  ],
+  "reference": {
+    "number": "connection-point",
+    "standard": "Example set"
+  },
+  "schema": 1,
+  "slots": {},
+  "status": "unverified"
+}

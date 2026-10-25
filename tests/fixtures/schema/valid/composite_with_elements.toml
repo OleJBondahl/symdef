@@ -2,10 +2,10 @@ schema = 1
 name = "Parts and elements"
 kind = "symbol"
 status = "unverified"
-reference = { standard = "Example set", number = "S00001" }
+reference = { standard = "Example set", number = "sym-a" }
 
 parts = [
-  { as = "contact", use = "S00227" },
+  { as = "contact", use = "make-contact" },
 ]
 
 elements = [

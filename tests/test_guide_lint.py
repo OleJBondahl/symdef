@@ -15,8 +15,14 @@ from symdef.repeat import repeat
 from symdef.resolve import resolve_library
 
 GUIDE = Path(__file__).resolve().parent / "fixtures" / "guide"
-CLEAN = ["S00227", "S00230", "S00305", "S00016", "S00171"]
-WITH_A_THROUGH_PATH = ["S00227", "S00230", "S00305"]
+CLEAN = [
+    "make-contact",
+    "change-over-contact",
+    "relay-coil",
+    "connection-point",
+    "operated-by-pushing",
+]
+WITH_A_THROUGH_PATH = ["make-contact", "change-over-contact", "relay-coil"]
 
 
 @pytest.fixture(scope="module")
@@ -36,7 +42,7 @@ def test_the_atomic_examples_and_the_qualifier_lint_to_nothing(library, number):
 
 
 def test_the_connection_point_uses_every_exemption_it_declares(library):
-    symbol = library.get("S00016")
+    symbol = library.get("connection-point")
     assert {a.rule for a in symbol.lint_allow} == {
         "port-on-body-edge",
         "port-lane-clear",
@@ -47,17 +53,17 @@ def test_the_connection_point_uses_every_exemption_it_declares(library):
 
 
 class TestPushButton:
-    """S00254 fails `pitch-overflow` as written: concern C1."""
+    """push-button fails `pitch-overflow` as written: concern C1."""
 
     def test_it_produces_exactly_one_finding_pitch_overflow(self, library):
-        (found,) = lint(library.get("S00254"))
+        (found,) = lint(library.get("push-button"))
         assert (found.rule, found.severity) == ("pitch-overflow", Severity.ERROR)
         assert found.orientation is None
         assert "5.0 M" in found.message
         assert "pole pitch of 4 M" in found.message
 
     def test_its_extent_is_the_number_concern_c1_records(self, library):
-        symbol = library.get("S00254")
+        symbol = library.get("push-button")
         assert symbol.pole_pitch is None
         assert body_box(symbol).min.x == -3.25
         assert pole_extent(symbol) == 5.0
@@ -70,18 +76,18 @@ class TestPushButton:
             path.stem: tomllib.loads(path.read_text(encoding="utf-8"))
             for path in sorted((GUIDE / "symbols").glob("*.toml"))
         }
-        sources["S00254"]["pole_pitch"] = 8
+        sources["push-button"]["pole_pitch"] = 8
         resolution = resolve_library(config, sources)
         assert resolution.findings == {}
-        assert resolution.symbols["S00254"].pole_pitch == 8
-        assert lint(resolution.symbols["S00254"]) == ()
+        assert resolution.symbols["push-button"].pole_pitch == 8
+        assert lint(resolution.symbols["push-button"]) == ()
 
     def test_the_variant_is_the_only_change_needed(self, library):
-        symbol = replace(library.get("S00254"), pole_pitch=8)
+        symbol = replace(library.get("push-button"), pole_pitch=8)
         assert lint(symbol) == ()
 
     def test_the_check_can_fail_at_the_boundary(self, library):
-        symbol = replace(library.get("S00254"), pole_pitch=4)
+        symbol = replace(library.get("push-button"), pole_pitch=4)
         assert [f.rule for f in lint(symbol)] == ["pitch-overflow"]
         assert lint(replace(symbol, pole_pitch=8)) == ()
 
@@ -93,12 +99,12 @@ class TestRepeatedExamples:
         assert lint(repeat(library.get(number), poles, port_format="{k}.{port}")) == ()
 
     def test_the_relay_coil_is_exactly_as_wide_as_its_pitch(self, library):
-        symbol = library.get("S00305")
+        symbol = library.get("relay-coil")
         assert pole_extent(symbol) == 4
         assert symbol.pole_pitch is None
 
     def test_a_coil_whose_marking_reaches_a_grid_step_past_its_body_would_not_repeat(self, library):
-        symbol = library.get("S00305")
+        symbol = library.get("relay-coil")
         wider = replace(
             symbol,
             slots=tuple(
@@ -112,6 +118,6 @@ class TestRepeatedExamples:
         ]
 
     def test_the_change_over_contact_repeats_at_its_own_pitch(self, library):
-        repeated = repeat(library.get("S00230"), 3, port_format="{k}.{port}")
+        repeated = repeat(library.get("change-over-contact"), 3, port_format="{k}.{port}")
         assert repeated.pole_pitch == 24
         assert lint(repeated) == ()

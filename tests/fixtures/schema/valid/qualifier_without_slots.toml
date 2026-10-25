@@ -2,7 +2,7 @@ schema = 1
 name = "Qualifier"
 kind = "qualifier"
 status = "unverified"
-reference = { standard = "Example set", number = "S00001" }
+reference = { standard = "Example set", number = "sym-a" }
 
 elements = [
   { line = [[0, 0], [1, 0]] },

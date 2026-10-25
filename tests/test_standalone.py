@@ -63,7 +63,7 @@ def test_no_tracked_file_names_an_application() -> None:
     assert not bad, f"files naming an application: {sorted(bad)}"
 
 
-STANDARD_NUMBER = re.compile(r"\b(IEC|ISO|EN|ISA)\s?\d")
+STANDARD_NUMBER = re.compile(r"\b(IEC|ISO|EN|ISA)\s?\d|\bS0\d{4,5}\b")
 SHIPPED_TEXT = ("README.md", "design.md", "docs/", "src/symdef/docs/")
 
 
@@ -71,6 +71,7 @@ def test_standard_number_pattern_bites() -> None:
     """The pattern flags a closed standard's number and passes the allowed 'compatible with IEC'."""
     assert STANDARD_NUMBER.search("drawn to IEC 60617")
     assert STANDARD_NUMBER.search("see ISA 5.1")
+    assert STANDARD_NUMBER.search("symbols/S00227.toml")
     assert STANDARD_NUMBER.search("compatible with IEC.") is None
 
 

@@ -1,7 +1,7 @@
-# `pipe` in path_kinds shows a set declaring its own word: the three process symbols (S90001-S90003) use it.
+# `pipe` in path_kinds shows a set declaring its own word: the three process symbols (gate-valve, pump, check-valve) use it.
 standard = "Example set"
 title = "Example set symbols"
-number_pattern = '^S\d{5}$'
+number_pattern = '^[a-z][a-z0-9]*(-[a-z0-9]+)*$'
 
 [font]
 name = "Neutral"

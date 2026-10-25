@@ -1,0 +1,17 @@
+schema = 1
+name = "Port off the wiring grid"
+kind = "element"
+status = "unverified"
+reference = { standard = "Example set", number = "sym-a" }
+
+ports = [
+  { id = "in", at = [0.5, -2], dir = "N" },
+]
+
+nodes = [
+  { ports = ["in"], potential = "earth" },
+]
+
+elements = [
+  { line = [[0.5, -2], [0.5, -1]] },
+]

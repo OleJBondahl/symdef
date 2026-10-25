@@ -15,8 +15,8 @@ GUIDE = Path(__file__).resolve().parent / "fixtures" / "guide"
 KEY = 'port_format = "{k}.{port}"\n'
 PLAIN = (GUIDE / "library.toml").read_text(encoding="utf-8").replace(KEY, "")
 TOP = composite(
-    "S00094",
-    'parts = [{ as = "a", use = "S00227", repeat = 2 }]\n'
+    "sym-z-094",
+    'parts = [{ as = "a", use = "make-contact", repeat = 2 }]\n'
     'ports = { "1.in" = "a.1.in", "1.out" = "a.1.out", "2.in" = "a.2.in", "2.out" = "a.2.out" }\n',
 )
 
@@ -24,7 +24,7 @@ TOP = composite(
 def tree(tmp_path, key=""):
     root = tmp_path / "lib"
     shutil.copytree(GUIDE, root)
-    (root / "symbols" / "S00094.toml").write_text(TOP, encoding="utf-8")
+    (root / "symbols" / "sym-z-094.toml").write_text(TOP, encoding="utf-8")
     (root / "library.toml").write_text(key + PLAIN, encoding="utf-8")
     return root
 
@@ -58,7 +58,7 @@ def test_a_library_that_repeats_without_the_key_fails_to_load_naming_the_key(tmp
 
 def test_with_the_key_the_library_loads_and_the_ports_follow_the_format(tmp_path):
     library = load_library(tree(tmp_path, 'port_format = "{k}.{port}"\n'))
-    assert [p.id for p in library.get("S00094").ports] == ["1.in", "1.out", "2.in", "2.out"]
+    assert [p.id for p in library.get("sym-z-094").ports] == ["1.in", "1.out", "2.in", "2.out"]
 
 
 def test_the_library_and_its_bundle_carry_the_format():

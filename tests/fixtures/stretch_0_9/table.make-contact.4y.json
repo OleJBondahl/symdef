@@ -1,0 +1,486 @@
+{
+  "anchors": [
+    {
+      "at": [
+        -0.5,
+        0
+      ],
+      "dir": "W",
+      "id": "link"
+    }
+  ],
+  "body_box": [
+    [
+      -1,
+      -2
+    ],
+    [
+      0,
+      14
+    ]
+  ],
+  "elements": [
+    {
+      "line": [
+        [
+          0,
+          -2
+        ],
+        [
+          0,
+          -1
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          0,
+          1
+        ],
+        [
+          -1,
+          -1
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          0,
+          6
+        ],
+        [
+          0,
+          5
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          0,
+          5
+        ],
+        [
+          -1,
+          3
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          0,
+          6
+        ],
+        [
+          0,
+          7
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          0,
+          10
+        ],
+        [
+          0,
+          9
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          0,
+          9
+        ],
+        [
+          -1,
+          7
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          0,
+          10
+        ],
+        [
+          0,
+          11
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          0,
+          14
+        ],
+        [
+          0,
+          13
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    },
+    {
+      "line": [
+        [
+          0,
+          13
+        ],
+        [
+          -1,
+          11
+        ]
+      ],
+      "style": "solid",
+      "weight": "normal"
+    }
+  ],
+  "keepout_box": [
+    [
+      -1,
+      -2
+    ],
+    [
+      0,
+      14
+    ]
+  ],
+  "kind": "symbol",
+  "name": "Make contact, general symbol",
+  "nodes": [
+    {
+      "ports": [
+        "1.in"
+      ]
+    },
+    {
+      "ports": [
+        "1.out"
+      ]
+    },
+    {
+      "ports": [
+        "2.in"
+      ]
+    },
+    {
+      "ports": [
+        "2.out"
+      ]
+    },
+    {
+      "ports": [
+        "3.in"
+      ]
+    },
+    {
+      "ports": [
+        "3.out"
+      ]
+    },
+    {
+      "ports": [
+        "4.in"
+      ]
+    },
+    {
+      "ports": [
+        "4.out"
+      ]
+    }
+  ],
+  "paths": [
+    {
+      "from": "1.in",
+      "kind": "switch_open",
+      "through": true,
+      "to": "1.out"
+    },
+    {
+      "from": "2.in",
+      "kind": "switch_open",
+      "through": false,
+      "to": "2.out"
+    },
+    {
+      "from": "3.in",
+      "kind": "switch_open",
+      "through": false,
+      "to": "3.out"
+    },
+    {
+      "from": "4.in",
+      "kind": "switch_open",
+      "through": false,
+      "to": "4.out"
+    }
+  ],
+  "ports": [
+    {
+      "at": [
+        0,
+        -2
+      ],
+      "description": "",
+      "dir": "N",
+      "id": "1.in"
+    },
+    {
+      "at": [
+        0,
+        2
+      ],
+      "description": "",
+      "dir": "S",
+      "id": "1.out"
+    },
+    {
+      "at": [
+        0,
+        2
+      ],
+      "description": "",
+      "dir": "N",
+      "id": "2.in"
+    },
+    {
+      "at": [
+        0,
+        6
+      ],
+      "description": "",
+      "dir": "S",
+      "id": "2.out"
+    },
+    {
+      "at": [
+        0,
+        6
+      ],
+      "description": "",
+      "dir": "N",
+      "id": "3.in"
+    },
+    {
+      "at": [
+        0,
+        10
+      ],
+      "description": "",
+      "dir": "S",
+      "id": "3.out"
+    },
+    {
+      "at": [
+        0,
+        10
+      ],
+      "description": "",
+      "dir": "N",
+      "id": "4.in"
+    },
+    {
+      "at": [
+        0,
+        14
+      ],
+      "description": "",
+      "dir": "S",
+      "id": "4.out"
+    }
+  ],
+  "reference": {
+    "number": "make-contact",
+    "standard": "Example set"
+  },
+  "schema": 1,
+  "slots": {
+    "1.tag": {
+      "at": [
+        -1.5,
+        0
+      ],
+      "box": [
+        6,
+        1
+      ],
+      "side": "W"
+    },
+    "2.tag": {
+      "at": [
+        -1.5,
+        4
+      ],
+      "box": [
+        6,
+        1
+      ],
+      "side": "W"
+    },
+    "3.tag": {
+      "at": [
+        -1.5,
+        8
+      ],
+      "box": [
+        6,
+        1
+      ],
+      "side": "W"
+    },
+    "4.tag": {
+      "at": [
+        -1.5,
+        12
+      ],
+      "box": [
+        6,
+        1
+      ],
+      "side": "W"
+    },
+    "marking.1.in": {
+      "at": [
+        0.25,
+        -1.5
+      ],
+      "box": [
+        1.5,
+        1
+      ],
+      "side": "E"
+    },
+    "marking.1.out": {
+      "at": [
+        0.25,
+        1.5
+      ],
+      "box": [
+        1.5,
+        1
+      ],
+      "side": "E"
+    },
+    "marking.2.in": {
+      "at": [
+        0.25,
+        2.5
+      ],
+      "box": [
+        1.5,
+        1
+      ],
+      "side": "E"
+    },
+    "marking.2.out": {
+      "at": [
+        0.25,
+        5.5
+      ],
+      "box": [
+        1.5,
+        1
+      ],
+      "side": "E"
+    },
+    "marking.3.in": {
+      "at": [
+        0.25,
+        6.5
+      ],
+      "box": [
+        1.5,
+        1
+      ],
+      "side": "E"
+    },
+    "marking.3.out": {
+      "at": [
+        0.25,
+        9.5
+      ],
+      "box": [
+        1.5,
+        1
+      ],
+      "side": "E"
+    },
+    "marking.4.in": {
+      "at": [
+        0.25,
+        10.5
+      ],
+      "box": [
+        1.5,
+        1
+      ],
+      "side": "E"
+    },
+    "marking.4.out": {
+      "at": [
+        0.25,
+        13.5
+      ],
+      "box": [
+        1.5,
+        1
+      ],
+      "side": "E"
+    }
+  },
+  "status": "unverified"
+}

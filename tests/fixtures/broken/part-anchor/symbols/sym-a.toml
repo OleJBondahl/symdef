@@ -1,0 +1,10 @@
+schema = 1
+name = "Anchors that do not face each other"
+kind = "element"
+status = "unverified"
+reference = { standard = "Example set", number = "sym-a" }
+
+parts = [
+  { as = "a", use = "sym-j" },
+  { as = "b", use = "sym-j", attach = "link", to = "a.link", length = 1 },
+]

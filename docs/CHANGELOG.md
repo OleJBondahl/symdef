@@ -7,6 +7,7 @@ What changed in the public surface of each release: a name added, removed or mov
 - Added: `group_mm(body, at, *, classes="")`, one `<g class="..." transform="translate(x y)">` around a fragment, `at` in mm (D125).
 - Added: `Orientation.half_turn`, the orientation turned a further half turn, mirror kept (D126).
 - Changed: the closed-standard number in the bundle example of the design is gone; it says "My symbols".
+- Changed (breaking): tutorial and fixture symbol ids renamed to descriptive keys; libraries that copied the tutorial ids rename them.
 - Changed (breaking): `Library.font` and `LibraryConfig.font` are `FontMetrics`, keyword-only and required, never `None` (D124). A `library.toml` without `[font]` is refused with a `schema` finding that names the key and both forms, and a bundle without a `font` object fails `validate_bundle`. `bundle_to_data` always writes `font`. `fitted_table` and `fitted_symbol` no longer check for a font. For the `[font]` files form `LibraryConfig.font` is an unmeasured placeholder until `load_library` measures the files.
 - Migrate: add a `[font]` table to every `library.toml` (literal form, or `name` and `files`); a library that wants the measure of no font declares `units_per_em = 1000`, `cap_height = 720`, empty `[font.advances.normal]` and `[font.advances.thick]`, and `[font.default_advance]` `normal = 600` and `thick = 600`. Add `font=` to every `Library(...)` and `LibraryConfig(...)` call, and a `font` object to a hand-written bundle.
 

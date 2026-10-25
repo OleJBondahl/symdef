@@ -244,7 +244,7 @@ class TestPortLaneClearInEveryOrientation:
         assert Orientation.R90 in orientations_of(found)
 
     def test_the_orientation_only_fixture_fires_only_outside_the_base_orientation(self):
-        findings = run_fixture_by_file("port-lane-clear")["S00002"]
+        findings = run_fixture_by_file("port-lane-clear")["sym-b"]
         assert {f.rule for f in findings} == {"port-lane-clear"}
         orientations = orientations_of(findings)
         assert orientations
@@ -252,7 +252,7 @@ class TestPortLaneClearInEveryOrientation:
         assert orientations == orientations_of(lint(TURNED_INTO_A_LANE))
 
     def test_the_base_fixture_fires_in_the_base_orientation(self):
-        findings = run_fixture_by_file("port-lane-clear")["S00001"]
+        findings = run_fixture_by_file("port-lane-clear")["sym-a"]
         assert Orientation.R0 in orientations_of(findings)
 
     def test_an_exemption_covers_an_orientation_the_rule_fires_in_and_is_not_unused(self):
@@ -452,7 +452,7 @@ class TestPortOnBodyEdge:
         ]
 
     def test_the_orientation_only_fixture_is_clean_in_the_base_orientation(self):
-        findings = run_fixture_by_file("port-on-body-edge")["S00002"]
+        findings = run_fixture_by_file("port-on-body-edge")["sym-b"]
         assert {f.rule for f in findings} == {"port-on-body-edge"}
         assert orientations_of(findings)
         assert Orientation.R0 not in orientations_of(findings)
@@ -663,7 +663,7 @@ class TestLeadOffPort:
 
 
 class TestGuideExamples:
-    ATOMIC = ("S00227", "S00230", "S00305", "S00171")
+    ATOMIC = ("make-contact", "change-over-contact", "relay-coil", "operated-by-pushing")
 
     @pytest.mark.parametrize("number", ATOMIC)
     @pytest.mark.parametrize("orientation", list(Orientation))
@@ -717,10 +717,10 @@ symbols = st.builds(
 
 
 class TestGuideConnectionPoint:
-    """S00016 has four ports at one position; the guide exempts two rules and passes the rest."""
+    """connection-point has four ports at one position; the guide exempts two rules."""
 
     def test_before_its_exemptions_it_fires_exactly_the_two_exempted_ports_rules(self, library):
-        raw = replace(library.get("S00016"), lint_allow=())
+        raw = replace(library.get("connection-point"), lint_allow=())
         assert {f.rule for f in lint(raw) if f.rule in PORT_RULES} == {
             "port-on-body-edge",
             "port-lane-clear",
@@ -738,13 +738,13 @@ class TestGuideConnectionPoint:
         ],
     )
     def test_the_other_ports_rules_pass_on_it(self, library, rule_id):
-        assert CHECKS[rule_id](library.get("S00016")) == ()
+        assert CHECKS[rule_id](library.get("connection-point")) == ()
 
     def test_with_its_exemptions_no_ports_rule_fires(self, library):
-        assert [f for f in lint(library.get("S00016")) if f.rule in PORT_RULES] == []
+        assert [f for f in lint(library.get("connection-point")) if f.rule in PORT_RULES] == []
 
     def test_both_exempted_rules_fire_on_every_port_it_lists(self, library):
-        symbol = library.get("S00016")
+        symbol = library.get("connection-point")
         assert len(port_lane_clear(symbol)) == 4
         assert len(port_on_body_edge(symbol)) == 4
 

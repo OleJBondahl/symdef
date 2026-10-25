@@ -31,9 +31,9 @@ def repo(tmp_path: Path, *lines, port_x=0.5) -> Path:
     root = tmp_path / "repo"
     (root / "symbols").mkdir(parents=True)
     (root / "library.toml").write_text(grid_config(*lines), encoding="utf-8")
-    text = (GUIDE / "symbols" / "S00016.toml").read_text(encoding="utf-8")
+    text = (GUIDE / "symbols" / "connection-point.toml").read_text(encoding="utf-8")
     text = text.replace('{ id = "n", at = [0, 0]', f'{{ id = "n", at = [{port_x}, 0]')
-    (root / "symbols" / "S00016.toml").write_text(text, encoding="utf-8")
+    (root / "symbols" / "connection-point.toml").write_text(text, encoding="utf-8")
     return root
 
 

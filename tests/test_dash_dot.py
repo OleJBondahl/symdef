@@ -29,7 +29,7 @@ schema = 1
 name = "outline"
 kind = "element"
 status = "unverified"
-reference = { standard = "Example set", number = "S00001" }
+reference = { standard = "Example set", number = "sym-a" }
 elements = [
   { line = [[0, 0], [4, 0]], style = "dash_dot" },
   { polyline = [[0, 0], [4, 0], [4, 4]], style = "dash_dot" },

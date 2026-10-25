@@ -463,7 +463,9 @@ def library():
 
 
 class TestGuideExamples:
-    @pytest.mark.parametrize("number", ["S00227", "S00230", "S00305", "S00171"])
+    @pytest.mark.parametrize(
+        "number", ["make-contact", "change-over-contact", "relay-coil", "operated-by-pushing"]
+    )
     def test_the_atomic_examples_and_the_qualifier_trip_none_of_the_rules_of_this_task(
         self, library, number
     ):
@@ -473,6 +475,6 @@ class TestGuideExamples:
     def test_the_connection_point_trips_none_of_them_except_for_exemptions_of_later_rules(
         self, library
     ):
-        found = lint(library.get("S00016"), library.required_slots)
+        found = lint(library.get("connection-point"), library.required_slots)
         assert [f.rule for f in found if f.rule in THIS_TASK - DRIVER_RULES] == []
         assert {f.rule for f in found if f.rule in DRIVER_RULES} <= {"allow-unused"}

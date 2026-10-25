@@ -1,9 +1,0 @@
-schema = 1
-name = "Cycle, first file"
-kind = "element"
-status = "unverified"
-reference = { standard = "Example set", number = "S00001" }
-
-parts = [
-  { as = "a", use = "S00010" },
-]

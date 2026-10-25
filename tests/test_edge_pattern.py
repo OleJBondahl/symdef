@@ -112,7 +112,7 @@ def test_a_body_too_short_for_the_copies_raises():
 def test_the_flag_is_loaded_from_toml_and_defaults_to_false():
     text = (
         'schema = 1\nname = "t"\nkind = "element"\nstatus = "unverified"\n'
-        'reference = { standard = "X", number = "S00001" }\n'
+        'reference = { standard = "X", number = "sym-a" }\n'
         'ports = [{ id = "a", at = [0, 0], dir = "S", pattern = true }, '
         '{ id = "b", at = [2, 0], dir = "N" }]\n'
         "elements = [{ line = [[0, 0], [2, 0]] }]\n"

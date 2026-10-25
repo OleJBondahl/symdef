@@ -23,13 +23,15 @@ from symdef.repeat import repeat
 
 P = Point
 GUIDE = Path(__file__).resolve().parent / "fixtures" / "guide"
-CONFIG = LibraryConfig("Example set", "Example set symbols", r"^S\d{5}$", font=NEUTRAL_FONT)
+CONFIG = LibraryConfig(
+    "Example set", "Example set symbols", r"^[a-z][a-z0-9]*(-[a-z0-9]+)*$", font=NEUTRAL_FONT
+)
 
 
 def file_data(**changes):
     data = {
         "name": "Thing",
-        "reference": {"standard": "Example set", "number": "S00001"},
+        "reference": {"standard": "Example set", "number": "sym-a"},
     }
     return data | changes
 
@@ -89,19 +91,19 @@ class TestRegistry:
 
 class TestMetadataFindings:
     def test_clean(self):
-        assert metadata_findings("S00001", file_data(), CONFIG) == ()
+        assert metadata_findings("sym-a", file_data(), CONFIG) == ()
 
     def test_empty_name(self):
-        (found,) = metadata_findings("S00001", file_data(name=""), CONFIG)
+        (found,) = metadata_findings("sym-a", file_data(name=""), CONFIG)
         assert (found.rule, found.location) == ("metadata", "/name")
 
     def test_blank_name(self):
-        (found,) = metadata_findings("S00001", file_data(name="  "), CONFIG)
+        (found,) = metadata_findings("sym-a", file_data(name="  "), CONFIG)
         assert (found.rule, found.location) == ("metadata", "/name")
 
     def test_other_standard(self):
-        data = file_data(reference={"standard": "Pipe set", "number": "S00001"})
-        (found,) = metadata_findings("S00001", data, CONFIG)
+        data = file_data(reference={"standard": "Pipe set", "number": "sym-a"})
+        (found,) = metadata_findings("sym-a", data, CONFIG)
         assert (found.rule, found.location) == ("metadata", "/reference/standard")
 
     def test_number_not_matching_the_pattern(self):
@@ -111,17 +113,17 @@ class TestMetadataFindings:
         assert "does not match" in found.message
 
     def test_number_differing_from_the_stem(self):
-        (found,) = metadata_findings("S00002", file_data(), CONFIG)
+        (found,) = metadata_findings("sym-b", file_data(), CONFIG)
         assert (found.rule, found.location) == ("metadata", "/reference/number")
         assert "differs from the file name" in found.message
 
     def test_a_pattern_that_does_not_compile_matches_nothing(self):
         config = LibraryConfig("Example set", "t", "(", font=NEUTRAL_FONT)
-        (found,) = metadata_findings("S00001", file_data(), config)
+        (found,) = metadata_findings("sym-a", file_data(), config)
         assert "does not match" in found.message
 
     def test_all_four_problems_are_reported_together(self):
-        data = file_data(name="", reference={"standard": "X", "number": "y"})
+        data = file_data(name="", reference={"standard": "X", "number": "Y"})
         assert [f.location for f in metadata_findings("z", data, CONFIG)] == [
             "/name",
             "/reference/standard",
@@ -192,7 +194,7 @@ class TestSymbolIdFindings:
         assert len(symbol_id_findings(symbol)) == 1
 
     def test_the_ports_of_repeat_lint_clean_however_often_it_is_nested(self, library):
-        contact, changeover = library.get("S00227"), library.get("S00230")
+        contact, changeover = library.get("make-contact"), library.get("change-over-contact")
         for symbol in (
             repeat(repeat(contact, 2, port_format="{k}.{port}"), 2, port_format="{k}.{port}"),
             repeat(contact, 3, port_format="{k}.{port}"),
