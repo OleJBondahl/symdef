@@ -7,7 +7,7 @@ from symdef import Library, LibraryError, load_library
 from symdef.load import parse_config, validate_bundle
 from symdef.serialize import bundle_to_data
 
-HEAD = "standard = 'S'\ntitle = 'T'\nnumber_pattern = '^S$'\n"
+HEAD = "standard = 'S'\ntitle = 'T'\nnumber_pattern = '^S$'\nport_format = '{k}.{port}'\n"
 
 
 def test_a_library_toml_without_a_font_is_refused_with_the_key_and_the_fix():

@@ -17,7 +17,7 @@ GUIDE = FIXTURES / "guide"
 BROKEN = FIXTURES / "broken"
 
 CONFIG = (
-    'standard = "Example set"\ntitle = "t"\nnumber_pattern = \'^[a-z][a-z0-9]*(-[a-z0-9]+)*$\'\n'
+    'standard = "Example set"\ntitle = "t"\nnumber_pattern = \'^[a-z][a-z0-9]*(-[a-z0-9]+)*$\'\nport_format = "{k}.{port}"\n'
     + WORDS
     + NEUTRAL_FONT_TOML
 )
@@ -127,6 +127,7 @@ class TestFailures:
         with pytest.raises(LibraryError) as raised:
             load_library(root)
         assert [f.message.split(":")[0] for f in raised.value.findings] == [
+            "library.toml",
             "library.toml",
             "library.toml",
             "library.toml",

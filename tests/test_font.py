@@ -132,6 +132,7 @@ CONFIG = """
 standard = "S"
 title = "T"
 number_pattern = '^S$'
+port_format = "{k}.{port}"
 
 [font]
 name = "Planted"

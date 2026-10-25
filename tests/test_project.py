@@ -71,7 +71,6 @@ class TestTheThreeVerbsInAnEmptyFolder:
 
 def widen_for_repeat(root):
     """Make the symbol wider than the default pole pitch: fine alone, overflowing repeated."""
-    edit(root, "library.toml", "\nnumber_pattern", '\nport_format = "{k}.{port}"\nnumber_pattern')
     edit(
         root,
         SYMBOL,

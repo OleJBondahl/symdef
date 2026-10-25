@@ -34,9 +34,14 @@ def test_library_toml_declares_the_format():
     assert findings == ()
     assert config is not None
     assert config.port_format == "P{k}_{port}"
-    plain, _ = parse_config(PLAIN)
-    assert plain is not None
-    assert plain.port_format is None
+
+
+def test_a_library_toml_without_the_key_is_refused_with_the_key_and_the_fix():
+    config, findings = parse_config(PLAIN)
+    assert config is None
+    (found,) = findings
+    assert "missing required key 'port_format'" in found.message
+    assert "add port_format to library.toml" in found.message
 
 
 @pytest.mark.parametrize("bad", ['"{k}"', '"plain"', "3", '"{k}.{port"'])

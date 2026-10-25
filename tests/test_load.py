@@ -563,6 +563,7 @@ thick = 600
 CONFIG_KEYS = """standard = "Example set"
 title = "Example set symbols"
 number_pattern = '^[a-z][a-z0-9]*(-[a-z0-9]+)*$'
+port_format = "{k}.{port}"
 """
 CONFIG = CONFIG_KEYS + FONT_TOML
 

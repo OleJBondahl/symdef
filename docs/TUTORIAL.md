@@ -46,6 +46,7 @@ my-symbols/
 standard = "My symbols"
 title = "My symbols"
 number_pattern = '^[a-z][a-z0-9-]*$'
+port_format = "{k}.{port}"
 
 [font]
 name = "Neutral"
