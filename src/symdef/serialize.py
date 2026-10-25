@@ -244,8 +244,8 @@ def bundle_to_data(library: Library) -> dict[str, Any]:
     A library with wire styles adds the `wires` array; a grid other than the default adds the `grid`
     object (`module_mm`, `divisions_per_module`, the two wire pitches, and `stretch_split` when
     "whole"); one with line widths adds the `lines` object (millimetres by weight name); one with
-    dash patterns adds the `dash` object (millimetres by name); the `port_format` string is always written; one with none of the others has
-    none of their keys.
+    dash patterns adds the `dash` object (millimetres by name); the `port_format` string is always
+    written; one with none of the others has none of their keys.
     """
     data: dict[str, Any] = {
         "schema": _SCHEMA_VERSION,

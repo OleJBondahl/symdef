@@ -258,8 +258,8 @@ class LibraryConfig:
     `font_files` is the (regular, bold) paths of the `[font]` files form, relative to the folder
     holding `library.toml`, `font_name` its name and `font_heights` its `heights`; then `font`
     is an unmeasured placeholder (one unit per em, empty tables) until the files are read.
-    `port_format` (keyword-only, required: D127) is the top-level key naming a repeated pole's port id,
-    the value a part's `repeat` passes to the function (D123).
+    `port_format` (keyword-only, required: D127) is the top-level key naming a repeated pole's
+    port id, the value a part's `repeat` passes to the function (D123).
     """
 
     standard: str

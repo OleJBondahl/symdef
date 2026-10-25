@@ -41,6 +41,7 @@ with a dated entry in the change list below and in <code>docs/DECISIONS.md</code
 <h2 id="changes">Change list</h2>
 <table>
 <tr><th>Date</th><th>Version</th><th>Change</th></tr>
+<tr><td>2026-10-25</td><td>0.29.1</td><td><code>port_format</code> is required in <code>library.toml</code>, and <code>Library.port_format</code> and <code>LibraryConfig.port_format</code> are keyword-only <code>str</code> (D127, breaking). The bundle requires the <code>port_format</code> key.</td></tr>
 <tr><td>2026-10-25</td><td>0.29.0</td><td>New <code>group_mm(body, at, *, classes="")</code>: a fragment in one <code>&lt;g&gt;</code> translated to a point in mm (D125). New <code>Orientation.half_turn</code> (D126). <code>[font]</code> is required in <code>library.toml</code> and in the bundle, and <code>Library.font</code> and <code>LibraryConfig.font</code> are never None (D124, breaking).</td></tr>
 <tr><td>2026-10-24</td><td>0.28.0</td><td>Each font face carries its own default advance: <code>FontMetrics.default_advance</code> is a mapping per weight and <code>library.toml</code> takes <code>[font.default_advance]</code> (D119, breaking). <code>[grid] outline_margin</code>, <code>Grid.declared_outline_margin</code> and <code>Grid.outline_margin</code>, which raises when the library declares none (D120). <code>repeat(symbol, n, *, port_format)</code> takes the pole's port id template from the caller, with no default, and a part's <code>repeat</code> takes it from the top-level <code>port_format</code> key of <code>library.toml</code> (D121, D123, breaking). New <code>sheet_svg</code> and <code>bold_layer</code> (D122).</td></tr>
 <tr><td>2026-10-23</td><td>0.27.0</td><td>New <code>rect_mm</code>, <code>outline_mm</code> and <code>line_mm</code>: one SVG element each in millimetres, with the width from <code>library.lines[weight]</code> (no default weight), a dash named by a <code>library.dash</code> key, and the <code>stroke</code> and <code>fill</code> the caller gives (D117, D118). <code>text_tag</code> takes <code>classes</code>, <code>at</code> (<code>baseline</code>, <code>top</code> or <code>centre</code>) and <code>font</code>; the defaults leave its output unchanged. No <code>polyline_mm</code> and no sized <code>&lt;svg&gt;</code> call: a wire is <code>wire</code> drawn by <code>to_fragment_mm</code>, and the root is the caller's.</td></tr>
@@ -434,7 +435,7 @@ tag           = { at = [-3.5, 0], side = "W", box = [6, 1] }
   <li>Ports, and their marking slots, are renamed by <code>port_format</code>; with <code>"{k}.{port}"</code>: <code>1.in</code>, <code>2.in</code>, <code>"marking.2.in"</code>. Nodes and paths repeat per pole. Pole 1's through path stays the through path; the flag is cleared on the other poles. The result's <code>pole_pitch</code> is <code>n &times; pitch</code>.</li>
   <li>The <code>tag</code> slot is taken from pole 1 only. A <code>value</code> slot likewise.</li>
   <li>If the symbol has an anchor with the id <code>link</code> and <code>n &gt; 1</code>, the result gains one element: a dashed line from pole 1's <code>link</code> anchor to pole n's. It may cross the poles in between; that is how the standard draws it. Pole 1's anchors become the result's anchors; the other poles' anchors are dropped.</li>
-  <li>It is available as a toolkit function for consumers, and as a data op in a part: <code>{ as = "main", use = "make-contact", repeat = 3 }</code>; it takes the format from the top-level <code>port_format</code> key of <code>library.toml</code>, and a <code>repeat</code> in a library without that key is a <code>schema</code> finding at the <code>repeat</code> key naming it (D123).</li>
+  <li>It is available as a toolkit function for consumers, and as a data op in a part: <code>{ as = "main", use = "make-contact", repeat = 3 }</code>; it takes the format from the top-level <code>port_format</code> key of <code>library.toml</code>, and a <code>library.toml</code> without that key is refused with a <code>schema</code> finding naming it (D123, D127).</li>
 </ul>
 <p>There are no <code>poles=</code>, <code>pins=</code> or <code>inverted=</code> parameters anywhere. Pole count is <code>repeat</code>, markings belong to the placement, and inversion is the orientation <code>MR180</code>.</p>
 
@@ -525,7 +526,7 @@ Node(ports, potential)          Path(from_port, to_port, kind, through)
 Anchor(id, position, direction) Slot(id, position, side, box)
 Reference(standard, number, edition, form)
 Symbol(name, kind, status, reference, elements, ports, nodes, paths, anchors, slots, pole_pitch, stretch)
-Library(standard, title, number_pattern, symbols, vocabulary, required_slots, wires, *, font)    get(number), __iter__ (sorted by number), __len__
+Library(standard, title, number_pattern, symbols, vocabulary, required_slots, wires, *, font, port_format)    get(number), __iter__ (sorted by number), __len__
 Finding(rule, severity, message, location, orientation)
 Stretch(axis, at, weight)      WireStyle(id, weight, style)
 
