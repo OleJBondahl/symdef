@@ -128,7 +128,7 @@ def test_atomic_symbols_build_with_their_port_ids(number):
     symbol = symbol_from_data(data)
     assert tuple(port.id for port in symbol.ports) == ATOMIC_PORT_IDS[number]
     assert symbol.reference.number == number
-    assert symbol.reference.standard == "IEC 60617"
+    assert symbol.reference.standard == "Example set"
 
 
 def test_the_composite_example_has_no_elements_of_its_own():
@@ -143,7 +143,7 @@ def test_the_library_config_parses():
     assert findings == ()
     assert config is not None
     assert (config.standard, config.title, config.number_pattern) == (
-        "IEC 60617",
-        "IEC 60617 symbols",
+        "Example set",
+        "Example set symbols",
         r"^S\d{5}$",
     )

@@ -116,7 +116,7 @@ def test_a_file_tint_round_trips_through_the_resolved_form():
         "name": "Fixture",
         "kind": "symbol",
         "status": "unverified",
-        "reference": {"standard": "IEC 60617", "number": "S00001"},
+        "reference": {"standard": "Example set", "number": "S00001"},
         "ports": [],
         "elements": [{"polyline": [[0, 0], [1, 0], [1, 1]], "closed": True, "fill": "tint"}],
         "slots": {},

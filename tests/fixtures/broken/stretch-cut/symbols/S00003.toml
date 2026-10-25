@@ -2,7 +2,7 @@ schema = 1
 name = "Two cuts at the same place"
 kind = "element"
 status = "unverified"
-reference = { standard = "IEC 60617", number = "S00003" }
+reference = { standard = "Example set", number = "S00003" }
 
 stretch = [{ axis = "x", at = 0 }, { axis = "x", at = 0 }]
 elements = [

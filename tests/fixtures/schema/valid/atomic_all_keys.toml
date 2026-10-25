@@ -2,7 +2,7 @@ schema = 1
 name = "Every key"
 kind = "symbol"
 status = "verified"
-reference = { standard = "IEC 60617", number = "S00001", edition = "2", form = "1" }
+reference = { standard = "Example set", number = "S00001", edition = "2", form = "1" }
 pole_pitch = 8
 
 ports = [

@@ -2,7 +2,7 @@ schema = 1
 name = "Slot point off the grid"
 kind = "element"
 status = "unverified"
-reference = { standard = "IEC 60617", number = "S00003" }
+reference = { standard = "Example set", number = "S00003" }
 
 elements = [
   { line = [[0, 0], [0, 1]] },

@@ -28,7 +28,7 @@ from symdef.resolve import Resolution, resolve_library
 
 GUIDE = FilePath(__file__).resolve().parent / "fixtures" / "guide"
 CONFIG = LibraryConfig(
-    "IEC 60617", "IEC 60617 symbols", r"^S\d{5}$", port_format="{k}.{port}", font=NEUTRAL_FONT
+    "Example set", "Example set symbols", r"^S\d{5}$", port_format="{k}.{port}", font=NEUTRAL_FONT
 )
 N, E, S, W = Direction.N, Direction.E, Direction.S, Direction.W
 
@@ -36,7 +36,7 @@ HEAD = """schema = 1
 name = "{name}"
 kind = "{kind}"
 status = "unverified"
-reference = {{ standard = "IEC 60617", number = "{number}" }}
+reference = {{ standard = "Example set", number = "{number}" }}
 """
 
 # An element with a line and a `link` anchor facing east.
@@ -132,7 +132,7 @@ class TestGuideFixtures:
         push = resolution.symbols["S00254"]
         assert push.name == "Switch, manually operated, push-button, automatic return"
         assert (push.kind.value, push.status.value) == ("symbol", "unverified")
-        assert (push.reference.standard, push.reference.number) == ("IEC 60617", "S00254")
+        assert (push.reference.standard, push.reference.number) == ("Example set", "S00254")
         assert push.pole_pitch is None
         assert push.lint_allow == ()
 
@@ -897,7 +897,7 @@ class TestFileRules:
     def test_metadata_is_checked_against_the_config_and_the_stem(self):
         data = tomllib.loads(LINK_E)
         resolution = resolve_library(
-            LibraryConfig("ISO 14617", "t", r"^X\d+$", font=NEUTRAL_FONT), {"S00099": data}
+            LibraryConfig("Pipe set", "t", r"^X\d+$", font=NEUTRAL_FONT), {"S00099": data}
         )
         assert located(resolution, "S00099") == [
             ("metadata", "/reference/number"),
@@ -1083,7 +1083,7 @@ def chain(depth: int, *, last: str = "leaf") -> dict[str, dict]:
             "name": "n",
             "kind": "element",
             "status": "unverified",
-            "reference": {"standard": "IEC 60617", "number": stem},
+            "reference": {"standard": "Example set", "number": stem},
         }
         if i < depth - 1:
             data["parts"] = [{"as": "a", "use": f"S{i + 1:05d}"}]
@@ -1192,7 +1192,7 @@ class TestPatternTotality:
         ids=["overflow", "nesting", "open", "range"],
     )
     def test_such_a_pattern_matches_nothing_and_does_not_raise(self, pattern):
-        config = LibraryConfig("IEC 60617", "t", pattern, font=NEUTRAL_FONT)
+        config = LibraryConfig("Example set", "t", pattern, font=NEUTRAL_FONT)
         resolution = resolve_library(config, files(LINK_E))
         assert located(resolution, "S00010") == [("metadata", "/reference/number")]
         assert "does not match" in resolution.findings["S00010"][0].message
@@ -1272,7 +1272,7 @@ def test_resolving_never_raises_on_damaged_files(stem, pick, action, value, key)
 class TestRepeatPortFormat:
     def test_a_repeat_in_a_library_without_port_format_names_the_key_and_the_fix(self):
         top = composite("S00094", 'parts = [{ as = "a", use = "S00227", repeat = 2 }]\n')
-        bare = LibraryConfig("IEC 60617", "IEC 60617 symbols", r"^S\d{5}$", font=NEUTRAL_FONT)
+        bare = LibraryConfig("Example set", "Example set symbols", r"^S\d{5}$", font=NEUTRAL_FONT)
         resolution = resolve_library(bare, guide_sources() | files(top))
         assert located(resolution, "S00094") == [("schema", "/parts/0/repeat")]
         message = resolution.findings["S00094"][0].message
@@ -1281,8 +1281,8 @@ class TestRepeatPortFormat:
 
     def test_the_library_format_reaches_the_ports(self):
         config = LibraryConfig(
-            "IEC 60617",
-            "IEC 60617 symbols",
+            "Example set",
+            "Example set symbols",
             r"^S\d{5}$",
             port_format="P{k}_{port}",
             font=NEUTRAL_FONT,

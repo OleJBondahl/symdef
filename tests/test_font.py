@@ -99,7 +99,7 @@ def test_keepout_box_passes_the_font_to_the_body():
 
 
 def library(font):
-    return Library("IEC 60617", "IEC 60617", "", {"1": symbol()}, font=font)
+    return Library("Example set", "Example set", "", {"1": symbol()}, font=font)
 
 
 def test_a_bundle_round_trips_its_font():
@@ -203,7 +203,7 @@ OVERFLOWING = """schema = 1
 name = "Boxed"
 kind = "qualifier"
 status = "unverified"
-reference = { standard = "IEC 60617", number = "S99999" }
+reference = { standard = "Example set", number = "S99999" }
 anchors = [{ id = "link", at = [0, 0], dir = "E" }]
 elements = [
   { line = [[0, 0], [2, 0]] },

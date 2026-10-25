@@ -204,7 +204,7 @@ schema = 1
 name = "Stretchable"
 kind = "symbol"
 status = "unverified"
-reference = { standard = "IEC 60617", number = "S00001" }
+reference = { standard = "Example set", number = "S00001" }
 stretch = [{ axis = "x", at = 1.5 }, { axis = "y", at = 0 }]
 elements = [{ line = [[0, -2], [0, 2]] }]
 

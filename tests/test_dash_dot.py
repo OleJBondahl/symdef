@@ -29,7 +29,7 @@ schema = 1
 name = "outline"
 kind = "element"
 status = "unverified"
-reference = { standard = "IEC 60617", number = "S00001" }
+reference = { standard = "Example set", number = "S00001" }
 elements = [
   { line = [[0, 0], [4, 0]], style = "dash_dot" },
   { polyline = [[0, 0], [4, 0], [4, 4]], style = "dash_dot" },
@@ -109,7 +109,7 @@ def test_the_keyword_is_only_needed_by_a_symbol_that_uses_the_style():
 
 def test_a_wire_style_can_be_dash_dot():
     text = (
-        'standard = "IEC 60617"\ntitle = "t"\nnumber_pattern = "^S"\n'
+        'standard = "Example set"\ntitle = "t"\nnumber_pattern = "^S"\n'
         + NEUTRAL_FONT_TOML
         + '[[wire]]\nid = "o"\n'
     )

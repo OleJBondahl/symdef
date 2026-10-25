@@ -2,7 +2,7 @@ schema = 1
 name = "Port off the wiring grid"
 kind = "element"
 status = "unverified"
-reference = { standard = "IEC 60617", number = "S00001" }
+reference = { standard = "Example set", number = "S00001" }
 
 ports = [
   { id = "in", at = [0.5, -2], dir = "N" },

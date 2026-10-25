@@ -131,7 +131,7 @@ class TestGolden:
 
     def test_the_two_symbol_bundle_matches_its_reviewed_file_byte_for_byte(self):
         library = Library(
-            "IEC 60617",
+            "Example set",
             "ignored",
             "ignored",
             {"S00227": LIBRARY.get("S00227"), "S00016": LIBRARY.get("S00016")},
@@ -286,7 +286,7 @@ class TestBundleToData:
         data = bundle_to_data(LIBRARY)
         assert set(data) == {"schema", "standard", "symbols", "dash", "port_format", "font"}
         assert data["schema"] == 1
-        assert data["standard"] == "IEC 60617"
+        assert data["standard"] == "Example set"
 
     def test_symbols_are_keyed_by_number_and_hold_the_resolved_form(self):
         data = bundle_to_data(LIBRARY)

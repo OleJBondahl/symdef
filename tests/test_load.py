@@ -47,7 +47,7 @@ schema = 1
 name = "Make contact"
 kind = "symbol"
 status = "verified"
-reference = { standard = "IEC 60617", number = "S00227", edition = "2", form = "1" }
+reference = { standard = "Example set", number = "S00227", edition = "2", form = "1" }
 pole_pitch = 8
 
 ports = [
@@ -87,7 +87,7 @@ def atomic():
         "name": "x",
         "kind": "symbol",
         "status": "unverified",
-        "reference": {"standard": "IEC 60617", "number": "S00001"},
+        "reference": {"standard": "Example set", "number": "S00001"},
         "elements": [{"line": [[0, 0], [1, 0]]}],
         "slots": {},
     }
@@ -99,7 +99,7 @@ def composite():
         "name": "x",
         "kind": "symbol",
         "status": "unverified",
-        "reference": {"standard": "IEC 60617", "number": "S00001"},
+        "reference": {"standard": "Example set", "number": "S00001"},
         "parts": [
             {"as": "contact", "use": "S00227"},
             {
@@ -129,7 +129,7 @@ def resolved():
         "name": "x",
         "kind": "symbol",
         "status": "unverified",
-        "reference": {"standard": "IEC 60617", "number": "S00001"},
+        "reference": {"standard": "Example set", "number": "S00001"},
         "ports": [{"id": "in", "at": [0, -2], "dir": "N", "description": ""}],
         "nodes": [{"ports": ["in"]}],
         "elements": [
@@ -472,7 +472,7 @@ def test_symbol_from_data_builds_every_field():
     assert symbol.name == "Make contact"
     assert symbol.kind is SymbolKind.SYMBOL
     assert symbol.status is Status.VERIFIED
-    assert symbol.reference == Reference("IEC 60617", "S00227", edition="2", form="1")
+    assert symbol.reference == Reference("Example set", "S00227", edition="2", form="1")
     assert symbol.pole_pitch == 8
     assert symbol.ports == (
         Port("in", Point(0, -2), Direction.N, "top"),
@@ -518,7 +518,7 @@ def test_symbol_from_data_applies_the_documented_defaults():
         Text("M", Point(0, 0), 1),
     )
     assert (symbol.ports, symbol.nodes, symbol.paths, symbol.anchors, symbol.slots) == ((),) * 5
-    assert symbol.reference == Reference("IEC 60617", "S00001")
+    assert symbol.reference == Reference("Example set", "S00001")
     assert symbol.pole_pitch is None
     assert symbol.lint_allow == ()
 
@@ -560,8 +560,8 @@ normal = 600
 thick = 600
 """
 
-CONFIG_KEYS = """standard = "IEC 60617"
-title = "IEC 60617 symbols"
+CONFIG_KEYS = """standard = "Example set"
+title = "Example set symbols"
 number_pattern = '^S\\d{5}$'
 """
 CONFIG = CONFIG_KEYS + FONT_TOML
@@ -571,7 +571,7 @@ def test_parse_config_reads_the_three_strings():
     config, findings = parse_config(CONFIG)
     assert findings == ()
     assert config is not None
-    assert (config.standard, config.title) == ("IEC 60617", "IEC 60617 symbols")
+    assert (config.standard, config.title) == ("Example set", "Example set symbols")
     assert re.fullmatch(config.number_pattern, "S00227")
 
 

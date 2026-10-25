@@ -2,7 +2,7 @@ schema = 1
 name = "Make contact, general symbol"
 kind = "symbol"
 status = "unverified"
-reference = { standard = "IEC 60617", number = "S00227" }
+reference = { standard = "Example set", number = "S00227" }
 
 ports = [
   { id = "in",  at = [0, -2], dir = "N" },

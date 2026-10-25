@@ -1,6 +1,6 @@
 # `pipe` in path_kinds shows a set declaring its own word: the three process symbols (S90001-S90003) use it.
-standard = "IEC 60617"
-title = "IEC 60617 symbols"
+standard = "Example set"
+title = "Example set symbols"
 number_pattern = '^S\d{5}$'
 
 [font]

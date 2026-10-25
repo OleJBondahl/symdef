@@ -2,7 +2,7 @@ schema = 1
 name = "Stretch cut outside the body"
 kind = "element"
 status = "unverified"
-reference = { standard = "IEC 60617", number = "S00002" }
+reference = { standard = "Example set", number = "S00002" }
 
 stretch = [{ axis = "x", at = 5 }]
 elements = [

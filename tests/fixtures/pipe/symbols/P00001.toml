@@ -2,7 +2,7 @@ schema = 1
 name = "Pipe, straight"
 kind = "symbol"
 status = "unverified"
-reference = { standard = "ISO 14617", number = "P00001" }
+reference = { standard = "Pipe set", number = "P00001" }
 
 ports = [
   { id = "in",  at = [0, -3], dir = "N" },

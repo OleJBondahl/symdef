@@ -3,7 +3,7 @@ schema = 1
 name = "Fixture"
 kind = "symbol"
 status = "unverified"
-reference = { standard = "IEC 60617" }
+reference = { standard = "Example set" }
 
 ports = [
   { id = "in", at = [0, -2], dir = "N" },

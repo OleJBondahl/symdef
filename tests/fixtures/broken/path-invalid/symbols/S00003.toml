@@ -2,7 +2,7 @@ schema = 1
 name = "Two paths between the same two nodes"
 kind = "element"
 status = "unverified"
-reference = { standard = "IEC 60617", number = "S00003" }
+reference = { standard = "Example set", number = "S00003" }
 
 ports = [
   { id = "in",  at = [0, -2], dir = "N" },

@@ -119,7 +119,7 @@ with a dated entry in the change list below and in <code>docs/DECISIONS.md</code
   <li><strong>Electrical function is data.</strong> Nodes and typed paths, so consumers netlist and check without per-symbol knowledge.</li>
   <li><strong>Text goes in slots.</strong> The symbol reserves boxes for the tag and for each port's marking. The consumer renders the text.</li>
   <li><strong>Data is the source of truth.</strong> One TOML file per symbol, validated by a published JSON Schema. Any language can consume the resolved JSON.</li>
-  <li><strong>Composition mirrors the standard.</strong> IEC 60617 builds symbols from elements and qualifying symbols. Composites reference parts by anchor and contain no copied coordinates.</li>
+  <li><strong>Composition mirrors the standard.</strong> Example set builds symbols from elements and qualifying symbols. Composites reference parts by anchor and contain no copied coordinates.</li>
   <li><strong>The wiring contract is strict and linted</strong> in all 8 orientations. A router never repairs a symbol.</li>
   <li><strong>Every gate is proven able to fail</strong> with a deliberately broken fixture.</li>
 </ol>
@@ -127,7 +127,7 @@ with a dated entry in the change list below and in <code>docs/DECISIONS.md</code
 <h2 id="s3">3. Conventions</h2>
 <table>
 <tr><th>Item</th><th>Rule</th></tr>
-<tr><td>Unit</td><td>The module <code>M</code>. Default <code>M = 2.5 mm</code> (ISO 81714-1, ISO 14617). Files never contain millimetres.</td></tr>
+<tr><td>Unit</td><td>The module <code>M</code>. Default <code>M = 2.5 mm</code> (ISO 81714-1, Pipe set). Files never contain millimetres.</td></tr>
 <tr><td>Axes</td><td>SVG axes: x right, y down. Angles in degrees, clockwise on screen from +x.</td></tr>
 <tr><td>Drawing grid</td><td><code>0.125 M</code>. Every shape coordinate, radius, text height, anchor, slot point and slot box size is a multiple of it. 0.125 is exact in binary floating point.</td></tr>
 <tr><td>Wiring grid</td><td><code>1 M</code>. Every port position is a multiple of it. The origin is on it by definition.</td></tr>
@@ -163,7 +163,7 @@ Flipping top to bottom is <code>MR180</code>. There is no other transform in the
 Generic consumers should chain symbols using the through path's <code>from</code> and <code>to</code>, not by assuming the ids <code>in</code>/<code>out</code>.</p>
 
 <h2 id="s4">4. The symbol file</h2>
-<p>One file per symbol: <code>symbols/&lt;number&gt;.toml</code> in the data repo. Symbol elements and qualifying symbols from IEC 60617 Part 2 are files too, with a different <code>kind</code>.</p>
+<p>One file per symbol: <code>symbols/&lt;number&gt;.toml</code> in the data repo. Symbol elements and qualifying symbols from the symbol set are files too, with a different <code>kind</code>.</p>
 
 <h3>Top-level keys</h3>
 <table>
@@ -203,7 +203,7 @@ Generic consumers should chain symbols using the through path's <code>from</code
 name = "Make contact, general symbol"
 kind = "symbol"
 status = "unverified"
-reference = { standard = "IEC 60617", number = "S00227" }
+reference = { standard = "Example set", number = "S00227" }
 
 ports = [
   { id = "in",  at = [0, -2], dir = "N" },
@@ -235,7 +235,7 @@ tag           = { at = [-1.5, 0],    side = "W", box = [6, 1] }
 name = "Change-over break before make contact"
 kind = "symbol"
 status = "unverified"
-reference = { standard = "IEC 60617", number = "S00230" }
+reference = { standard = "Example set", number = "S00230" }
 pole_pitch = 8          # 5.5 M wide with its markings, so it cannot repeat at 4 M
 
 ports = [
@@ -273,7 +273,7 @@ tag           = { at = [-4, 0],        side = "W", box = [6, 1] }
 name = "Operating device, general symbol; relay coil, general symbol"
 kind = "symbol"
 status = "unverified"
-reference = { standard = "IEC 60617", number = "S00305" }
+reference = { standard = "Example set", number = "S00305" }
 
 ports = [
   { id = "in",  at = [0, -3], dir = "N" },
@@ -305,7 +305,7 @@ tag           = { at = [-2.5, 0],  side = "W", box = [6, 1] }
 name = "Connection point"
 kind = "symbol"
 status = "unverified"
-reference = { standard = "IEC 60617", number = "S00016" }
+reference = { standard = "Example set", number = "S00016" }
 
 ports = [
   { id = "n", at = [0, 0], dir = "N" },
@@ -355,7 +355,7 @@ The toolkit's first test fixture is these five files: they must load and lint cl
 <tr><td><code>diode</code></td><td>conducts from <code>from</code> to <code>to</code> only</td><td>yes</td><td>diode, LED, thyristor main path</td></tr>
 </table>
 <p>What a consumer can do with this and nothing else: build a netlist across placed symbols, find nets with a source and no load, find nets that are shorted through conductors,
-trace which switch states complete a circuit, and know that a terminal's or junction's ports are one net. Tag letter codes (IEC 81346) and device behaviour stay in the consumer: they classify devices, not symbols.</p>
+trace which switch states complete a circuit, and know that a terminal's or junction's ports are one net. Tag letter codes and device behaviour stay in the consumer: they classify devices, not symbols.</p>
 
 <h2 id="s6">6. Text slots and boxes</h2>
 <p>A slot reserves room for text the consumer will draw. A symbol never contains tag or marking text.</p>
@@ -412,7 +412,7 @@ The flattened result is linted like any other symbol, so a placement that pushes
 name = "Switch, manually operated, push-button, automatic return"
 kind = "symbol"
 status = "unverified"
-reference = { standard = "IEC 60617", number = "S00254" }
+reference = { standard = "Example set", number = "S00254" }
 
 parts = [
   { as = "contact",  use = "S00227" },
@@ -592,8 +592,8 @@ my-symbols/                              a data repo: data only (`symdef init` w
   build/                                 generated by `symdef build`, tracked
     resolved/  svg/  annotated/  README.md</code></pre>
 <p>The toolkit knows nothing about any standard. Everything standard-specific is in the data repo's <code>library.toml</code>, including its words and its required slots; an optional <code>package</code> key names the folder under <code>src/</code> that holds the bundle:</p>
-<pre data-lang="toml-config"><code>standard = "IEC 60617"
-title = "IEC 60617 symbols"
+<pre data-lang="toml-config"><code>standard = "Example set"
+title = "Example set symbols"
 number_pattern = '^S\d{5}$'
 port_format = "{k}.{port}"
 

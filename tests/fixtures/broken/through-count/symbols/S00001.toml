@@ -2,7 +2,7 @@ schema = 1
 name = "Two through paths"
 kind = "element"
 status = "unverified"
-reference = { standard = "IEC 60617", number = "S00001" }
+reference = { standard = "Example set", number = "S00001" }
 
 # Every through path runs from (0, -a) N to (0, a) S, so a second one that is not also wrong on
 # the axis must use the same two nodes: this fixture unavoidably breaks path-invalid as well.

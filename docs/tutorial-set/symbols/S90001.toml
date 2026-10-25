@@ -2,7 +2,7 @@ schema = 1
 name = "Gate valve"
 kind = "symbol"
 status = "unverified"
-reference = { standard = "IEC 60617", number = "S90001" }
+reference = { standard = "Example set", number = "S90001" }
 
 ports = [
   { id = "in",  at = [0, -2], dir = "N" },

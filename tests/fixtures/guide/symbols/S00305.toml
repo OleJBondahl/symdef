@@ -2,7 +2,7 @@ schema = 1
 name = "Operating device, general symbol; relay coil, general symbol"
 kind = "symbol"
 status = "unverified"
-reference = { standard = "IEC 60617", number = "S00305" }
+reference = { standard = "Example set", number = "S00305" }
 
 ports = [
   { id = "in",  at = [0, -3], dir = "N" },
