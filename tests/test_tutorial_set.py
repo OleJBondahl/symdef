@@ -11,8 +11,15 @@ from symdef import authoring
 ROOT = Path(__file__).resolve().parent.parent
 SET = ROOT / "docs" / "tutorial-set"
 GUIDE = ROOT / "tests" / "fixtures" / "guide" / "symbols"
-IEC = ("S00016", "S00171", "S00227", "S00230", "S00254", "S00305")
-NEW = ("S90001", "S90002", "S90003")
+IEC = (
+    "connection-point",
+    "operated-by-pushing",
+    "make-contact",
+    "change-over-contact",
+    "push-button",
+    "relay-coil",
+)
+NEW = ("gate-valve", "pump", "check-valve")
 
 
 def test_the_set_is_source_only():
@@ -35,7 +42,7 @@ def test_the_nine_numbers_are_exactly_the_expected_list():
 def test_each_iec_file_equals_the_guide_fixture(number):
     ours = (SET / "symbols" / f"{number}.toml").read_bytes()
     theirs = (GUIDE / f"{number}.toml").read_bytes()
-    if number == "S00254":
+    if number == "push-button":
         # The one edit: the fixture's own concern C1 (pitch-overflow) says pole_pitch = 8.
         theirs = theirs.replace(b"\n\nparts", b"\npole_pitch = 8\n\nparts", 1)
     assert ours == theirs

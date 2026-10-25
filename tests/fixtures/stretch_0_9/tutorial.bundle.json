@@ -30,346 +30,7 @@
   "schema": 1,
   "standard": "Example set",
   "symbols": {
-    "S00016": {
-      "anchors": [],
-      "body_box": [
-        [
-          -0.25,
-          -0.25
-        ],
-        [
-          0.25,
-          0.25
-        ]
-      ],
-      "elements": [
-        {
-          "circle": [
-            0,
-            0
-          ],
-          "fill": "solid",
-          "r": 0.25,
-          "weight": "normal"
-        }
-      ],
-      "keepout_box": [
-        [
-          -0.25,
-          -0.25
-        ],
-        [
-          0.25,
-          0.25
-        ]
-      ],
-      "kind": "symbol",
-      "lint_allow": [
-        {
-          "reason": "junction: wires meet at the centre of the dot",
-          "rule": "port-on-body-edge"
-        },
-        {
-          "reason": "junction: wires start inside the dot",
-          "rule": "port-lane-clear"
-        },
-        {
-          "reason": "a junction carries no tag or markings",
-          "rule": "slot-missing"
-        }
-      ],
-      "name": "Connection point",
-      "nodes": [
-        {
-          "ports": [
-            "n",
-            "e",
-            "s",
-            "w"
-          ]
-        }
-      ],
-      "paths": [],
-      "ports": [
-        {
-          "at": [
-            0,
-            0
-          ],
-          "description": "",
-          "dir": "N",
-          "id": "n"
-        },
-        {
-          "at": [
-            0,
-            0
-          ],
-          "description": "",
-          "dir": "E",
-          "id": "e"
-        },
-        {
-          "at": [
-            0,
-            0
-          ],
-          "description": "",
-          "dir": "S",
-          "id": "s"
-        },
-        {
-          "at": [
-            0,
-            0
-          ],
-          "description": "",
-          "dir": "W",
-          "id": "w"
-        }
-      ],
-      "reference": {
-        "number": "S00016",
-        "standard": "Example set"
-      },
-      "schema": 1,
-      "slots": {},
-      "status": "unverified"
-    },
-    "S00171": {
-      "anchors": [
-        {
-          "at": [
-            0,
-            0
-          ],
-          "dir": "E",
-          "id": "link"
-        }
-      ],
-      "body_box": [
-        [
-          -0.75,
-          -0.5
-        ],
-        [
-          0,
-          0.5
-        ]
-      ],
-      "elements": [
-        {
-          "line": [
-            [
-              0,
-              -0.5
-            ],
-            [
-              0,
-              0.5
-            ]
-          ],
-          "style": "solid",
-          "weight": "normal"
-        },
-        {
-          "line": [
-            [
-              0,
-              0
-            ],
-            [
-              -0.75,
-              0
-            ]
-          ],
-          "style": "solid",
-          "weight": "normal"
-        }
-      ],
-      "keepout_box": [
-        [
-          -0.75,
-          -0.5
-        ],
-        [
-          0,
-          0.5
-        ]
-      ],
-      "kind": "qualifier",
-      "name": "Operated by pushing",
-      "nodes": [],
-      "paths": [],
-      "ports": [],
-      "reference": {
-        "number": "S00171",
-        "standard": "Example set"
-      },
-      "schema": 1,
-      "slots": {},
-      "status": "unverified"
-    },
-    "S00227": {
-      "anchors": [
-        {
-          "at": [
-            -0.5,
-            0
-          ],
-          "dir": "W",
-          "id": "link"
-        }
-      ],
-      "body_box": [
-        [
-          -1,
-          -2
-        ],
-        [
-          0,
-          2
-        ]
-      ],
-      "elements": [
-        {
-          "line": [
-            [
-              0,
-              -2
-            ],
-            [
-              0,
-              -1
-            ]
-          ],
-          "style": "solid",
-          "weight": "normal"
-        },
-        {
-          "line": [
-            [
-              0,
-              2
-            ],
-            [
-              0,
-              1
-            ]
-          ],
-          "style": "solid",
-          "weight": "normal"
-        },
-        {
-          "line": [
-            [
-              0,
-              1
-            ],
-            [
-              -1,
-              -1
-            ]
-          ],
-          "style": "solid",
-          "weight": "normal"
-        }
-      ],
-      "keepout_box": [
-        [
-          -1,
-          -2
-        ],
-        [
-          0,
-          2
-        ]
-      ],
-      "kind": "symbol",
-      "name": "Make contact, general symbol",
-      "nodes": [
-        {
-          "ports": [
-            "in"
-          ]
-        },
-        {
-          "ports": [
-            "out"
-          ]
-        }
-      ],
-      "paths": [
-        {
-          "from": "in",
-          "kind": "switch_open",
-          "through": true,
-          "to": "out"
-        }
-      ],
-      "ports": [
-        {
-          "at": [
-            0,
-            -2
-          ],
-          "description": "",
-          "dir": "N",
-          "id": "in"
-        },
-        {
-          "at": [
-            0,
-            2
-          ],
-          "description": "",
-          "dir": "S",
-          "id": "out"
-        }
-      ],
-      "reference": {
-        "number": "S00227",
-        "standard": "Example set"
-      },
-      "schema": 1,
-      "slots": {
-        "marking.in": {
-          "at": [
-            0.25,
-            -1.5
-          ],
-          "box": [
-            1.5,
-            1
-          ],
-          "side": "E"
-        },
-        "marking.out": {
-          "at": [
-            0.25,
-            1.5
-          ],
-          "box": [
-            1.5,
-            1
-          ],
-          "side": "E"
-        },
-        "tag": {
-          "at": [
-            -1.5,
-            0
-          ],
-          "box": [
-            6,
-            1
-          ],
-          "side": "W"
-        }
-      },
-      "status": "unverified"
-    },
-    "S00230": {
+    "change-over-contact": {
       "anchors": [
         {
           "at": [
@@ -536,7 +197,7 @@
         }
       ],
       "reference": {
-        "number": "S00230",
+        "number": "change-over-contact",
         "standard": "Example set"
       },
       "schema": 1,
@@ -588,7 +249,846 @@
       },
       "status": "unverified"
     },
-    "S00254": {
+    "check-valve": {
+      "anchors": [],
+      "body_box": [
+        [
+          -1,
+          -2
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "elements": [
+        {
+          "line": [
+            [
+              0,
+              -2
+            ],
+            [
+              0,
+              -0.75
+            ]
+          ],
+          "style": "solid",
+          "weight": "normal"
+        },
+        {
+          "line": [
+            [
+              -1,
+              -0.75
+            ],
+            [
+              1,
+              -0.75
+            ]
+          ],
+          "style": "solid",
+          "weight": "normal"
+        },
+        {
+          "circle": [
+            0,
+            0
+          ],
+          "fill": "none",
+          "r": 0.75,
+          "weight": "normal"
+        },
+        {
+          "line": [
+            [
+              0,
+              2
+            ],
+            [
+              0,
+              0.75
+            ]
+          ],
+          "style": "solid",
+          "weight": "normal"
+        }
+      ],
+      "keepout_box": [
+        [
+          -1,
+          -2
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "kind": "symbol",
+      "name": "Check valve",
+      "nodes": [
+        {
+          "ports": [
+            "in"
+          ]
+        },
+        {
+          "ports": [
+            "out"
+          ]
+        }
+      ],
+      "paths": [
+        {
+          "from": "in",
+          "kind": "pipe",
+          "through": true,
+          "to": "out"
+        }
+      ],
+      "ports": [
+        {
+          "at": [
+            0,
+            -2
+          ],
+          "description": "",
+          "dir": "N",
+          "id": "in"
+        },
+        {
+          "at": [
+            0,
+            2
+          ],
+          "description": "",
+          "dir": "S",
+          "id": "out"
+        }
+      ],
+      "reference": {
+        "number": "check-valve",
+        "standard": "Example set"
+      },
+      "schema": 1,
+      "slots": {
+        "marking.in": {
+          "at": [
+            1.25,
+            -1.5
+          ],
+          "box": [
+            1.5,
+            1
+          ],
+          "side": "E"
+        },
+        "marking.out": {
+          "at": [
+            1.25,
+            1.5
+          ],
+          "box": [
+            1.5,
+            1
+          ],
+          "side": "E"
+        },
+        "tag": {
+          "at": [
+            -1.5,
+            0
+          ],
+          "box": [
+            6,
+            1
+          ],
+          "side": "W"
+        }
+      },
+      "status": "unverified"
+    },
+    "connection-point": {
+      "anchors": [],
+      "body_box": [
+        [
+          -0.25,
+          -0.25
+        ],
+        [
+          0.25,
+          0.25
+        ]
+      ],
+      "elements": [
+        {
+          "circle": [
+            0,
+            0
+          ],
+          "fill": "solid",
+          "r": 0.25,
+          "weight": "normal"
+        }
+      ],
+      "keepout_box": [
+        [
+          -0.25,
+          -0.25
+        ],
+        [
+          0.25,
+          0.25
+        ]
+      ],
+      "kind": "symbol",
+      "lint_allow": [
+        {
+          "reason": "junction: wires meet at the centre of the dot",
+          "rule": "port-on-body-edge"
+        },
+        {
+          "reason": "junction: wires start inside the dot",
+          "rule": "port-lane-clear"
+        },
+        {
+          "reason": "a junction carries no tag or markings",
+          "rule": "slot-missing"
+        }
+      ],
+      "name": "Connection point",
+      "nodes": [
+        {
+          "ports": [
+            "n",
+            "e",
+            "s",
+            "w"
+          ]
+        }
+      ],
+      "paths": [],
+      "ports": [
+        {
+          "at": [
+            0,
+            0
+          ],
+          "description": "",
+          "dir": "N",
+          "id": "n"
+        },
+        {
+          "at": [
+            0,
+            0
+          ],
+          "description": "",
+          "dir": "E",
+          "id": "e"
+        },
+        {
+          "at": [
+            0,
+            0
+          ],
+          "description": "",
+          "dir": "S",
+          "id": "s"
+        },
+        {
+          "at": [
+            0,
+            0
+          ],
+          "description": "",
+          "dir": "W",
+          "id": "w"
+        }
+      ],
+      "reference": {
+        "number": "connection-point",
+        "standard": "Example set"
+      },
+      "schema": 1,
+      "slots": {},
+      "status": "unverified"
+    },
+    "gate-valve": {
+      "anchors": [],
+      "body_box": [
+        [
+          -1,
+          -2
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "elements": [
+        {
+          "line": [
+            [
+              0,
+              -2
+            ],
+            [
+              0,
+              -1
+            ]
+          ],
+          "style": "solid",
+          "weight": "normal"
+        },
+        {
+          "line": [
+            [
+              0,
+              2
+            ],
+            [
+              0,
+              1
+            ]
+          ],
+          "style": "solid",
+          "weight": "normal"
+        },
+        {
+          "closed": true,
+          "fill": "none",
+          "polyline": [
+            [
+              -1,
+              -1
+            ],
+            [
+              1,
+              -1
+            ],
+            [
+              0,
+              0
+            ]
+          ],
+          "style": "solid",
+          "weight": "normal"
+        },
+        {
+          "closed": true,
+          "fill": "none",
+          "polyline": [
+            [
+              -1,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              0,
+              0
+            ]
+          ],
+          "style": "solid",
+          "weight": "normal"
+        }
+      ],
+      "keepout_box": [
+        [
+          -1,
+          -2
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "kind": "symbol",
+      "name": "Gate valve",
+      "nodes": [
+        {
+          "ports": [
+            "in"
+          ]
+        },
+        {
+          "ports": [
+            "out"
+          ]
+        }
+      ],
+      "paths": [
+        {
+          "from": "in",
+          "kind": "pipe",
+          "through": true,
+          "to": "out"
+        }
+      ],
+      "ports": [
+        {
+          "at": [
+            0,
+            -2
+          ],
+          "description": "",
+          "dir": "N",
+          "id": "in"
+        },
+        {
+          "at": [
+            0,
+            2
+          ],
+          "description": "",
+          "dir": "S",
+          "id": "out"
+        }
+      ],
+      "reference": {
+        "number": "gate-valve",
+        "standard": "Example set"
+      },
+      "schema": 1,
+      "slots": {
+        "marking.in": {
+          "at": [
+            1.25,
+            -1.5
+          ],
+          "box": [
+            1.5,
+            1
+          ],
+          "side": "E"
+        },
+        "marking.out": {
+          "at": [
+            1.25,
+            1.5
+          ],
+          "box": [
+            1.5,
+            1
+          ],
+          "side": "E"
+        },
+        "tag": {
+          "at": [
+            -1.5,
+            0
+          ],
+          "box": [
+            6,
+            1
+          ],
+          "side": "W"
+        }
+      },
+      "status": "unverified"
+    },
+    "make-contact": {
+      "anchors": [
+        {
+          "at": [
+            -0.5,
+            0
+          ],
+          "dir": "W",
+          "id": "link"
+        }
+      ],
+      "body_box": [
+        [
+          -1,
+          -2
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "elements": [
+        {
+          "line": [
+            [
+              0,
+              -2
+            ],
+            [
+              0,
+              -1
+            ]
+          ],
+          "style": "solid",
+          "weight": "normal"
+        },
+        {
+          "line": [
+            [
+              0,
+              2
+            ],
+            [
+              0,
+              1
+            ]
+          ],
+          "style": "solid",
+          "weight": "normal"
+        },
+        {
+          "line": [
+            [
+              0,
+              1
+            ],
+            [
+              -1,
+              -1
+            ]
+          ],
+          "style": "solid",
+          "weight": "normal"
+        }
+      ],
+      "keepout_box": [
+        [
+          -1,
+          -2
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "kind": "symbol",
+      "name": "Make contact, general symbol",
+      "nodes": [
+        {
+          "ports": [
+            "in"
+          ]
+        },
+        {
+          "ports": [
+            "out"
+          ]
+        }
+      ],
+      "paths": [
+        {
+          "from": "in",
+          "kind": "switch_open",
+          "through": true,
+          "to": "out"
+        }
+      ],
+      "ports": [
+        {
+          "at": [
+            0,
+            -2
+          ],
+          "description": "",
+          "dir": "N",
+          "id": "in"
+        },
+        {
+          "at": [
+            0,
+            2
+          ],
+          "description": "",
+          "dir": "S",
+          "id": "out"
+        }
+      ],
+      "reference": {
+        "number": "make-contact",
+        "standard": "Example set"
+      },
+      "schema": 1,
+      "slots": {
+        "marking.in": {
+          "at": [
+            0.25,
+            -1.5
+          ],
+          "box": [
+            1.5,
+            1
+          ],
+          "side": "E"
+        },
+        "marking.out": {
+          "at": [
+            0.25,
+            1.5
+          ],
+          "box": [
+            1.5,
+            1
+          ],
+          "side": "E"
+        },
+        "tag": {
+          "at": [
+            -1.5,
+            0
+          ],
+          "box": [
+            6,
+            1
+          ],
+          "side": "W"
+        }
+      },
+      "status": "unverified"
+    },
+    "operated-by-pushing": {
+      "anchors": [
+        {
+          "at": [
+            0,
+            0
+          ],
+          "dir": "E",
+          "id": "link"
+        }
+      ],
+      "body_box": [
+        [
+          -0.75,
+          -0.5
+        ],
+        [
+          0,
+          0.5
+        ]
+      ],
+      "elements": [
+        {
+          "line": [
+            [
+              0,
+              -0.5
+            ],
+            [
+              0,
+              0.5
+            ]
+          ],
+          "style": "solid",
+          "weight": "normal"
+        },
+        {
+          "line": [
+            [
+              0,
+              0
+            ],
+            [
+              -0.75,
+              0
+            ]
+          ],
+          "style": "solid",
+          "weight": "normal"
+        }
+      ],
+      "keepout_box": [
+        [
+          -0.75,
+          -0.5
+        ],
+        [
+          0,
+          0.5
+        ]
+      ],
+      "kind": "qualifier",
+      "name": "Operated by pushing",
+      "nodes": [],
+      "paths": [],
+      "ports": [],
+      "reference": {
+        "number": "operated-by-pushing",
+        "standard": "Example set"
+      },
+      "schema": 1,
+      "slots": {},
+      "status": "unverified"
+    },
+    "pump": {
+      "anchors": [],
+      "body_box": [
+        [
+          -1,
+          -2
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "elements": [
+        {
+          "line": [
+            [
+              0,
+              -2
+            ],
+            [
+              0,
+              -1
+            ]
+          ],
+          "style": "solid",
+          "weight": "normal"
+        },
+        {
+          "line": [
+            [
+              0,
+              2
+            ],
+            [
+              0,
+              1
+            ]
+          ],
+          "style": "solid",
+          "weight": "normal"
+        },
+        {
+          "circle": [
+            0,
+            0
+          ],
+          "fill": "none",
+          "r": 1,
+          "weight": "normal"
+        },
+        {
+          "closed": true,
+          "fill": "none",
+          "polyline": [
+            [
+              -0.5,
+              -0.375
+            ],
+            [
+              0.5,
+              -0.375
+            ],
+            [
+              0,
+              0.5
+            ]
+          ],
+          "style": "solid",
+          "weight": "normal"
+        }
+      ],
+      "keepout_box": [
+        [
+          -1,
+          -2
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "kind": "symbol",
+      "name": "Pump",
+      "nodes": [
+        {
+          "ports": [
+            "in"
+          ]
+        },
+        {
+          "ports": [
+            "out"
+          ]
+        }
+      ],
+      "paths": [
+        {
+          "from": "in",
+          "kind": "pipe",
+          "through": true,
+          "to": "out"
+        }
+      ],
+      "ports": [
+        {
+          "at": [
+            0,
+            -2
+          ],
+          "description": "",
+          "dir": "N",
+          "id": "in"
+        },
+        {
+          "at": [
+            0,
+            2
+          ],
+          "description": "",
+          "dir": "S",
+          "id": "out"
+        }
+      ],
+      "reference": {
+        "number": "pump",
+        "standard": "Example set"
+      },
+      "schema": 1,
+      "slots": {
+        "marking.in": {
+          "at": [
+            1.25,
+            -1.5
+          ],
+          "box": [
+            1.5,
+            1
+          ],
+          "side": "E"
+        },
+        "marking.out": {
+          "at": [
+            1.25,
+            1.5
+          ],
+          "box": [
+            1.5,
+            1
+          ],
+          "side": "E"
+        },
+        "tag": {
+          "at": [
+            -1.5,
+            0
+          ],
+          "box": [
+            6,
+            1
+          ],
+          "side": "W"
+        }
+      },
+      "status": "unverified"
+    },
+    "push-button": {
       "anchors": [],
       "body_box": [
         [
@@ -740,7 +1240,7 @@
         }
       ],
       "reference": {
-        "number": "S00254",
+        "number": "push-button",
         "standard": "Example set"
       },
       "schema": 1,
@@ -781,7 +1281,7 @@
       },
       "status": "unverified"
     },
-    "S00305": {
+    "relay-coil": {
       "anchors": [
         {
           "at": [
@@ -909,7 +1409,7 @@
         }
       ],
       "reference": {
-        "number": "S00305",
+        "number": "relay-coil",
         "standard": "Example set"
       },
       "schema": 1,
@@ -939,506 +1439,6 @@
         "tag": {
           "at": [
             -2.5,
-            0
-          ],
-          "box": [
-            6,
-            1
-          ],
-          "side": "W"
-        }
-      },
-      "status": "unverified"
-    },
-    "S90001": {
-      "anchors": [],
-      "body_box": [
-        [
-          -1,
-          -2
-        ],
-        [
-          1,
-          2
-        ]
-      ],
-      "elements": [
-        {
-          "line": [
-            [
-              0,
-              -2
-            ],
-            [
-              0,
-              -1
-            ]
-          ],
-          "style": "solid",
-          "weight": "normal"
-        },
-        {
-          "line": [
-            [
-              0,
-              2
-            ],
-            [
-              0,
-              1
-            ]
-          ],
-          "style": "solid",
-          "weight": "normal"
-        },
-        {
-          "closed": true,
-          "fill": "none",
-          "polyline": [
-            [
-              -1,
-              -1
-            ],
-            [
-              1,
-              -1
-            ],
-            [
-              0,
-              0
-            ]
-          ],
-          "style": "solid",
-          "weight": "normal"
-        },
-        {
-          "closed": true,
-          "fill": "none",
-          "polyline": [
-            [
-              -1,
-              1
-            ],
-            [
-              1,
-              1
-            ],
-            [
-              0,
-              0
-            ]
-          ],
-          "style": "solid",
-          "weight": "normal"
-        }
-      ],
-      "keepout_box": [
-        [
-          -1,
-          -2
-        ],
-        [
-          1,
-          2
-        ]
-      ],
-      "kind": "symbol",
-      "name": "Gate valve",
-      "nodes": [
-        {
-          "ports": [
-            "in"
-          ]
-        },
-        {
-          "ports": [
-            "out"
-          ]
-        }
-      ],
-      "paths": [
-        {
-          "from": "in",
-          "kind": "pipe",
-          "through": true,
-          "to": "out"
-        }
-      ],
-      "ports": [
-        {
-          "at": [
-            0,
-            -2
-          ],
-          "description": "",
-          "dir": "N",
-          "id": "in"
-        },
-        {
-          "at": [
-            0,
-            2
-          ],
-          "description": "",
-          "dir": "S",
-          "id": "out"
-        }
-      ],
-      "reference": {
-        "number": "S90001",
-        "standard": "Example set"
-      },
-      "schema": 1,
-      "slots": {
-        "marking.in": {
-          "at": [
-            1.25,
-            -1.5
-          ],
-          "box": [
-            1.5,
-            1
-          ],
-          "side": "E"
-        },
-        "marking.out": {
-          "at": [
-            1.25,
-            1.5
-          ],
-          "box": [
-            1.5,
-            1
-          ],
-          "side": "E"
-        },
-        "tag": {
-          "at": [
-            -1.5,
-            0
-          ],
-          "box": [
-            6,
-            1
-          ],
-          "side": "W"
-        }
-      },
-      "status": "unverified"
-    },
-    "S90002": {
-      "anchors": [],
-      "body_box": [
-        [
-          -1,
-          -2
-        ],
-        [
-          1,
-          2
-        ]
-      ],
-      "elements": [
-        {
-          "line": [
-            [
-              0,
-              -2
-            ],
-            [
-              0,
-              -1
-            ]
-          ],
-          "style": "solid",
-          "weight": "normal"
-        },
-        {
-          "line": [
-            [
-              0,
-              2
-            ],
-            [
-              0,
-              1
-            ]
-          ],
-          "style": "solid",
-          "weight": "normal"
-        },
-        {
-          "circle": [
-            0,
-            0
-          ],
-          "fill": "none",
-          "r": 1,
-          "weight": "normal"
-        },
-        {
-          "closed": true,
-          "fill": "none",
-          "polyline": [
-            [
-              -0.5,
-              -0.375
-            ],
-            [
-              0.5,
-              -0.375
-            ],
-            [
-              0,
-              0.5
-            ]
-          ],
-          "style": "solid",
-          "weight": "normal"
-        }
-      ],
-      "keepout_box": [
-        [
-          -1,
-          -2
-        ],
-        [
-          1,
-          2
-        ]
-      ],
-      "kind": "symbol",
-      "name": "Pump",
-      "nodes": [
-        {
-          "ports": [
-            "in"
-          ]
-        },
-        {
-          "ports": [
-            "out"
-          ]
-        }
-      ],
-      "paths": [
-        {
-          "from": "in",
-          "kind": "pipe",
-          "through": true,
-          "to": "out"
-        }
-      ],
-      "ports": [
-        {
-          "at": [
-            0,
-            -2
-          ],
-          "description": "",
-          "dir": "N",
-          "id": "in"
-        },
-        {
-          "at": [
-            0,
-            2
-          ],
-          "description": "",
-          "dir": "S",
-          "id": "out"
-        }
-      ],
-      "reference": {
-        "number": "S90002",
-        "standard": "Example set"
-      },
-      "schema": 1,
-      "slots": {
-        "marking.in": {
-          "at": [
-            1.25,
-            -1.5
-          ],
-          "box": [
-            1.5,
-            1
-          ],
-          "side": "E"
-        },
-        "marking.out": {
-          "at": [
-            1.25,
-            1.5
-          ],
-          "box": [
-            1.5,
-            1
-          ],
-          "side": "E"
-        },
-        "tag": {
-          "at": [
-            -1.5,
-            0
-          ],
-          "box": [
-            6,
-            1
-          ],
-          "side": "W"
-        }
-      },
-      "status": "unverified"
-    },
-    "S90003": {
-      "anchors": [],
-      "body_box": [
-        [
-          -1,
-          -2
-        ],
-        [
-          1,
-          2
-        ]
-      ],
-      "elements": [
-        {
-          "line": [
-            [
-              0,
-              -2
-            ],
-            [
-              0,
-              -0.75
-            ]
-          ],
-          "style": "solid",
-          "weight": "normal"
-        },
-        {
-          "line": [
-            [
-              -1,
-              -0.75
-            ],
-            [
-              1,
-              -0.75
-            ]
-          ],
-          "style": "solid",
-          "weight": "normal"
-        },
-        {
-          "circle": [
-            0,
-            0
-          ],
-          "fill": "none",
-          "r": 0.75,
-          "weight": "normal"
-        },
-        {
-          "line": [
-            [
-              0,
-              2
-            ],
-            [
-              0,
-              0.75
-            ]
-          ],
-          "style": "solid",
-          "weight": "normal"
-        }
-      ],
-      "keepout_box": [
-        [
-          -1,
-          -2
-        ],
-        [
-          1,
-          2
-        ]
-      ],
-      "kind": "symbol",
-      "name": "Check valve",
-      "nodes": [
-        {
-          "ports": [
-            "in"
-          ]
-        },
-        {
-          "ports": [
-            "out"
-          ]
-        }
-      ],
-      "paths": [
-        {
-          "from": "in",
-          "kind": "pipe",
-          "through": true,
-          "to": "out"
-        }
-      ],
-      "ports": [
-        {
-          "at": [
-            0,
-            -2
-          ],
-          "description": "",
-          "dir": "N",
-          "id": "in"
-        },
-        {
-          "at": [
-            0,
-            2
-          ],
-          "description": "",
-          "dir": "S",
-          "id": "out"
-        }
-      ],
-      "reference": {
-        "number": "S90003",
-        "standard": "Example set"
-      },
-      "schema": 1,
-      "slots": {
-        "marking.in": {
-          "at": [
-            1.25,
-            -1.5
-          ],
-          "box": [
-            1.5,
-            1
-          ],
-          "side": "E"
-        },
-        "marking.out": {
-          "at": [
-            1.25,
-            1.5
-          ],
-          "box": [
-            1.5,
-            1
-          ],
-          "side": "E"
-        },
-        "tag": {
-          "at": [
-            -1.5,
             0
           ],
           "box": [

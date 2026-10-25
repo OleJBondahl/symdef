@@ -108,7 +108,7 @@ def test_only_the_body_edge_lane_and_slot_overlap_rules_depend_on_the_orientatio
 def test_every_rule_has_a_broken_fixture_that_makes_it_fire(rule_id):
     directory = BROKEN / rule_id / "symbols"
     assert directory.is_dir()
-    assert list(directory.glob("S00001.toml"))
+    assert list(directory.glob("sym-a.toml"))
     assert any(f.rule == rule_id for f in run_fixture(rule_id))
 
 

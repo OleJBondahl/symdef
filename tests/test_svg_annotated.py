@@ -420,12 +420,12 @@ class TestTheViewHoldsEverything:
 
 class TestGuideSymbols:
     def test_the_dashed_link_of_the_push_button_is_drawn_dashed(self):
-        out = to_svg(LIBRARY.get("S00254"))
+        out = to_svg(LIBRARY.get("push-button"))
         assert out.count('stroke-dasharray="0.5 0.25"') == 1
         assert '<line x1="-0.5" y1="0" x2="-2.5" y2="0" stroke-width="0.1" ' in out
 
     def test_the_lanes_of_the_change_over_contact_leave_the_three_ports_outward(self):
-        symbol = LIBRARY.get("S00230")
+        symbol = LIBRARY.get("change-over-contact")
         root = annotated(symbol)
         _, vy0, _, vy1 = view_of(root)
         lanes = {
@@ -437,7 +437,7 @@ class TestGuideSymbols:
         assert lanes["nc"] == pytest.approx((-2.25, vy0, 0.5, -2 - vy0))
 
     def test_the_connection_point_has_four_lanes_out_of_one_point(self):
-        root = annotated(LIBRARY.get("S00016"))
+        root = annotated(LIBRARY.get("connection-point"))
         vx0, vy0, vx1, vy1 = view_of(root)
         lanes = sorted(
             tuple(float(lane.get(k)) for k in ("x", "y", "width", "height"))
@@ -480,7 +480,7 @@ def expected_lane(port, view):
 class TestOrientedSymbols:
     """The slot boxes do not turn with the symbol; ports, anchors and slot points and sides do."""
 
-    @pytest.mark.parametrize("number", ["S00227", "S00230", "S00254"])
+    @pytest.mark.parametrize("number", ["make-contact", "change-over-contact", "push-button"])
     @pytest.mark.parametrize("orientation", list(Orientation))
     def test_the_annotated_render_follows_the_oriented_ports_and_slots(self, number, orientation):
         base = LIBRARY.get(number)

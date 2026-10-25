@@ -14,11 +14,11 @@ FIXTURES = Path(__file__).resolve().parent / "fixtures" / "guide"
 SYMBOL_FILES = sorted((FIXTURES / "symbols").glob("*.toml"))
 
 ATOMIC_PORT_IDS = {
-    "S00227": ("in", "out"),
-    "S00230": ("com", "no", "nc"),
-    "S00305": ("in", "out"),
-    "S00016": ("n", "e", "s", "w"),
-    "S00171": (),
+    "make-contact": ("in", "out"),
+    "change-over-contact": ("com", "no", "nc"),
+    "relay-coil": ("in", "out"),
+    "connection-point": ("n", "e", "s", "w"),
+    "operated-by-pushing": (),
 }
 
 
@@ -77,11 +77,11 @@ def mismatches(html: str) -> list[str]:
 def test_the_guide_has_the_five_examples_and_the_config():
     assert sorted(guide_blocks(GUIDE.read_bytes().decode("utf-8"))) == [
         "library.toml",
-        "symbols/S00016.toml",
-        "symbols/S00227.toml",
-        "symbols/S00230.toml",
-        "symbols/S00254.toml",
-        "symbols/S00305.toml",
+        "symbols/change-over-contact.toml",
+        "symbols/connection-point.toml",
+        "symbols/make-contact.toml",
+        "symbols/push-button.toml",
+        "symbols/relay-coil.toml",
     ]
 
 
@@ -93,7 +93,7 @@ def test_the_byte_comparison_can_fail():
     html = GUIDE.read_bytes().decode("utf-8")
     mutated = html.replace('at = [0, -2], dir = "N"', 'at = [0, -3], dir = "N"', 1)
     assert mutated != html
-    assert mismatches(mutated) == ["symbols/S00227.toml"]
+    assert mismatches(mutated) == ["symbols/make-contact.toml"]
 
 
 def test_entities_in_a_block_are_decoded():
@@ -103,12 +103,12 @@ def test_entities_in_a_block_are_decoded():
 
 def test_the_fixture_directory_holds_the_six_symbols():
     assert [p.stem for p in SYMBOL_FILES] == [
-        "S00016",
-        "S00171",
-        "S00227",
-        "S00230",
-        "S00254",
-        "S00305",
+        "change-over-contact",
+        "connection-point",
+        "make-contact",
+        "operated-by-pushing",
+        "push-button",
+        "relay-coil",
     ]
 
 
@@ -132,7 +132,7 @@ def test_atomic_symbols_build_with_their_port_ids(number):
 
 
 def test_the_composite_example_has_no_elements_of_its_own():
-    data, _ = parse_toml((FIXTURES / "symbols" / "S00254.toml").read_text(encoding="utf-8"))
+    data, _ = parse_toml((FIXTURES / "symbols" / "push-button.toml").read_text(encoding="utf-8"))
     assert data is not None
     assert "elements" not in data
     assert [part["as"] for part in data["parts"]] == ["contact", "actuator"]
@@ -145,5 +145,5 @@ def test_the_library_config_parses():
     assert (config.standard, config.title, config.number_pattern) == (
         "Example set",
         "Example set symbols",
-        r"^S\d{5}$",
+        r"^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
     )

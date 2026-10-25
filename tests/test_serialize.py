@@ -126,15 +126,18 @@ class TestToJson:
 
 class TestGolden:
     def test_the_make_contact_matches_its_reviewed_file_byte_for_byte(self):
-        golden = (EXPECTED / "S00227.json").read_bytes()
-        assert to_json(symbol_to_data(LIBRARY.get("S00227"))).encode("utf-8") == golden
+        golden = (EXPECTED / "make-contact.json").read_bytes()
+        assert to_json(symbol_to_data(LIBRARY.get("make-contact"))).encode("utf-8") == golden
 
     def test_the_two_symbol_bundle_matches_its_reviewed_file_byte_for_byte(self):
         library = Library(
             "Example set",
             "ignored",
             "ignored",
-            {"S00227": LIBRARY.get("S00227"), "S00016": LIBRARY.get("S00016")},
+            {
+                "make-contact": LIBRARY.get("make-contact"),
+                "connection-point": LIBRARY.get("connection-point"),
+            },
             font=NEUTRAL_FONT,
         )
         golden = (EXPECTED / "bundle.json").read_bytes()
@@ -265,12 +268,12 @@ class TestSymbolToData:
         assert data["slots"] == {"tag": {"at": [1, 2], "side": "E", "box": [6, 1]}}
 
     def test_the_boxes_are_the_base_orientation_boxes(self):
-        data = symbol_to_data(LIBRARY.get("S00227"))
+        data = symbol_to_data(LIBRARY.get("make-contact"))
         assert data["body_box"] == [[-1, -2], [0, 2]]
         assert data["keepout_box"] == [[-1, -2], [0, 2]]
 
     def test_there_are_no_parts(self):
-        assert "parts" not in symbol_to_data(LIBRARY.get("S00254"))
+        assert "parts" not in symbol_to_data(LIBRARY.get("push-button"))
 
     def test_a_hand_built_symbol_with_non_finite_numbers_does_not_raise(self):
         nan, inf = float("nan"), float("inf")
@@ -292,7 +295,7 @@ class TestBundleToData:
         data = bundle_to_data(LIBRARY)
         numbers = [s.reference.number for s in LIBRARY]
         assert list(data["symbols"]) == sorted(data["symbols"]) == numbers
-        assert data["symbols"]["S00227"] == symbol_to_data(LIBRARY.get("S00227"))
+        assert data["symbols"]["make-contact"] == symbol_to_data(LIBRARY.get("make-contact"))
 
 
 # -- the round trip
@@ -312,7 +315,7 @@ def test_every_guide_symbol_round_trips_through_json_text(symbol):
 
 
 def test_a_repeated_symbol_round_trips():
-    assert round_trips(repeat(LIBRARY.get("S00227"), 3, port_format="{k}.{port}"))
+    assert round_trips(repeat(LIBRARY.get("make-contact"), 3, port_format="{k}.{port}"))
 
 
 def test_a_bound_lead_round_trips():
@@ -346,7 +349,7 @@ def test_the_resolved_data_of_a_guide_symbol_validates_with_both_validators(symb
 
 def test_the_repeated_symbol_validates_with_both_validators():
     data = json.loads(
-        to_json(symbol_to_data(repeat(LIBRARY.get("S00227"), 3, port_format="{k}.{port}")))
+        to_json(symbol_to_data(repeat(LIBRARY.get("make-contact"), 3, port_format="{k}.{port}")))
     )
     assert validate(data) == ()
     assert JSON_SCHEMA.is_valid(data)
@@ -368,7 +371,7 @@ def test_the_round_trip_check_can_fail():
     described = bare(ports=(Port("a", Point(0, 0), N, "text"),))
     assert round_trips(described)
     assert not round_trips(described, dropping_descriptions)
-    assert not round_trips(LIBRARY.get("S00227"), dropping_slots)
+    assert not round_trips(LIBRARY.get("make-contact"), dropping_slots)
 
 
 _grid = st.integers(-64, 64).map(lambda n: n / 8)

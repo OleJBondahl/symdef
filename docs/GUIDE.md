@@ -56,7 +56,7 @@ src/<package>/bundle.json   generated: every symbol, resolved
 #:schema https://olejbondahl.github.io/symdef/symbol.schema.json
 standard = "Example set"
 title = "Example set symbols"
-number_pattern = '^S\d{5}$'
+number_pattern = '^[a-z][a-z0-9]*(-[a-z0-9]+)*$'
 port_format = "{k}.{port}"
 
 [font]
@@ -96,14 +96,14 @@ dots (D31). A set holds data only; the toolkit and its gates come from this pack
 
 ## Defining a symbol
 
-This is `symbols/S00227.toml` of the same fixture, a make contact:
+This is `symbols/make-contact.toml` of the same fixture, a make contact:
 
 ```toml
 schema = 1
 name = "Make contact, general symbol"
 kind = "symbol"
 status = "unverified"
-reference = { standard = "Example set", number = "S00227" }
+reference = { standard = "Example set", number = "make-contact" }
 
 ports = [
   { id = "in",  at = [0, -2], dir = "N" },
@@ -130,13 +130,13 @@ tag           = { at = [-1.5, 0],    side = "W", box = [6, 1] }
 "marking.out" = { at = [0.25, 1.5],  side = "E", box = [1.5, 1] }
 ```
 
-A composite lists `parts` and maps its own ports to theirs (`S00254.toml`, the push-button,
+A composite lists `parts` and maps its own ports to theirs (`push-button.toml`, the push-button,
 attaches an actuator to the contact's `link` anchor):
 
 ```toml
 parts = [
-  { as = "contact",  use = "S00227" },
-  { as = "actuator", use = "S00171", attach = "link", to = "contact.link", length = 2, via = "mechanical_link" },
+  { as = "contact",  use = "make-contact" },
+  { as = "actuator", use = "operated-by-pushing", attach = "link", to = "contact.link", length = 2, via = "mechanical_link" },
 ]
 
 ports = { in = "contact.in", out = "contact.out" }
@@ -153,8 +153,8 @@ did not step for it (D40).
 ```python
 from symdef import load_library
 
-library = load_library(root)    # root is the set's directory
-contact = library.get("S00227")  # UnknownSymbolError if absent
+library = load_library(root)  # root is the set's directory
+contact = library.get("make-contact")  # UnknownSymbolError if absent
 ```
 
 `load_library` reads `library.toml` and every `symbols/*.toml`, validates each file, resolves
@@ -185,7 +185,7 @@ so no slot is required. It runs the orientation-dependent rules in all 8 itself 
 `message`, `location` (a string or `None`) and `orientation` (or `None`). They are ordered by the spec
 table, then orientation, then location (D23, D34).
 
-A symbol can exempt a rule with `lint_allow`, a list of `{ rule, reason }` (S00016, the
+A symbol can exempt a rule with `lint_allow`, a list of `{ rule, reason }` (connection-point, the
 connection point, exempts three). `lint` removes the findings of the named rules, and reports
 `allow-unknown` and `allow-unused` for exemptions that name no rule or never fire. The rules the
 resolver reports cannot be exempted (C3). The spec's push-button example fails `pitch-overflow`
@@ -256,7 +256,12 @@ from symdef import Weight, load_library, to_fragment_mm
 library = load_library(root)
 thin = library.with_settings(lines={Weight.NORMAL: 0.13, Weight.THICK: 0.26, Weight.RULE: 0.1})
 svg = to_fragment_mm(
-    thin.get("S00227"), module_mm=2.5, font_family="Inter", font_mm=2.0, cap_ratio=0.72, library=thin
+    thin.get("make-contact"),
+    module_mm=2.5,
+    font_family="Inter",
+    font_mm=2.0,
+    cap_ratio=0.72,
+    library=thin,
 )
 assert 'stroke-width="0.13"' in svg
 ```
@@ -301,8 +306,21 @@ after it.
 from dataclasses import replace
 
 from symdef import (
-    Direction, Line, Orientation, Point, Polyline, Port, Reference, Slot, Status, Stretch,
-    Symbol, SymbolKind, orient, stretch, to_fragment,
+    Direction,
+    Line,
+    Orientation,
+    Point,
+    Polyline,
+    Port,
+    Reference,
+    Slot,
+    Status,
+    Stretch,
+    Symbol,
+    SymbolKind,
+    orient,
+    stretch,
+    to_fragment,
 )
 
 xs = {"1": 4, "2": 12, "3": 20, "4": 28}
@@ -372,7 +390,9 @@ bar = replace(
     keepout=None,
 )
 length, offsets = stretch_to_ports(bar, "x", Direction.S, 4)
-four = pattern_ports(stretch(bar, "x", length, offsets), Direction.S, 4, port_format=library.port_format)
+four = pattern_ports(
+    stretch(bar, "x", length, offsets), Direction.S, 4, port_format=library.port_format
+)
 assert [p.id for p in four.ports] == ["1.p", "2.p", "3.p", "4.p"]
 assert [p.position.x for p in four.ports] == [1, 2, 3, 4]
 assert [s.id for s in four.slots] == [f"marking.{k}.p" for k in (1, 2, 3, 4)]
@@ -382,7 +402,9 @@ Both calls take keyword-only `pitch` (module units, a whole multiple of the wire
 
 ```python
 length, offsets = stretch_to_ports(bar, "x", Direction.S, 3, pitch=2)
-wide = pattern_ports(stretch(bar, "x", length, offsets), Direction.S, 3, pitch=2, port_format=library.port_format)
+wide = pattern_ports(
+    stretch(bar, "x", length, offsets), Direction.S, 3, pitch=2, port_format=library.port_format
+)
 assert [p.position.x for p in wide.ports] == [1, 3, 5]
 ```
 
@@ -416,31 +438,63 @@ assert body_box(cores).width == 128  # the head spans the four rows
 
 ```python
 gapped = table(row, 3, "x", gaps=(1, 2), port_format=library.port_format)
-assert body_box(gapped).width == body_box(table(row, 3, "x", port_format=library.port_format)).width + 3
+assert (
+    body_box(gapped).width
+    == body_box(table(row, 3, "x", port_format=library.port_format)).width + 3
+)
 ```
 
 `fitted_table(row, axis, texts, library, text_height, *, port_format, head=None, head_texts=None, fit="cross")` returns the same table, with each column as wide as the widest text set in it (D94). `texts` holds one mapping of slot id to text for each row. The texts are set in `library.font` at `text_height`; the widest in each column, and the head's `head_texts`, are rounded up to whole grid divisions. A column's cut grows by that less the slot's own box, never below zero, so the row's pads stay. The library needs a font, and a text whose slot has no cut across its box raises `InvalidValueError`. With `fit="step"` the rows grow along `axis` instead, so each row's step holds its widest text and the marking boxes of neighbouring rows never overlap; use it for a table whose texts run along the stepping axis, such as pins on an N or S edge. The head's texts, which may have several lines, then fit the head along both axes (D109).
 
 ```python
 from symdef import (
-    Direction, FontMetrics, Grid, Library, Line, Point, Reference, Slot, Status, Stretch,
-    Symbol, SymbolKind, Weight, body_box, fitted_table, table,
+    Direction,
+    FontMetrics,
+    Grid,
+    Library,
+    Line,
+    Point,
+    Reference,
+    Slot,
+    Status,
+    Stretch,
+    Symbol,
+    SymbolKind,
+    Weight,
+    body_box,
+    fitted_table,
+    table,
 )
 
 font = FontMetrics(
-    name="My Sans", units_per_em=1000, cap_height=700, ascent=900, descent=200,
+    name="My Sans",
+    units_per_em=1000,
+    cap_height=700,
+    ascent=900,
+    descent=200,
     advances={Weight.NORMAL: {"A": 650, "B": 650, "i": 250}, Weight.THICK: {}},
     default_advance={Weight.NORMAL: 600, Weight.THICK: 600},
 )
 sized = Library("S", "S", "", {}, font=font, grid=Grid(divisions_per_module=8))
 row = Symbol(
-    "row", SymbolKind.SYMBOL, Status.UNVERIFIED, Reference("X", "1"),
+    "row",
+    SymbolKind.SYMBOL,
+    Status.UNVERIFIED,
+    Reference("X", "1"),
     (Line(Point(0, 0), Point(10, 0)), Line(Point(0, 2), Point(10, 2))),
-    slots=(Slot("a", Point(1, 1), Direction.E, (4, 1)), Slot("b", Point(6, 1), Direction.E, (3, 1))),
+    slots=(
+        Slot("a", Point(1, 1), Direction.E, (4, 1)),
+        Slot("b", Point(6, 1), Direction.E, (3, 1)),
+    ),
     stretch=(Stretch("x", 3), Stretch("x", 7.5)),
 )
-sized_table = fitted_table(row, "y", [{"a": "AB"}, {"a": "ABiAB"}], sized, 2, port_format=library.port_format)
-assert body_box(sized_table).width > body_box(table(row, 2, "y", port_format=library.port_format)).width
+sized_table = fitted_table(
+    row, "y", [{"a": "AB"}, {"a": "ABiAB"}], sized, 2, port_format=library.port_format
+)
+assert (
+    body_box(sized_table).width
+    > body_box(table(row, 2, "y", port_format=library.port_format)).width
+)
 ```
 
 `[font] text_block` picks how a text block is set. "cap" (the default) puts rows 1.5 cap heights apart with the block centred on its cap height. "grid" puts rows the text height rounded up to whole divisions apart, snaps the block top down to a division and the baseline an ascent below it; a centred text sits at the box's start edge plus half its divisions, floored (D96); `slot_lines`, `text_box` and `slot_box` take the library's `grid` for it (D95).
@@ -690,7 +744,18 @@ import xml.etree.ElementTree as ET
 
 from dataclasses import replace
 
-from symdef import Point, Style, Weight, WireStyle, load_library, line_mm, outline_mm, text_tag, to_fragment_mm, wire
+from symdef import (
+    Point,
+    Style,
+    Weight,
+    WireStyle,
+    load_library,
+    line_mm,
+    outline_mm,
+    text_tag,
+    to_fragment_mm,
+    wire,
+)
 
 regular = (fonts / "DejaVuSansCondensed.ttf").read_bytes()
 bold = (fonts / "DejaVuSansCondensed-Bold.ttf").read_bytes()
@@ -708,12 +773,23 @@ body += text_tag(
     "K1", Point(2, 1), 3.4, anchor="start", font_family="Sans", at="top", font=shapes.font
 )
 body += text_tag(
-    "UP", Point(38, 14), 3.4, anchor="middle", font_family="Sans", turn=True, at="centre",
-    font=shapes.font, classes="label",
+    "UP",
+    Point(38, 14),
+    3.4,
+    anchor="middle",
+    font_family="Sans",
+    turn=True,
+    at="centre",
+    font=shapes.font,
+    classes="label",
 )
 body += to_fragment_mm(
-    wire(shapes, "core", [(1, 12), (6, 12), (6, 18)]), module_mm=1.0, font_family="Sans",
-    font_mm=3.4, cap_ratio=0.72, library=shapes,
+    wire(shapes, "core", [(1, 12), (6, 12), (6, 18)]),
+    module_mm=1.0,
+    font_family="Sans",
+    font_mm=3.4,
+    cap_ratio=0.72,
+    library=shapes,
 )
 sheet = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="-0.125 -0.125 40.25 20.25">{body}</svg>'
 assert len(ET.fromstring(sheet).findall(".//{*}line")) == 5
@@ -781,7 +857,7 @@ A key that is not a slot id raises `UnknownNameError`. Build the symbol with `ta
 ```python
 from symdef import GridPoint, Orientation, measure, to_placed_fragment
 
-contact = library.get("S00227")
+contact = library.get("make-contact")
 measured = measure(contact, Orientation.R90, library)
 assert measured.body.max.x > measured.body.min.x
 fragment = to_placed_fragment(contact, Orientation.R90, GridPoint(16, 8), library)
@@ -793,11 +869,26 @@ from dataclasses import replace
 
 from symdef import Direction, Line, Point, Slot, table
 
-row = Symbol("row", SymbolKind.SYMBOL, Status.UNVERIFIED, Reference("K", "1"), (Line(Point(0, 0), Point(2, 1)),))
-coil = replace(row, name="coil", elements=(Line(Point(0, 0), Point(4, 0)),),
-               slots=(Slot("table", Point(4, 1), Direction.S, (1, 1)),))
+row = Symbol(
+    "row",
+    SymbolKind.SYMBOL,
+    Status.UNVERIFIED,
+    Reference("K", "1"),
+    (Line(Point(0, 0), Point(2, 1)),),
+)
+coil = replace(
+    row,
+    name="coil",
+    elements=(Line(Point(0, 0), Point(4, 0)),),
+    slots=(Slot("table", Point(4, 1), Direction.S, (1, 1)),),
+)
 plain = measure(coil, Orientation.R0, library)
-with_table = measure(coil, Orientation.R0, library, attach={"table": table(row, 3, "y", port_format=library.port_format)})
+with_table = measure(
+    coil,
+    Orientation.R0,
+    library,
+    attach={"table": table(row, 3, "y", port_format=library.port_format)},
+)
 assert with_table.slots["table"].max.y > plain.slots["table"].max.y
 assert with_table.keepout.max.y == with_table.slots["table"].max.y
 ```
@@ -831,16 +922,35 @@ it sets the baseline of a `marking.<port>` slot, and of a `tag` slot inside the 
 
 ```python
 from symdef import (
-    Direction, Grid, Library, Line, Orientation, Point, Port, Reference, Slot, Status, Symbol,
-    SymbolKind, TextRoot, tag_roots,
+    Direction,
+    Grid,
+    Library,
+    Line,
+    Orientation,
+    Point,
+    Port,
+    Reference,
+    Slot,
+    Status,
+    Symbol,
+    SymbolKind,
+    TextRoot,
+    tag_roots,
 )
 
 corners = [Point(-2, 4), Point(2, 4), Point(2, 12), Point(-2, 12)]
 frame = tuple(Line(a, b) for a, b in zip(corners, [*corners[1:], corners[0]]))
 marked = Symbol(
-    "marked", SymbolKind.SYMBOL, Status.UNVERIFIED, Reference("X", "1"), frame,
+    "marked",
+    SymbolKind.SYMBOL,
+    Status.UNVERIFIED,
+    Reference("X", "1"),
+    frame,
     ports=(Port("1", Point(0, 4), Direction.N),),
-    slots=(Slot("tag", Point(3, 8), Direction.E, (1, 1)), Slot("marking.1", Point(0, 3), Direction.N, (1, 1))),
+    slots=(
+        Slot("tag", Point(3, 8), Direction.E, (1, 1)),
+        Slot("marking.1", Point(0, 3), Direction.N, (1, 1)),
+    ),
 )
 whole = Library(
     "S", "S", "", {}, font=font, grid=Grid(divisions_per_module=1, wire_pitch=1, wire_pitch_fine=1)

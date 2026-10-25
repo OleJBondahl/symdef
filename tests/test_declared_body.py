@@ -99,18 +99,18 @@ class TestOrientAndCompose:
 
     def test_a_part_that_declares_a_body_needs_the_composite_to_declare_one(self):
         part = (
-            HEAD.format(name="Part", kind="element", number="S00020")
+            HEAD.format(name="Part", kind="element", number="sym-t")
             + "body = [0, 0, 2, 2]\nelements = [{ line = [[0, 0], [1, 0]] }]\n"
         )
-        user = HEAD.format(name="User", kind="element", number="S00021") + (
-            'parts = [{ as = "a", use = "S00020" }]\n'
+        user = HEAD.format(name="User", kind="element", number="sym-u") + (
+            'parts = [{ as = "a", use = "sym-t" }]\n'
         )
-        found = resolve(part, user).findings["S00021"]
+        found = resolve(part, user).findings["sym-u"]
         assert [(f.rule, f.location) for f in found] == [("schema", "/parts/0")]
         assert "declare `body`" in found[0].message
         own = resolve(part, user + "body = [0, 0, 3, 3]\n")
         assert own.findings == {}
-        assert body_box(own.symbols["S00021"]) == box(0, 0, 3, 3)
+        assert body_box(own.symbols["sym-u"]) == box(0, 0, 3, 3)
 
 
 class TestLint:
@@ -145,7 +145,7 @@ class TestLint:
 
 class TestLoad:
     TEXT = (
-        HEAD.format(name="Framed", kind="element", number="S00001")
+        HEAD.format(name="Framed", kind="element", number="sym-a")
         + "body = [0, 0, 4, 2]\nkeepout = [-1, -1, 5, 3]\n"
         + "elements = [{ line = [[0, 0], [1, 0]] }]\n"
     )

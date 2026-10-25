@@ -1,0 +1,9 @@
+schema = 1
+name = "Cycle, first file"
+kind = "element"
+status = "unverified"
+reference = { standard = "Example set", number = "sym-a" }
+
+parts = [
+  { as = "a", use = "sym-j" },
+]

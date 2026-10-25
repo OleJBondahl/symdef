@@ -1,0 +1,13 @@
+schema = 1
+name = "Anchor off the grid"
+kind = "element"
+status = "unverified"
+reference = { standard = "Example set", number = "sym-b" }
+
+anchors = [
+  { id = "link", at = [0, 0.3], dir = "E" },
+]
+
+elements = [
+  { line = [[0, 0], [0, 1]] },
+]

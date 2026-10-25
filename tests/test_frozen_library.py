@@ -17,7 +17,7 @@ GUIDE = Path(__file__).resolve().parent / "fixtures" / "guide"
 def test_load_library_freezes_the_symbols():
     library = load_library(GUIDE)
     with pytest.raises(TypeError):
-        library.symbols["S99999"] = next(iter(library))  # ty: ignore[invalid-assignment]  # frozen on purpose
+        library.symbols["sym-missing"] = next(iter(library))  # ty: ignore[invalid-assignment]  # frozen on purpose
 
 
 def test_load_bundle_freezes_the_symbols(tmp_path):
@@ -25,7 +25,7 @@ def test_load_bundle_freezes_the_symbols(tmp_path):
     bundle.write_text(to_json(bundle_to_data(load_library(GUIDE))), encoding="utf-8")
     loaded = load_bundle(bundle)
     with pytest.raises(TypeError):
-        loaded.symbols["S99999"] = next(iter(loaded))  # ty: ignore[invalid-assignment]  # frozen on purpose
+        loaded.symbols["sym-missing"] = next(iter(loaded))  # ty: ignore[invalid-assignment]  # frozen on purpose
 
 
 def test_font_advances_cannot_be_written_and_do_not_follow_the_source_dict():

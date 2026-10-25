@@ -18,7 +18,7 @@
   "schema": 1,
   "standard": "Example set",
   "symbols": {
-    "S00016": {
+    "connection-point": {
       "anchors": [],
       "body_box": [
         [
@@ -117,14 +117,14 @@
         }
       ],
       "reference": {
-        "number": "S00016",
+        "number": "connection-point",
         "standard": "Example set"
       },
       "schema": 1,
       "slots": {},
       "status": "unverified"
     },
-    "S00227": {
+    "make-contact": {
       "anchors": [
         {
           "at": [
@@ -242,7 +242,7 @@
         }
       ],
       "reference": {
-        "number": "S00227",
+        "number": "make-contact",
         "standard": "Example set"
       },
       "schema": 1,

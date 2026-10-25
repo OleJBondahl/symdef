@@ -45,11 +45,11 @@ def test_a_fence_with_an_info_string_after_python_is_an_example():
 
 def test_the_readme_examples_run_in_order_on_a_data_repo(tmp_path):
     root = run_examples(README, tmp_path)
-    assert (root / "build" / "resolved" / "S00227.json").is_file()
+    assert (root / "build" / "resolved" / "make-contact.json").is_file()
     assert (root / "src" / "exampleset" / "bundle.json").is_file()
 
 
 def test_the_guide_examples_run_in_order_on_their_own_data_repo(tmp_path):
     root = run_examples(GUIDE, tmp_path)
-    assert (root / "build" / "resolved" / "S00227.json").is_file()
+    assert (root / "build" / "resolved" / "make-contact.json").is_file()
     assert (root / "src" / "exampleset" / "bundle.json").is_file()

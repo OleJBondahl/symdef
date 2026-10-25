@@ -878,7 +878,8 @@ def validate_bundle(data: object) -> tuple[Finding, ...]:
         data: A decoded JSON document.
 
     Returns:
-        One `schema` error per violation, located inside the bundle (`/symbols/S00227/ports/0`).
+        One `schema` error per violation, located inside the bundle
+        (`/symbols/make-contact/ports/0`).
         A symbol is checked by `validate` and must also be resolved (no `parts`, `ports` an array,
         slots tables). Its key must be safe as a file name (`is_file_stem`: letters, digits, `_`
         and `-`, joined by single dots) and equal its `reference.number`, as a number equals

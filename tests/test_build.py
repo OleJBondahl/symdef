@@ -21,9 +21,9 @@ EXPECTED = TESTS / "fixtures" / "expected"
 LIBRARY = load_library(GUIDE)
 NUMBERS = sorted(LIBRARY.symbols)
 
-RESOLVED = "build/resolved/S00227.json"
-SVG = "build/svg/S00227.svg"
-ANNOTATED = "build/annotated/S00227.svg"
+RESOLVED = "build/resolved/make-contact.json"
+SVG = "build/svg/make-contact.svg"
+ANNOTATED = "build/annotated/make-contact.svg"
 README = "build/README.md"
 BUNDLE = "src/exampleset/bundle.json"
 
@@ -33,8 +33,8 @@ def relative(paths, root):
 
 
 def edited(**changes) -> Library:
-    """The guide library with S00227 changed."""
-    symbols = {**LIBRARY.symbols, "S00227": replace(LIBRARY.get("S00227"), **changes)}
+    """The guide library with make-contact changed."""
+    symbols = {**LIBRARY.symbols, "make-contact": replace(LIBRARY.get("make-contact"), **changes)}
     return replace(LIBRARY, symbols=symbols)
 
 
@@ -95,7 +95,7 @@ class TestWriteBuild:
             assert path.read_bytes() == build_files(LIBRARY)[path.relative_to(tmp_path).as_posix()]
 
     def test_the_resolved_json_of_the_make_contact_is_the_reviewed_file(self, built):
-        assert (built / RESOLVED).read_bytes() == (EXPECTED / "S00227.json").read_bytes()
+        assert (built / RESOLVED).read_bytes() == (EXPECTED / "make-contact.json").read_bytes()
 
     def test_no_written_byte_is_a_carriage_return(self, built):
         for path in built.rglob("*"):
@@ -128,7 +128,7 @@ class TestWriteBuild:
     def test_it_refuses_a_number_that_is_not_a_file_name_stem_and_writes_nothing(
         self, tmp_path, number
     ):
-        symbols = {**LIBRARY.symbols, number: LIBRARY.get("S00227")}
+        symbols = {**LIBRARY.symbols, number: LIBRARY.get("make-contact")}
         with pytest.raises(InvalidValueError, match="file name"):
             write_build(replace(LIBRARY, symbols=symbols), tmp_path / "repo")
         assert not (tmp_path / "repo").exists()
@@ -144,7 +144,7 @@ class TestWriteBuild:
         assert list(tmp_path.rglob("*")) == []
 
     def test_it_accepts_numbers_with_interior_dots(self, tmp_path):
-        symbols = {"5.1": LIBRARY.get("S00227"), "PIPE-1.1": LIBRARY.get("S00016")}
+        symbols = {"5.1": LIBRARY.get("make-contact"), "PIPE-1.1": LIBRARY.get("connection-point")}
         written = write_build(replace(LIBRARY, symbols=symbols), tmp_path)
         assert tmp_path / "build" / "resolved" / "5.1.json" in written
 
@@ -159,7 +159,7 @@ class TestWriteBuild:
         assert (root / "build" / "keep.txt").read_bytes() == b"mine"
 
     def test_it_never_deletes_a_stale_extra(self, built):
-        extra = built / "build" / "resolved" / "S99999.json"
+        extra = built / "build" / "resolved" / "sym-missing.json"
         extra.write_bytes(b"{}\n")
         write_build(LIBRARY, built)
         assert extra.is_file()
@@ -180,11 +180,12 @@ class TestWriteBuild:
         assert not [e for e in plain.iter() if e.get("class") == "sample-text"]
         annotated = ET.fromstring((built / ANNOTATED).read_bytes())  # noqa: S314 - our own output
         texts = [e.text for e in annotated.iter() if e.get("class") == "sample-text"]
-        # Slots are drawn in id order. S00227 has no value slot, so the value sample is not drawn.
+        # Slots are drawn in id order. make-contact has no value slot, so the value sample is
+        # not drawn.
         assert texts == ["1", "2", "-X1"]
 
     def test_a_value_slot_gets_the_value_sample(self, tmp_path):
-        base = LIBRARY.get("S00227")
+        base = LIBRARY.get("make-contact")
         value = Slot("value", Point(1, 0), Direction.E, (2, 1))
         library = edited(slots=(*base.slots, value))
         write_build(library, tmp_path)
@@ -202,7 +203,7 @@ class TestStaleBuild:
 
     def test_a_geometry_change_reports_exactly_the_files_that_show_it(self, built):
         library = edited(
-            elements=(*LIBRARY.get("S00227").elements, Line(Point(0, 0), Point(-2, 0)))
+            elements=(*LIBRARY.get("make-contact").elements, Line(Point(0, 0), Point(-2, 0)))
         )
         assert relative(stale_build(library, built), built) == sorted(
             [RESOLVED, SVG, ANNOTATED, BUNDLE]
@@ -230,9 +231,11 @@ class TestStaleBuild:
 
     @pytest.mark.parametrize("directory", ["resolved", "svg", "annotated"])
     def test_an_extra_file_in_a_generated_directory_is_reported(self, built, directory):
-        extra = built / "build" / directory / "S99999.json"
+        extra = built / "build" / directory / "sym-missing.json"
         extra.write_bytes(b"{}\n")
-        assert relative(stale_build(LIBRARY, built), built) == [f"build/{directory}/S99999.json"]
+        assert relative(stale_build(LIBRARY, built), built) == [
+            f"build/{directory}/sym-missing.json"
+        ]
 
     def test_an_extra_file_in_a_subdirectory_of_a_generated_directory_is_reported(self, built):
         nested = built / "build" / "svg" / "old"
@@ -241,13 +244,13 @@ class TestStaleBuild:
         assert relative(stale_build(LIBRARY, built), built) == ["build/svg/old/S1.svg"]
 
     def test_a_symbol_removed_from_the_library_leaves_its_files_stale(self, built):
-        symbols = {n: s for n, s in LIBRARY.symbols.items() if n != "S00016"}
+        symbols = {n: s for n, s in LIBRARY.symbols.items() if n != "connection-point"}
         library = replace(LIBRARY, symbols=symbols)
         assert relative(stale_build(library, built), built) == sorted(
             [
-                "build/resolved/S00016.json",
-                "build/svg/S00016.svg",
-                "build/annotated/S00016.svg",
+                "build/resolved/connection-point.json",
+                "build/svg/connection-point.svg",
+                "build/annotated/connection-point.svg",
                 README,
                 BUNDLE,
             ]
@@ -276,12 +279,12 @@ class TestStaleBuild:
         (built / "build" / "notes.txt").write_bytes(b"x")
         (built / "src" / "exampleset" / "__init__.py").write_bytes(b"")
         (built / "symbols").mkdir()
-        (built / "symbols" / "S00227.toml").write_bytes(b"")
+        (built / "symbols" / "make-contact.toml").write_bytes(b"")
         assert stale_build(LIBRARY, built) == ()
 
     @pytest.mark.parametrize("number", ["../../x", "a/b", "", "a..b"])
     def test_it_refuses_a_number_that_is_not_a_file_name_stem(self, tmp_path, number):
-        symbols = {**LIBRARY.symbols, number: LIBRARY.get("S00227")}
+        symbols = {**LIBRARY.symbols, number: LIBRARY.get("make-contact")}
         with pytest.raises(InvalidValueError, match="file name"):
             stale_build(replace(LIBRARY, symbols=symbols), tmp_path)
 
@@ -316,14 +319,14 @@ class TestOddText:
 
     @staticmethod
     def library(odd) -> Library:
-        base = LIBRARY.get("S00227")
+        base = LIBRARY.get("make-contact")
         symbol = replace(
             base,
             name=odd,
             elements=(*base.elements, Text(odd, Point(0, 0), 0.5)),
             ports=(*base.ports, Port(odd, Point(3, 0), Direction.E)),
         )
-        return replace(LIBRARY, symbols={**LIBRARY.symbols, "S00227": symbol})
+        return replace(LIBRARY, symbols={**LIBRARY.symbols, "make-contact": symbol})
 
     @pytest.mark.parametrize("odd", ODD_NAMES)
     def test_no_file_has_a_carriage_return_every_svg_parses_and_the_build_is_not_stale(

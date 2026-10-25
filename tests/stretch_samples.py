@@ -22,7 +22,16 @@ GOLDEN = Path(__file__).parent / "fixtures" / "stretch_0_9"
 LIBRARY = symdef.load_library(ROOT / "docs" / "tutorial-set")
 NUMBERS = sorted(LIBRARY.symbols)
 # The tutorial symbols of kind "symbol"; `table` accepts each of them for n = 1 and n = 4.
-TABLE_NUMBERS = ("S00016", "S00227", "S00230", "S00254", "S00305", "S90001", "S90002", "S90003")
+TABLE_NUMBERS = (
+    "connection-point",
+    "make-contact",
+    "change-over-contact",
+    "push-button",
+    "relay-coil",
+    "gate-valve",
+    "pump",
+    "check-valve",
+)
 MM: dict[str, Any] = {
     "module_mm": 2.5,
     "weights_mm": {Weight.NORMAL: 0.25, Weight.THICK: 0.5},

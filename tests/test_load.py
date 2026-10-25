@@ -47,7 +47,7 @@ schema = 1
 name = "Make contact"
 kind = "symbol"
 status = "verified"
-reference = { standard = "Example set", number = "S00227", edition = "2", form = "1" }
+reference = { standard = "Example set", number = "make-contact", edition = "2", form = "1" }
 pole_pitch = 8
 
 ports = [
@@ -87,7 +87,7 @@ def atomic():
         "name": "x",
         "kind": "symbol",
         "status": "unverified",
-        "reference": {"standard": "Example set", "number": "S00001"},
+        "reference": {"standard": "Example set", "number": "sym-a"},
         "elements": [{"line": [[0, 0], [1, 0]]}],
         "slots": {},
     }
@@ -99,12 +99,12 @@ def composite():
         "name": "x",
         "kind": "symbol",
         "status": "unverified",
-        "reference": {"standard": "Example set", "number": "S00001"},
+        "reference": {"standard": "Example set", "number": "sym-a"},
         "parts": [
-            {"as": "contact", "use": "S00227"},
+            {"as": "contact", "use": "make-contact"},
             {
                 "as": "actuator",
-                "use": "S00171",
+                "use": "operated-by-pushing",
                 "attach": "link",
                 "to": "contact.link",
                 "length": 2,
@@ -112,7 +112,7 @@ def composite():
                 "orient": "MR90",
                 "repeat": 3,
             },
-            {"as": "inside", "use": "S00171", "at": [0.5, 0.5]},
+            {"as": "inside", "use": "operated-by-pushing", "at": [0.5, 0.5]},
         ],
         "ports": {"in": "contact.in"},
         "slots": {
@@ -129,7 +129,7 @@ def resolved():
         "name": "x",
         "kind": "symbol",
         "status": "unverified",
-        "reference": {"standard": "Example set", "number": "S00001"},
+        "reference": {"standard": "Example set", "number": "sym-a"},
         "ports": [{"id": "in", "at": [0, -2], "dir": "N", "description": ""}],
         "nodes": [{"ports": ["in"]}],
         "elements": [
@@ -272,7 +272,7 @@ def test_every_problem_in_a_file_is_reported():
         (("name",), 1),
         (("kind",), "Symbol"),
         (("status",), None),
-        (("reference",), "S00227"),
+        (("reference",), "make-contact"),
         (("reference", "standard"), 1),
         (("reference", "edition"), 2),
         (("reference", "form"), ["1"]),
@@ -472,7 +472,7 @@ def test_symbol_from_data_builds_every_field():
     assert symbol.name == "Make contact"
     assert symbol.kind is SymbolKind.SYMBOL
     assert symbol.status is Status.VERIFIED
-    assert symbol.reference == Reference("Example set", "S00227", edition="2", form="1")
+    assert symbol.reference == Reference("Example set", "make-contact", edition="2", form="1")
     assert symbol.pole_pitch == 8
     assert symbol.ports == (
         Port("in", Point(0, -2), Direction.N, "top"),
@@ -518,7 +518,7 @@ def test_symbol_from_data_applies_the_documented_defaults():
         Text("M", Point(0, 0), 1),
     )
     assert (symbol.ports, symbol.nodes, symbol.paths, symbol.anchors, symbol.slots) == ((),) * 5
-    assert symbol.reference == Reference("Example set", "S00001")
+    assert symbol.reference == Reference("Example set", "sym-a")
     assert symbol.pole_pitch is None
     assert symbol.lint_allow == ()
 
@@ -562,7 +562,7 @@ thick = 600
 
 CONFIG_KEYS = """standard = "Example set"
 title = "Example set symbols"
-number_pattern = '^S\\d{5}$'
+number_pattern = '^[a-z][a-z0-9]*(-[a-z0-9]+)*$'
 """
 CONFIG = CONFIG_KEYS + FONT_TOML
 
@@ -572,7 +572,7 @@ def test_parse_config_reads_the_three_strings():
     assert findings == ()
     assert config is not None
     assert (config.standard, config.title) == ("Example set", "Example set symbols")
-    assert re.fullmatch(config.number_pattern, "S00227")
+    assert re.fullmatch(config.number_pattern, "make-contact")
 
 
 def test_parse_config_requires_a_font():
@@ -607,7 +607,7 @@ def test_parse_config_requires_strings(key):
 
 
 def test_parse_config_requires_a_pattern_that_compiles():
-    config, findings = parse_config(CONFIG.replace(r"^S\d{5}$", "^S(\\d{5}$"))
+    config, findings = parse_config(CONFIG.replace(r"^[a-z][a-z0-9]*(-[a-z0-9]+)*$", "^[a-z](a"))
     assert config is None
     assert len(findings) == 1
     assert findings[0].rule == "schema"
@@ -772,7 +772,7 @@ def test_a_huge_hex_integer_is_a_finding_not_a_crash():
     ids=["overflow", "nesting"],
 )
 def test_parse_config_reports_patterns_the_regex_engine_cannot_compile(pattern):
-    config, findings = parse_config(CONFIG.replace(r"^S\d{5}$", pattern))
+    config, findings = parse_config(CONFIG.replace(r"^[a-z][a-z0-9]*(-[a-z0-9]+)*$", pattern))
     assert config is None
     assert [(f.rule, f.location) for f in findings] == [("schema", "/number_pattern")]
 

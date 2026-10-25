@@ -500,7 +500,7 @@ def orientations_of(findings):
 class TestOrientationOnlyFixtures:
     @pytest.mark.parametrize("rule_id", sorted(ORIENTATION_DEPENDENT))
     def test_the_orientation_only_case_fires_only_outside_the_base_orientation(self, rule_id):
-        findings = run_fixture_by_file(rule_id)["S00002"]
+        findings = run_fixture_by_file(rule_id)["sym-b"]
         assert {f.rule for f in findings} == {rule_id}
         orientations = orientations_of(findings)
         assert orientations
@@ -509,7 +509,7 @@ class TestOrientationOnlyFixtures:
 
     @pytest.mark.parametrize("rule_id", sorted(ORIENTATION_DEPENDENT))
     def test_the_ordinary_case_fires_in_the_base_orientation(self, rule_id):
-        findings = run_fixture_by_file(rule_id)["S00001"]
+        findings = run_fixture_by_file(rule_id)["sym-a"]
         assert Orientation.R0 in orientations_of(findings)
 
     def test_the_slot_fixtures_boxes_overlap_after_a_quarter_turn(self):
@@ -556,27 +556,36 @@ class TestFixtures:
 
     def test_the_slot_missing_fixture_has_a_case_without_a_tag_and_one_without_a_marking(self):
         found = run_fixture_by_file("slot-missing")
-        assert [f.location for f in found["S00001"] if f.rule == "slot-missing"] == ["slots.tag"]
-        assert [f.location for f in found["S00002"] if f.rule == "slot-missing"] == [
+        assert [f.location for f in found["sym-a"] if f.rule == "slot-missing"] == ["slots.tag"]
+        assert [f.location for f in found["sym-b"] if f.rule == "slot-missing"] == [
             "slots.marking.out"
         ]
 
     def test_the_pitch_overflow_fixture_has_a_case_for_each_way_to_fire(self):
         found = run_fixture_by_file("pitch-overflow")
-        assert [f.location for f in found["S00001"]] == [None]
-        assert [f.location for f in found["S00002"]] == ["pole_pitch"]
-        assert [f.location for f in found["S00003"]] == ["pole_pitch"]
+        assert [f.location for f in found["sym-a"]] == [None]
+        assert [f.location for f in found["sym-b"]] == ["pole_pitch"]
+        assert [f.location for f in found["sym-c"]] == ["pole_pitch"]
 
 
 class TestGuideExamples:
-    @pytest.mark.parametrize("number", ["S00227", "S00230", "S00305", "S00171", "S00016"])
+    @pytest.mark.parametrize(
+        "number",
+        [
+            "make-contact",
+            "change-over-contact",
+            "relay-coil",
+            "operated-by-pushing",
+            "connection-point",
+        ],
+    )
     def test_the_guide_examples_trip_no_slots_rule(self, library, number):
         assert [
             f for f in lint(library.get(number), library.required_slots) if f.rule in SLOT_RULES
         ] == []
 
     def test_the_connection_points_missing_slots_are_the_ones_it_exempts(self, library):
-        found = slot_missing(library.get("S00016"), library.required_slots)
+        found = slot_missing(library.get("connection-point"), library.required_slots)
         assert [f.location for f in found] == [
             "slots.tag",
             "slots.marking.n",

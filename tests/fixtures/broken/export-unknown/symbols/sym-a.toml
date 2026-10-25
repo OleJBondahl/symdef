@@ -1,0 +1,11 @@
+schema = 1
+name = "Exports a port that does not exist"
+kind = "element"
+status = "unverified"
+reference = { standard = "Example set", number = "sym-a" }
+
+parts = [
+  { as = "a", use = "sym-j" },
+]
+
+ports = { in = "a.in", other = "a.nothing" }

@@ -104,7 +104,7 @@ def toml_symbol(element: str) -> str:
     """A minimal symbol file whose only element is the given TOML lines."""
     return (
         'schema = 1\nname = "x"\nkind = "symbol"\nstatus = "unverified"\nslots = {}\n'
-        '[reference]\nstandard = "Example set"\nnumber = "S00001"\n'
+        '[reference]\nstandard = "Example set"\nnumber = "sym-a"\n'
         f"[[elements]]\n{element}\n"
     )
 

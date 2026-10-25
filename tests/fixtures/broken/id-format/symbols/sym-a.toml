@@ -1,0 +1,9 @@
+schema = 1
+name = "Part id in capitals"
+kind = "element"
+status = "unverified"
+reference = { standard = "Example set", number = "sym-a" }
+
+parts = [
+  { as = "Contact", use = "sym-j" },
+]

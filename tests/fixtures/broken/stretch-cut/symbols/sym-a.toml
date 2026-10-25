@@ -1,0 +1,10 @@
+schema = 1
+name = "Circle across a stretch cut"
+kind = "element"
+status = "unverified"
+reference = { standard = "Example set", number = "sym-a" }
+
+stretch = [{ axis = "x", at = 0 }]
+elements = [
+  { circle = [0, 0], r = 1 },
+]

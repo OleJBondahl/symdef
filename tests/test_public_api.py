@@ -53,9 +53,12 @@ def test_the_placement_type_is_the_consumers_own():
 
 def test_the_guide_drawing_library_snippet_runs_on_the_guide_fixtures():
     # The guide's `from exampleset import LIBRARY`, with the guide fixtures as the library and
-    # S00227 (a make contact, one through path) in place of S00287. The `Placement` is left out.
+    # make-contact (a make contact, one through path) in place of circuit-breaker. The `Placement`
+    # is left out.
     library = load_library(GUIDE_FIXTURES)
-    breaker = orient(repeat(library.get("S00227"), 3, port_format="{k}.{port}"), Orientation.R0)
+    breaker = orient(
+        repeat(library.get("make-contact"), 3, port_format="{k}.{port}"), Orientation.R0
+    )
 
     assert isinstance(breaker, Symbol)
     assert lint(breaker) == ()

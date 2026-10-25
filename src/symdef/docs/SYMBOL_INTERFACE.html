@@ -100,7 +100,7 @@ with a dated entry in the change list below and in <code>docs/DECISIONS.md</code
 <p>A symbol library that makes one object do three jobs has the same recurring problems. All of them trace back to that.</p>
 <table>
 <tr><th>Layer</th><th>What it is</th><th>Example</th><th>Owner</th></tr>
-<tr><td>Symbol</td><td>the graphic concept in the standard</td><td>make contact, S00227</td><td>the symbol set (a data repo)</td></tr>
+<tr><td>Symbol</td><td>the graphic concept in the standard</td><td><code>make-contact</code></td><td>the symbol set (a data repo)</td></tr>
 <tr><td>Device terminal marking</td><td>numbers printed on the real part (the usual convention for terminal marking)</td><td><code>13/14</code>, <code>23/24</code>, <code>A1/A2</code></td><td>the drawing's device or catalog model</td></tr>
 <tr><td>Placement</td><td>tag, position, orientation, rendered text</td><td><code>-K1</code> at (40, 120)</td><td>the drawing library</td></tr>
 </table>
@@ -203,7 +203,7 @@ Generic consumers should chain symbols using the through path's <code>from</code
 name = "Make contact, general symbol"
 kind = "symbol"
 status = "unverified"
-reference = { standard = "Example set", number = "S00227" }
+reference = { standard = "Example set", number = "make-contact" }
 
 ports = [
   { id = "in",  at = [0, -2], dir = "N" },
@@ -235,7 +235,7 @@ tag           = { at = [-1.5, 0],    side = "W", box = [6, 1] }
 name = "Change-over break before make contact"
 kind = "symbol"
 status = "unverified"
-reference = { standard = "Example set", number = "S00230" }
+reference = { standard = "Example set", number = "change-over-contact" }
 pole_pitch = 8          # 5.5 M wide with its markings, so it cannot repeat at 4 M
 
 ports = [
@@ -273,7 +273,7 @@ tag           = { at = [-4, 0],        side = "W", box = [6, 1] }
 name = "Operating device, general symbol; relay coil, general symbol"
 kind = "symbol"
 status = "unverified"
-reference = { standard = "Example set", number = "S00305" }
+reference = { standard = "Example set", number = "relay-coil" }
 
 ports = [
   { id = "in",  at = [0, -3], dir = "N" },
@@ -305,7 +305,7 @@ tag           = { at = [-2.5, 0],  side = "W", box = [6, 1] }
 name = "Connection point"
 kind = "symbol"
 status = "unverified"
-reference = { standard = "Example set", number = "S00016" }
+reference = { standard = "Example set", number = "connection-point" }
 
 ports = [
   { id = "n", at = [0, 0], dir = "N" },
@@ -412,11 +412,11 @@ The flattened result is linted like any other symbol, so a placement that pushes
 name = "Switch, manually operated, push-button, automatic return"
 kind = "symbol"
 status = "unverified"
-reference = { standard = "Example set", number = "S00254" }
+reference = { standard = "Example set", number = "push-button" }
 
 parts = [
-  { as = "contact",  use = "S00227" },
-  { as = "actuator", use = "S00171", attach = "link", to = "contact.link", length = 2, via = "mechanical_link" },
+  { as = "contact",  use = "make-contact" },
+  { as = "actuator", use = "operated-by-pushing", attach = "link", to = "contact.link", length = 2, via = "mechanical_link" },
 ]
 
 ports = { in = "contact.in", out = "contact.out" }
@@ -426,7 +426,7 @@ tag           = { at = [-3.5, 0], side = "W", box = [6, 1] }
 "marking.in"  = "contact.marking.in"
 "marking.out" = "contact.marking.out"
 </code></pre>
-<p><code>S00171</code> stands for the Part 2 qualifier "operated by pushing". Its number, like every number in this guide, must be confirmed against a standard's own symbol database before the file is committed.</p>
+<p><code>operated-by-pushing</code> stands for the qualifier "operated by pushing". The set's own geometry for it is the fixture's.</p>
 
 <h3><code>repeat</code>: the only multi-pole mechanism</h3>
 <p><code>repeat(symbol, n, *, port_format)</code> places <code>n</code> copies along +x in base orientation and returns an ordinary symbol. Pole <code>k</code> (counting from 1) is the symbol translated by <code>((k - 1) &times; pitch, 0)</code>, where <code>pitch</code> is the symbol's <code>pole_pitch</code>, default 4. It requires <code>n &gt;= 1</code> and a symbol with a through path; <code>repeat(symbol, 1)</code> still renames the ports. <code>port_format</code> is required: the template of a pole's port id with the fields <code>{k}</code> and <code>{port}</code>, such as <code>"{k}.{port}"</code>; symdef keeps no spelling of a pole prefix, and a missing or malformed one raises <code>InvalidValueError</code> naming it (D121).</p>
@@ -434,7 +434,7 @@ tag           = { at = [-3.5, 0], side = "W", box = [6, 1] }
   <li>Ports, and their marking slots, are renamed by <code>port_format</code>; with <code>"{k}.{port}"</code>: <code>1.in</code>, <code>2.in</code>, <code>"marking.2.in"</code>. Nodes and paths repeat per pole. Pole 1's through path stays the through path; the flag is cleared on the other poles. The result's <code>pole_pitch</code> is <code>n &times; pitch</code>.</li>
   <li>The <code>tag</code> slot is taken from pole 1 only. A <code>value</code> slot likewise.</li>
   <li>If the symbol has an anchor with the id <code>link</code> and <code>n &gt; 1</code>, the result gains one element: a dashed line from pole 1's <code>link</code> anchor to pole n's. It may cross the poles in between; that is how the standard draws it. Pole 1's anchors become the result's anchors; the other poles' anchors are dropped.</li>
-  <li>It is available as a toolkit function for consumers, and as a data op in a part: <code>{ as = "main", use = "S00227", repeat = 3 }</code>; it takes the format from the top-level <code>port_format</code> key of <code>library.toml</code>, and a <code>repeat</code> in a library without that key is a <code>schema</code> finding at the <code>repeat</code> key naming it (D123).</li>
+  <li>It is available as a toolkit function for consumers, and as a data op in a part: <code>{ as = "main", use = "make-contact", repeat = 3 }</code>; it takes the format from the top-level <code>port_format</code> key of <code>library.toml</code>, and a <code>repeat</code> in a library without that key is a <code>schema</code> finding at the <code>repeat</code> key naming it (D123).</li>
 </ul>
 <p>There are no <code>poles=</code>, <code>pins=</code> or <code>inverted=</code> parameters anywhere. Pole count is <code>repeat</code>, markings belong to the placement, and inversion is the orientation <code>MR180</code>.</p>
 
@@ -510,7 +510,7 @@ Data repo gates require zero findings of either severity, so a warning is simply
 <p>The build flattens every file and writes JSON. This is the interface for consumers that are not Python, and for simple consumers of any kind: they never implement composition.</p>
 <ul>
   <li><code>build/resolved/&lt;number&gt;.json</code>: one flattened symbol. Same schema as the source, with <code>parts</code> gone, composite <code>ports</code> expanded to the array form, slot references expanded to tables, <code>nodes</code> listing every node explicitly, and two computed keys: <code>body_box</code> and <code>keepout_box</code>, each <code>[[min_x, min_y], [max_x, max_y]]</code> in base orientation. A <code>stretch</code> key, an array of <code>{ "axis", "at" }</code>, is written only when set.</li>
-  <li><code>src/&lt;package&gt;/bundle.json</code>: the bundle, shipped as package data: <code>{ "schema": 1, "standard": "My symbols", "font": { ... }, "symbols": { "S00227": { ... }, ... } }</code>. It is generated and tracked like <code>build/</code>, and <code>stale_build</code> covers it. The <code>font</code> object is required (D124). An optional <code>wires</code> array of <code>{ "id", "weight", "style" }</code> is written only when the set has wire styles; a <code>port_format</code> string is written only when <code>library.toml</code> declares one (D123).</li>
+  <li><code>src/&lt;package&gt;/bundle.json</code>: the bundle, shipped as package data: <code>{ "schema": 1, "standard": "My symbols", "font": { ... }, "symbols": { "make-contact": { ... }, ... } }</code>. It is generated and tracked like <code>build/</code>, and <code>stale_build</code> covers it. The <code>font</code> object is required (D124). An optional <code>wires</code> array of <code>{ "id", "weight", "style" }</code> is written only when the set has wire styles; a <code>port_format</code> string is written only when <code>library.toml</code> declares one (D123).</li>
   <li>Output is deterministic: UTF-8, LF line endings, 2-space indent, object keys sorted, arrays in source order, a whole number written without a decimal point and any other number in its shortest exact decimal form, one trailing newline. A symbol change shows up as a reviewable diff.</li>
 </ul>
 <p>A consumer in another language needs the bundle, the schema, and the orientation and slot-box rules from sections 3 and 6. That is about thirty lines of code.</p>
@@ -556,7 +556,7 @@ init(root) -&gt; tuple[Path, ...]    build(root) -&gt; tuple[Path, ...]    check
 <pre><code>from symdef import Orientation, keepout_box, orient, repeat
 from my_symbols import LIBRARY
 
-breaker = orient(repeat(LIBRARY.get("S00287"), 3, port_format=LIBRARY.port_format), Orientation.R0)
+breaker = orient(repeat(LIBRARY.get("circuit-breaker"), 3, port_format=LIBRARY.port_format), Orientation.R0)
 
 # The placement is the consumer's own type. The symbol stays a definition.
 placed = Placement(
@@ -594,7 +594,7 @@ my-symbols/                              a data repo: data only (`symdef init` w
 <p>The toolkit knows nothing about any standard. Everything standard-specific is in the data repo's <code>library.toml</code>, including its words and its required slots; an optional <code>package</code> key names the folder under <code>src/</code> that holds the bundle:</p>
 <pre data-lang="toml-config"><code>standard = "Example set"
 title = "Example set symbols"
-number_pattern = '^S\d{5}$'
+number_pattern = '^[a-z][a-z0-9]*(-[a-z0-9]+)*$'
 port_format = "{k}.{port}"
 
 [font]
@@ -654,9 +654,9 @@ Geometry is unverified until compared with a standard's own drawings; the galler
 <ul>
   <li><strong>Coupling between paths</strong> (a coil actuating contacts, magnetically coupled windings). In detached representation this lives between separately placed symbols, so it belongs to the consumer's device model. Revisit for attached composites such as a contactor drawn as one symbol.</li>
   <li><strong>Conventional marking hints.</strong> Conventional function digits of terminal marking (make = 3/4, break = 1/2, change-over = 1/2/4) could be optional per-port data so consumers without a catalog get sensible defaults. Not in schema 1.</li>
-  <li><strong>Connections between parts</strong> inside a composite (merging two parts' nodes). Not needed for IEC composites found so far.</li>
-  <li><strong>Small symbols</strong> such as the terminal (S00017), whose natural port positions are on a 0.5 M circle. Decide per symbol: leads to the wiring grid, or a declared exemption as for the connection point.</li>
-  <li><strong>Reference numbers</strong> quoted here (S00230, S00171, S00287) come from memory of a standard's own symbol database and must be confirmed before use.</li>
+  <li><strong>Connections between parts</strong> inside a composite (merging two parts' nodes). Not needed for the composite symbols found so far.</li>
+  <li><strong>Small symbols</strong> such as the terminal, whose natural port positions are on a 0.5 M circle. Decide per symbol: leads to the wiring grid, or a declared exemption as for the connection point.</li>
+  <li><strong>Reference keys</strong> quoted here (change-over-contact, operated-by-pushing, circuit-breaker) are the example set's own descriptive keys.</li>
   <li><strong>Verification.</strong> Reference drawings are not bundled here. Until they are compared, every symbol stays <code>unverified</code>.</li>
 </ul>
 

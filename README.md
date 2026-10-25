@@ -70,8 +70,10 @@ from symdef.authoring import lint
 from symdef.lint import RULES
 
 library = load_library(root)  # raises LibraryError, listing every problem in the files
-contact = library.get("S00227")  # by number; iterating a library is sorted by number
-assert len(RULES) == 37  # the spec's 33 rules plus lead-off-port (D40), stretch-cut, element-outside-body (D98) and port-pattern (D104)
+contact = library.get("make-contact")  # by number; iterating a library is sorted by number
+assert (
+    len(RULES) == 37
+)  # the spec's 33 rules plus lead-off-port (D40), stretch-cut, element-outside-body (D98) and port-pattern (D104)
 findings = lint(contact)  # all 37 rules, geometric ones in all 8 orientations
 assert findings == ()  # the spec's make contact lints clean
 for finding in findings:  # each has .rule, .severity, .message, .location, .orientation

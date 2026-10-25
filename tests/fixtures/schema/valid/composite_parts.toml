@@ -2,13 +2,13 @@ schema = 1
 name = "Every part key"
 kind = "symbol"
 status = "unverified"
-reference = { standard = "Example set", number = "S00001" }
+reference = { standard = "Example set", number = "sym-a" }
 
 parts = [
-  { as = "contact", use = "S00227" },
-  { as = "actuator", use = "S00171", attach = "link", to = "contact.link", length = 2, via = "mechanical_link", orient = "MR90", repeat = 3 },
-  { as = "inside", use = "S00171", at = [0.5, -0.5], orient = "R0" },
-  { as = "main", use = "S00227", repeat = 3, orient = "R270" },
+  { as = "contact", use = "make-contact" },
+  { as = "actuator", use = "operated-by-pushing", attach = "link", to = "contact.link", length = 2, via = "mechanical_link", orient = "MR90", repeat = 3 },
+  { as = "inside", use = "operated-by-pushing", at = [0.5, -0.5], orient = "R0" },
+  { as = "main", use = "make-contact", repeat = 3, orient = "R270" },
 ]
 
 ports = { in = "contact.in", out = "contact.out" }

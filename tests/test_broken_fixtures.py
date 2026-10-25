@@ -28,8 +28,8 @@ def test_the_fixture_fires_its_own_rule_and_nothing_else_but_what_it_tolerates(r
 
 
 def case_files(rule_id):
-    """Return the stems of a fixture's cases: `S00001` to `S00009`; `S0001x` are helper files."""
-    return sorted(p.stem for p in (BROKEN / rule_id / "symbols").glob("S0000[1-9].toml"))
+    """Return the stems of a fixture's cases: `sym-a` to `sym-i`; `S0001x` are helper files."""
+    return sorted(p.stem for p in (BROKEN / rule_id / "symbols").glob("sym-[a-i].toml"))
 
 
 @pytest.mark.parametrize(
@@ -51,12 +51,12 @@ def test_the_tolerated_extras_name_registered_rules_only():
 
 # The case file whose violation a `lint_allow` entry can remove: `id-format`'s first case is a bad
 # part id, which the resolver reports and no exemption reaches.
-EXEMPTABLE_CASE = {"id-format": "S00002"}
+EXEMPTABLE_CASE = {"id-format": "sym-b"}
 
 
 def exempted_fixture(rule_id, root):
     """Copy the fixture's case file to `root` with a `lint_allow` entry for every rule it fires."""
-    stem = EXEMPTABLE_CASE.get(rule_id, "S00001")
+    stem = EXEMPTABLE_CASE.get(rule_id, "sym-a")
     rules = sorted({rule_id, *TOLERATED_EXTRA.get(rule_id, ())})
     entries = "".join(f'  {{ rule = "{r}", reason = "a test" }},\n' for r in rules)
     source = (BROKEN / rule_id / "symbols" / f"{stem}.toml").read_text(encoding="utf-8")
@@ -98,8 +98,8 @@ def test_a_fixture_on_which_the_rule_does_not_fire_is_reported(tmp_path):
     )
     good = tmp_path / "part-unknown" / "symbols"
     good.mkdir(parents=True)
-    (good / "S00001.toml").write_text(
-        (BROKEN / "metadata" / "symbols" / "S00001.toml")
+    (good / "sym-a.toml").write_text(
+        (BROKEN / "metadata" / "symbols" / "sym-a.toml")
         .read_text(encoding="utf-8")
         .replace('name = ""', 'name = "A clean file"'),
         encoding="utf-8",
@@ -116,8 +116,8 @@ def test_a_fixture_may_bring_its_own_library_config(tmp_path):
         'standard = "Pipe set"\ntitle = "t"\nnumber_pattern = ".*"\n' + NEUTRAL_FONT_TOML,
         encoding="utf-8",
     )
-    (directory / "S00001.toml").write_text(
-        (BROKEN / "metadata" / "symbols" / "S00001.toml")
+    (directory / "sym-a.toml").write_text(
+        (BROKEN / "metadata" / "symbols" / "sym-a.toml")
         .read_text(encoding="utf-8")
         .replace('name = ""', 'name = "Named"'),
         encoding="utf-8",
@@ -131,18 +131,18 @@ def test_run_fixture_reports_the_resolvers_and_the_linters_findings_per_file(tmp
     )
     directory = tmp_path / "mixed" / "symbols"
     directory.mkdir(parents=True)
-    (directory / "S00001.toml").write_bytes(
-        (BROKEN / "part-unknown" / "symbols" / "S00001.toml").read_bytes()
+    (directory / "sym-a.toml").write_bytes(
+        (BROKEN / "part-unknown" / "symbols" / "sym-a.toml").read_bytes()
     )
-    (directory / "S00002.toml").write_bytes(
-        (BROKEN / "off-drawing-grid" / "symbols" / "S00001.toml")
+    (directory / "sym-b.toml").write_bytes(
+        (BROKEN / "off-drawing-grid" / "symbols" / "sym-a.toml")
         .read_bytes()
-        .replace(b"S00001", b"S00002")
+        .replace(b"sym-a", b"sym-b")
     )
     per_file = run_fixture_by_file("mixed", tmp_path)
     assert {stem: [f.rule for f in found] for stem, found in per_file.items()} == {
-        "S00001": ["part-unknown"],
-        "S00002": ["off-drawing-grid"],
+        "sym-a": ["part-unknown"],
+        "sym-b": ["off-drawing-grid"],
     }
     assert [f.rule for f in run_fixture("mixed", tmp_path)] == ["part-unknown", "off-drawing-grid"]
 
@@ -154,8 +154,8 @@ def test_the_strict_default_can_fail(tmp_path):
     )
     directory = tmp_path / "text-too-large" / "symbols"
     directory.mkdir(parents=True)
-    source = (BROKEN / "text-too-large" / "symbols" / "S00001.toml").read_text(encoding="utf-8")
-    (directory / "S00001.toml").write_text(source.replace("[0, 0]", "[0.1, 0]"), encoding="utf-8")
+    source = (BROKEN / "text-too-large" / "symbols" / "sym-a.toml").read_text(encoding="utf-8")
+    (directory / "sym-a.toml").write_text(source.replace("[0, 0]", "[0.1, 0]"), encoding="utf-8")
     assert {f.rule for f in run_fixture("text-too-large", tmp_path)} == {
         "text-too-large",
         "off-drawing-grid",

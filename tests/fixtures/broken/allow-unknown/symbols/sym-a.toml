@@ -1,0 +1,13 @@
+schema = 1
+name = "Exemption of a rule that does not exist"
+kind = "element"
+status = "unverified"
+reference = { standard = "Example set", number = "sym-a" }
+
+lint_allow = [
+  { rule = "no-such-rule", reason = "the rule id is misspelt" },
+]
+
+elements = [
+  { line = [[0, 0], [0, 1]] },
+]

@@ -17,7 +17,7 @@ GUIDE = FIXTURES / "guide"
 BROKEN = FIXTURES / "broken"
 
 CONFIG = (
-    'standard = "Example set"\ntitle = "t"\nnumber_pattern = \'^S\\d{5}$\'\n'
+    'standard = "Example set"\ntitle = "t"\nnumber_pattern = \'^[a-z][a-z0-9]*(-[a-z0-9]+)*$\'\n'
     + WORDS
     + NEUTRAL_FONT_TOML
 )
@@ -44,12 +44,12 @@ class TestGuideLibrary:
         assert isinstance(library, Library)
         assert len(library) == 6
         assert [s.reference.number for s in library] == [
-            "S00016",
-            "S00171",
-            "S00227",
-            "S00230",
-            "S00254",
-            "S00305",
+            "change-over-contact",
+            "connection-point",
+            "make-contact",
+            "operated-by-pushing",
+            "push-button",
+            "relay-coil",
         ]
 
     def test_carries_the_config(self):
@@ -57,17 +57,17 @@ class TestGuideLibrary:
         assert (library.standard, library.title, library.number_pattern) == (
             "Example set",
             "Example set symbols",
-            r"^S\d{5}$",
+            r"^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
         )
 
     def test_get_returns_the_flattened_composite(self):
-        push = load_library(GUIDE).get("S00254")
+        push = load_library(GUIDE).get("push-button")
         assert [p.id for p in push.ports] == ["in", "out"]
         assert len(push.elements) == 6
 
     def test_get_of_an_unknown_number_raises(self):
         with pytest.raises(UnknownSymbolError):
-            load_library(GUIDE).get("S99999")
+            load_library(GUIDE).get("sym-missing")
 
     def test_is_exported_by_the_package(self):
         assert symdef.load_library is load_library
@@ -79,30 +79,30 @@ class TestFailures:
             load_library(broken_library("part-unknown", tmp_path))
         (finding,) = raised.value.findings
         assert (finding.rule, finding.location) == ("part-unknown", "/parts/0/use")
-        assert finding.message.startswith("S00001.toml: ")
+        assert finding.message.startswith("sym-a.toml: ")
         assert "part-unknown" in str(raised.value)
 
     def test_findings_of_all_files_are_listed_in_name_order(self, tmp_path):
         with pytest.raises(LibraryError) as raised:
             load_library(broken_library("part-cycle", tmp_path))
         assert [f.message.split(":")[0] for f in raised.value.findings] == [
-            "S00001.toml",
-            "S00010.toml",
+            "sym-a.toml",
+            "sym-j.toml",
         ]
 
     def test_findings_of_every_kind_are_collected(self, tmp_path):
         root = data_repo(tmp_path, CONFIG)
-        metadata = (BROKEN / "metadata" / "symbols" / "S00001.toml").read_text(encoding="utf-8")
-        (root / "symbols" / "S00001.toml").write_text(metadata, encoding="utf-8")
-        (root / "symbols" / "S00002.toml").write_text('schema = 1\nkind = "x"\n', encoding="utf-8")
+        metadata = (BROKEN / "metadata" / "symbols" / "sym-a.toml").read_text(encoding="utf-8")
+        (root / "symbols" / "sym-a.toml").write_text(metadata, encoding="utf-8")
+        (root / "symbols" / "sym-b.toml").write_text('schema = 1\nkind = "x"\n', encoding="utf-8")
         with pytest.raises(LibraryError) as raised:
             load_library(root)
         assert raised.value.findings[0].rule == "metadata"
-        assert raised.value.findings[0].message.startswith("S00001.toml: ")
+        assert raised.value.findings[0].message.startswith("sym-a.toml: ")
         assert {f.rule for f in raised.value.findings} == {"metadata", "schema"}
         assert {f.message.split(":")[0] for f in raised.value.findings} == {
-            "S00001.toml",
-            "S00002.toml",
+            "sym-a.toml",
+            "sym-b.toml",
         }
 
     def test_a_missing_library_toml_is_a_schema_finding(self, tmp_path):
@@ -123,36 +123,36 @@ class TestFailures:
 
     def test_a_bad_library_toml_is_reported_and_the_symbols_are_still_read(self, tmp_path):
         root = data_repo(tmp_path, 'standard = "X"\n')
-        (root / "symbols" / "S00001.toml").write_text("= broken", encoding="utf-8")
+        (root / "symbols" / "sym-a.toml").write_text("= broken", encoding="utf-8")
         with pytest.raises(LibraryError) as raised:
             load_library(root)
         assert [f.message.split(":")[0] for f in raised.value.findings] == [
             "library.toml",
             "library.toml",
             "library.toml",
-            "S00001.toml",
+            "sym-a.toml",
         ]
 
     def test_invalid_toml_in_a_symbol_file_is_a_schema_finding(self, tmp_path):
         root = data_repo(tmp_path, CONFIG)
-        (root / "symbols" / "S00001.toml").write_text("= broken", encoding="utf-8")
-        shutil.copy(GUIDE / "symbols" / "S00227.toml", root / "symbols" / "S00227.toml")
+        (root / "symbols" / "sym-a.toml").write_text("= broken", encoding="utf-8")
+        shutil.copy(GUIDE / "symbols" / "make-contact.toml", root / "symbols" / "make-contact.toml")
         with pytest.raises(LibraryError) as raised:
             load_library(root)
         (finding,) = raised.value.findings
-        assert (finding.rule, finding.message.split(":")[0]) == ("schema", "S00001.toml")
+        assert (finding.rule, finding.message.split(":")[0]) == ("schema", "sym-a.toml")
 
     def test_a_file_that_is_not_utf8_is_a_schema_finding(self, tmp_path):
         root = data_repo(tmp_path, CONFIG)
-        (root / "symbols" / "S00001.toml").write_bytes(b"name = '\xff\xfe'")
+        (root / "symbols" / "sym-a.toml").write_bytes(b"name = '\xff\xfe'")
         with pytest.raises(LibraryError) as raised:
             load_library(root)
         (finding,) = raised.value.findings
-        assert (finding.rule, finding.location) == ("schema", "S00001.toml")
+        assert (finding.rule, finding.location) == ("schema", "sym-a.toml")
 
     def test_a_directory_named_like_a_symbol_file_is_a_schema_finding(self, tmp_path):
         root = data_repo(tmp_path, CONFIG)
-        (root / "symbols" / "S00001.toml").mkdir()
+        (root / "symbols" / "sym-a.toml").mkdir()
         with pytest.raises(LibraryError) as raised:
             load_library(root)
         assert [f.rule for f in raised.value.findings] == ["schema"]
@@ -169,6 +169,6 @@ class TestEdgeCases:
 
     def test_crlf_files_load(self, tmp_path):
         root = data_repo(tmp_path, CONFIG)
-        text = (GUIDE / "symbols" / "S00227.toml").read_bytes().replace(b"\n", b"\r\n")
-        (root / "symbols" / "S00227.toml").write_bytes(text)
+        text = (GUIDE / "symbols" / "make-contact.toml").read_bytes().replace(b"\n", b"\r\n")
+        (root / "symbols" / "make-contact.toml").write_bytes(text)
         assert len(load_library(root)) == 1

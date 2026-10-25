@@ -45,9 +45,10 @@ Cost if wrong: a stricter schema is a compatible tightening later; an `$id` is o
 
 Decided: for `port-off-geometry`, "on a circle" includes any point of a filled circle's disk, and
 "on a closed outline" includes any point of a filled polygon's area.
-Why: the guide's connection point S00016 has its ports at the centre of a filled dot and is stated
+Why: the guide's `connection-point` symbol has its ports at the centre of a filled dot and is stated
 to pass `port-off-geometry` without an exemption.
-Cost if wrong: S00016 would need one more `lint_allow` entry.
+Cost if wrong: `connection-point` would need one more `lint_allow` entry.
+Amended: ids renamed to descriptive keys (R843): ids equal to a closed database's reference numbers point readers at it.
 
 ## D6. `lint` takes a base-orientation symbol and evaluates 8 orientations itself
 
@@ -93,11 +94,12 @@ Cost if wrong: an optional `package` key in `library.toml`; a rename of the outp
 ## D10. Fixture layout
 
 Decided: `tests/fixtures/guide/` is a mini data repo (`library.toml`, `symbols/`) holding the five
-guide examples verbatim plus `S00171` (the qualifier the push-button example uses; the guide names
+guide examples verbatim plus `operated-by-pushing` (the qualifier the push-button example uses; the guide names
 it but does not define it, so its geometry is ours). A test compares each verbatim file with its
 code block in the guide. `tests/fixtures/broken/<rule-id>/` holds one broken mini library per lint
-rule (`symbols/S00001.toml` is the failing file); `tests/fixtures/broken/library.toml` is the
+rule (`symbols/sym-a.toml` is the failing file); `tests/fixtures/broken/library.toml` is the
 default library config.
+Amended: ids renamed to descriptive keys (R843): ids equal to a closed database's reference numbers point readers at it.
 Why: `metadata` needs a file stem that matches a number pattern, and composition rules need
 sibling files, so one directory per rule is uniform.
 Cost if wrong: renames.
@@ -118,13 +120,13 @@ add a `potential`; any other node declaration in a composite is a `node-invalid`
 Why: the guide defers merging parts' nodes (section 14) and is silent on composite `nodes`.
 Cost if wrong: one more inheritance rule.
 
-## C1. Guide example S00254 (push-button) fails `pitch-overflow` as written
+## C1. Guide example `push-button` fails `pitch-overflow` as written
 
-Concern: `S00254` declares no `pole_pitch`, so its pitch is 4. Its flattened body extends from
+Concern: `push-button` declares no `pole_pitch`, so its pitch is 4. Its flattened body extends from
 x = -2.5 or further (the dashed link from the contact's `link` anchor at (-0.5, 0) runs 2 M west to
 (-2.5, 0), and the actuator sits at that end), and the inherited marking slots reach x = 1.75. The
 extent from section 8 point 6 is therefore at least 4.25 M, more than 4, so `pitch-overflow` fires.
-Computed with the fixture `S00171` (its geometry is ours, D10; its push bar runs 0.75 M west of its
+Computed with the fixture `operated-by-pushing` (its geometry is ours, D10; its push bar runs 0.75 M west of its
 `link` anchor): the body box spans x from -3.25 to 0, the slot boxes other than `tag` reach
 x = 1.75, and the extent is exactly 5.0 M against the pitch of 4 (`tests/test_guide_lint.py`
 asserts this). With `pole_pitch = 8` the example lints clean.
@@ -132,6 +134,7 @@ The guide says the five examples "must load and lint clean" and that only the fo
 machine-checked. Implemented as written; the guide-verbatim fixture is expected to produce exactly
 that one finding, and a variant with `pole_pitch = 8` is clean. Owner to decide: add `pole_pitch = 8`
 to the example, or shorten the link.
+Amended: ids renamed to descriptive keys (R843): ids equal to a closed database's reference numbers point readers at it.
 
 ## D13. Box and angle edge cases the guide leaves open
 
@@ -730,8 +733,8 @@ are only as true as their tests: their prose is not run.
 
 ## Open questions for the owner
 
-- C1 (S00254 fails `pitch-overflow` as written): add `pole_pitch = 8` to the guide's example or
-  shorten the link. The real `exampleset` `S00171` may change the extent; report the outcome there.
+- C1 (`push-button` fails `pitch-overflow` as written): add `pole_pitch = 8` to the guide's example or
+  shorten the link. The real `exampleset` `operated-by-pushing` may change the extent; report the outcome there.
 - C2 (`id-format` versus `repeat`'s `<k>.` port ids): keep the prefix form permanently, or change
   the guide's id pattern.
 - C3 (`lint_allow` and the seven resolver-only rules): formally non-exemptable, or apply
@@ -747,7 +750,7 @@ wrong: add a bound and a `schema` finding, as D22 did for numbers and `repeat`.
   about 2 s; about 40 tiny files would not finish).
 - A catastrophic-backtracking `number_pattern` in `library.toml` (for example `(a+)+$`; the time
   grows by 4 per 2 characters) can hang `re.search`. It is the only non-terminating path in the
-  core. `^S\d{5}$`-style patterns are safe.
+  core. `^[a-z][a-z0-9]*(-[a-z0-9]+)*$`-style patterns are safe.
 - Lint cost is quadratic in the number of poles of a `repeat`ed device (64 poles about 21 s, 24
   poles 2.8 s; `deal` tracing is about 2.2 times of that). The gates need only `repeat(s, 3)`.
 - `load_library` accepts a file stem or `number_pattern` that yields a number failing the stem
@@ -756,7 +759,7 @@ wrong: add a bound and a `schema` finding, as D22 did for numbers and `repeat`.
 - `validate` still raises on a mapping key that is a 4300-digit integer (unreachable from TOML or
   JSON); some private module-level tables (`orient._PARTS`, `load._ELEMENTS`, `svg._SAMPLE_ALIGN`,
   `geometry._RIGHT_ANGLE_COS_SIN`) are mutable dicts.
-- In the annotated S00227 the sample text `-X1` covers the start of the `link` anchor label,
+- In the annotated make-contact the sample text `-X1` covers the start of the `link` anchor label,
   because the guide's `tag` slot ends 1 M west of that anchor. Cosmetic, gallery only.
 
 ## What `../exampleset` must do because of these decisions
@@ -913,14 +916,15 @@ build. The interface spec and the JSON schema are published at the site root, th
 `$id`. `tests/test_site.py` proves a broken link fails the build; `tests/test_tutorial.py` runs
 every `symdef` command, edit step and python block of the tutorial in an empty folder. The
 `markdown` dev dependency goes. The gallery set is the six standard-style fixtures, plus a gate valve, a pump
-and a check valve drawn here (S90001 to S90003, path kind `pipe`, which shows a set declaring its
-own word). S00254 carries `pole_pitch = 8`, the fix D-concern C1 names, because `symdef check`
+and a check valve drawn here (`gate-valve`, `pump`, `check-valve`, path kind `pipe`, which shows a set declaring its
+own word). push-button carries `pole_pitch = 8`, the fix D-concern C1 names, because `symdef check`
 refuses the fixture's pitch overflow; the other five files are byte-equal to the guide fixtures.
 No page names a user of the toolkit. The README carries the provenance line for every standard-style
 example: original drawings, `unverified`. Both workflows run on `ubuntu-24.04` with an exact uv
 version.
 Why: the site must cover everything a newcomer needs, with no other repository to read.
 Cost if wrong: Zensical is pre-1.0; the staged Markdown also builds with MkDocs.
+Amended: ids renamed to descriptive keys (R843): ids equal to a closed database's reference numbers point readers at it.
 
 ## D51. The interface spec is amended in place for 0.5.0 (SYMDEF SD14)
 

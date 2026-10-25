@@ -1,0 +1,10 @@
+schema = 1
+name = "Line outside its declared body"
+kind = "element"
+status = "unverified"
+reference = { standard = "Example set", number = "sym-a" }
+
+body = [0, 0, 2, 2]
+elements = [
+  { line = [[0, 0], [3, 0]] },
+]

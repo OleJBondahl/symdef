@@ -53,12 +53,12 @@ def bare(**fields) -> Symbol:
 
 @pytest.fixture(scope="module")
 def s227() -> Symbol:
-    return guide_symbol("S00227")
+    return guide_symbol("make-contact")
 
 
 @pytest.fixture(scope="module")
 def s230() -> Symbol:
-    return guide_symbol("S00230")
+    return guide_symbol("change-over-contact")
 
 
 class TestOnePole:
@@ -128,7 +128,7 @@ class TestBoundLeadsAreRenamed:
         assert ports == [None, None]
 
 
-class TestThreePolesOfS00227:
+class TestThreePolesOfMakeContact:
     @pytest.fixture
     def result(self, s227) -> Symbol:
         return repeat(s227, 3, port_format="{k}.{port}")
@@ -181,7 +181,7 @@ class TestThreePolesOfS00227:
         assert result.pole_pitch == 12
 
 
-class TestTwoPolesOfS00230:
+class TestTwoPolesOfChangeOverContact:
     @pytest.fixture
     def result(self, s230) -> Symbol:
         return repeat(s230, 2, port_format="{k}.{port}")
@@ -310,7 +310,7 @@ class TestEdgeCases:
         assert tuple(s.id for s in result.slots) == ("marking.1.c.in", "marking.2.c.in")
 
     def test_input_is_not_mutated(self, s227):
-        rebuilt = guide_symbol("S00227")  # read again, so it is not the object `repeat` gets
+        rebuilt = guide_symbol("make-contact")  # read again, so it is not the object `repeat` gets
         assert rebuilt is not s227
         repeat(s227, 3, port_format="{k}.{port}")
         assert s227 == rebuilt
