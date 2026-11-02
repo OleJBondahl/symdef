@@ -89,8 +89,8 @@
     },
     "direction": { "enum": ["N", "E", "S", "W"] },
     "slot_side": {
-      "description": "A direction the box grows towards, or C for a box centred on the slot point.",
-      "enum": ["N", "E", "S", "W", "C"]
+      "description": "A direction the box grows towards, C for a box centred on the slot point, or a corner the box grows to from the opposite corner.",
+      "enum": ["N", "E", "S", "W", "C", "NE", "SE", "SW", "NW"]
     },
     "weight": { "enum": ["normal", "thick"] },
     "style": { "enum": ["solid", "dashed", "dash_dot"] },

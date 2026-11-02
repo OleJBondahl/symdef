@@ -17,7 +17,7 @@ from symdef.geometry import (
     arc_point,
     arc_sweep,
 )
-from symdef.model import Centre, Slot, Symbol
+from symdef.model import Centre, Corner, Slot, Symbol
 from symdef.slottext import text_box
 from symdef.units import DEFAULT_GRID, Grid
 
@@ -107,14 +107,18 @@ def _reserved_box(slot: Slot) -> Box:
     return side_box(slot.position, slot.side, *slot.box)
 
 
-def side_box(point: Point, side: Direction | Centre, w: float, h: float) -> Box:
+def side_box(point: Point, side: Direction | Centre | Corner, w: float, h: float) -> Box:
     """Return a `w` by `h` box grown from `point` towards `side`, as a slot reserves it.
 
     E grows right and W left, both centred on y; N grows up and S down, both centred on x; C is
-    centred both ways. The box is never rotated.
+    centred both ways; a corner grows both ways from `point`, SE east and south. The box is never
+    rotated.
     """
     x, y = point.x, point.y
     match side:
+        case Corner():
+            left, top = (x if side.dx > 0 else x - w), (y if side.dy > 0 else y - h)
+            return Box(Point(left, top), Point(left + w, top + h))
         case Direction.E:
             return Box(Point(x, y - h / 2), Point(x + w, y + h / 2))
         case Direction.W:

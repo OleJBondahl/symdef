@@ -38,6 +38,7 @@ from symdef.model import (
     Allow,
     Anchor,
     Centre,
+    Corner,
     Finding,
     Library,
     LibraryConfig,
@@ -47,6 +48,7 @@ from symdef.model import (
     Reference,
     Severity,
     Slot,
+    SlotSide,
     Status,
     Stretch,
     Symbol,
@@ -217,7 +219,7 @@ _POINT = _array(_number, 2)
 _BOX = _array(_POINT, 2)
 _DECLARED_BOX = _array(_number, 4)
 _DIRECTION = _enum("N", "E", "S", "W")
-_SLOT_SIDE = _enum("N", "E", "S", "W", "C")
+_SLOT_SIDE = _enum("N", "E", "S", "W", "C", "NE", "SE", "SW", "NW")
 _WEIGHT = _enum("normal", "thick")
 _STYLE = _enum("solid", "dashed", "dash_dot")
 _FILL = _enum("none", "solid")
@@ -454,6 +456,13 @@ def parse_json(text: str) -> tuple[Any, tuple[Finding, ...]]:
         return None, (_finding("", _short(f"invalid JSON: {error}", 200)),)
 
 
+def _side(name: str) -> SlotSide:
+    """Return the slot side a data name spells: a direction, `C` or a corner."""
+    if name == "C":
+        return Centre.C
+    return Corner[name] if name in Corner.__members__ else Direction[name]
+
+
 def _point(value: list[float]) -> Point:
     """Build a point from an `[x, y]` array."""
     return Point(value[0], value[1])
@@ -551,7 +560,7 @@ def symbol_from_data(data: Mapping[str, Any]) -> Symbol:
             Slot(
                 key,
                 _point(s["at"]),
-                Centre.C if s["side"] == "C" else Direction[s["side"]],
+                _side(s["side"]),
                 (s["box"][0], s["box"][1]),
                 s.get("turn", False),
             )

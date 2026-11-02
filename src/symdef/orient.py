@@ -15,7 +15,7 @@ from symdef.geometry import (
     Polyline,
     Text,
 )
-from symdef.model import Centre, SlotSide, Symbol
+from symdef.model import Centre, Corner, SlotSide, Symbol
 
 _QUARTER = 90
 _FULL_TURN = 360
@@ -55,7 +55,10 @@ def _map_element(element: Element, move: _Move, angles: _Angles) -> Element:
 
 
 def _slot_side(side: SlotSide, turn: _Turn) -> SlotSide:
-    """Turn a slot side; `C` has no direction and stays."""
+    """Turn a slot side; `C` has no direction and stays, a corner turns by its two halves."""
+    if isinstance(side, Corner):
+        a, b = turn(side.horizontal), turn(side.vertical)
+        return Corner((a.dx + b.dx, a.dy + b.dy))
     return side if isinstance(side, Centre) else turn(side)
 
 

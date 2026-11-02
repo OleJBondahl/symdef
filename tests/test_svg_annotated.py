@@ -511,7 +511,7 @@ class TestOrientedSymbols:
 
         samples = by_class(root, "sample-text")
         assert len(samples) == len(slots)
-        anchors = {E: "start", W: "end", N: "middle", S: "middle", Centre.C: "middle"}
+        anchors: dict = {E: "start", W: "end", N: "middle", S: "middle", Centre.C: "middle"}
         for slot, text in zip(slots, samples, strict=True):
             assert text.get("text-anchor") == anchors[slot.side]
             assert float(text.get("x")) == pytest.approx(slot.position.x)
