@@ -35,6 +35,7 @@ from symdef import (
     translate,
 )
 from symdef.font import text_width
+from symdef.lint.geometry import stretch_cut
 from symdef.load import parse_toml, symbol_from_data, validate
 from symdef.serialize import symbol_to_data
 from symdef.slottext import LINE_PITCH, slot_text, text_box
@@ -153,10 +154,15 @@ def flag(side):
     )
 
 
-def growth(lines):
-    """The growth in modules a block of `lines` asks of a 2 tall slot, worked apart from symdef."""
+def growth_of(lines, tall):
+    """The growth in modules a block of `lines` asks of a slot `tall`, worked apart from symdef."""
     need = CAP * (1 + LINE_PITCH * (lines - 1))
-    return max(0.0, math.ceil(round(need * 8, 6)) / 8 - 2)
+    return max(0.0, math.ceil(round(need * 8, 6)) / 8 - tall)
+
+
+def growth(lines):
+    """The growth a block of `lines` asks of the flag's slot, 2 tall."""
+    return growth_of(lines, 2)
 
 
 def test_an_se_slot_at_five_lines_grows_down_with_the_body_below_the_cut():
@@ -224,3 +230,37 @@ def test_a_turned_corner_text_anchors_by_its_north_or_south_and_sits_by_its_east
     placed = slot_text(slot, "ABi", HEIGHT, FONT)
     assert (placed.anchor, placed.turned) == (anchor, True)
     assert placed.point == Point(3 + east * 1.4, 4)
+
+
+# A cut across a slot outside the body (D133): the keepout grows, the body only moves.
+def terminal():
+    return Symbol(
+        "terminal",
+        SymbolKind.SYMBOL,
+        Status.UNVERIFIED,
+        Reference("X", "1"),
+        (Line(Point(0, -1), Point(4, -1)), Line(Point(0, 1), Point(4, 1))),
+        slots=(Slot("tag", Point(0, -3.75), Corner.SE, (3, 1)),),
+        stretch=(Stretch("y", -3.25),),
+        keepout=Box(Point(0, -4), Point(4, 1)),
+    )
+
+
+def test_a_cut_across_a_slot_outside_the_body_builds_and_grows_the_keepout_not_the_body():
+    symbol = terminal()
+    assert stretch_cut(symbol) == ()
+    result = fitted_symbol(symbol, {"tag": "\n".join(["AB"] * 3)}, LIB, HEIGHT)
+    grown = growth_of(3, 1)
+    assert grown > 0
+    assert keepout_box(result, LIB.font) == Box(Point(0, -4), Point(4, 1 + grown))
+    assert body_box(result).height == body_box(symbol).height
+    assert body_box(result).min.y == body_box(symbol).min.y + grown
+    assert slot_box(result.slots[0]).max.y == -2.75 + grown
+
+
+def test_a_cut_across_no_slot_and_outside_the_body_is_still_refused():
+    symbol = replace(terminal(), stretch=(Stretch("y", -6),))
+    (found,) = stretch_cut(symbol)
+    assert (found.rule, found.location) == ("stretch-cut", "stretch[0]")
+    assert "across no slot box" in found.message
+    assert stretch_cut(replace(terminal(), slots=(), stretch=(Stretch("y", -3.25),)))

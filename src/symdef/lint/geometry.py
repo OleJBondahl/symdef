@@ -3,9 +3,10 @@
 import math
 from itertools import pairwise
 
-from symdef.boxes import body_box
+from symdef.boxes import body_box, slot_box
 from symdef.geometry import (
     Arc,
+    Box,
     Circle,
     Element,
     Fill,
@@ -184,16 +185,24 @@ def _cut_crossings(symbol: Symbol) -> tuple[Finding, ...]:
     )
 
 
+def _along(box: Box, axis: str) -> tuple[float, float]:
+    """Return the box's low and high edge on the axis."""
+    return (box.min.x, box.max.x) if axis == "x" else (box.min.y, box.max.y)
+
+
 def _cut_placement(symbol: Symbol) -> tuple[Finding, ...]:
-    """Report each cut outside the body, and each cut at the same place as an earlier one."""
+    """Report each cut outside the body and across no slot box, and each repeated cut."""
     body = body_box(symbol)
+    slots = tuple(slot_box(s) for s in symbol.slots)
     found: list[Finding] = []
     seen: set[tuple[str, float]] = set()
     for i, cut in enumerate(symbol.stretch):
-        low, high = (body.min.x, body.max.x) if cut.axis == "x" else (body.min.y, body.max.y)
-        if not low <= cut.at < high:
+        low, high = _along(body, cut.axis)
+        across = any(a < cut.at < b for a, b in (_along(box, cut.axis) for box in slots))
+        if not (low <= cut.at < high or across):
             message = (
-                f"the cut at {cut.at!r} lies outside the body [{low!r}, {high!r}) on {cut.axis}"
+                f"the cut at {cut.at!r} lies outside the body [{low!r}, {high!r}) on {cut.axis} "
+                "and across no slot box; move it into the body or across a slot"
             )
             found.append(rule_finding("stretch-cut", message, f"stretch[{i}]"))
         if (cut.axis, cut.at) in seen:
@@ -206,10 +215,11 @@ def _cut_placement(symbol: Symbol) -> tuple[Finding, ...]:
 
 
 def stretch_cut(symbol: Symbol) -> tuple[Finding, ...]:
-    """Report the stretch cuts that cannot work: crossed shapes, cuts outside the body, repeats.
+    """Report the stretch cuts that cannot work: crossed shapes, cuts in no place, repeats.
 
     A circle, arc or text that a cut crosses is reported at its element. A cut must satisfy
-    `body_min <= at < body_max` on its axis, so a symbol with no elements takes none at 0 either.
+    `body_min <= at < body_max` on its axis, or lie strictly inside a slot's box there, so a slot
+    outside the body can be cut, and a symbol with no elements and no slot takes none.
     An axis may have several cuts, but two at the same `at` are reported at the later one.
     """
     return (*_cut_crossings(symbol), *_cut_placement(symbol))
