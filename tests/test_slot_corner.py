@@ -183,7 +183,9 @@ def test_one_line_asks_for_nothing_so_the_symbol_is_as_it_was():
 @given(
     st.integers(1, 8), st.sampled_from(Corner), st.sampled_from([Orientation.R0, Orientation.R90])
 )
-def test_a_corner_slot_stays_in_the_body_which_grows_only_beyond_the_cut(lines, side, turn):
+def test_a_corner_slot_stays_in_the_body_at_r0_and_keeps_its_box_size_when_turned(
+    lines, side, turn
+):
     texts = {"ref": "\n".join(["AB"] * lines)}
     result = fitted_symbol(flag(side), texts, LIB, HEIGHT)
     grown = growth(lines)
@@ -192,13 +194,18 @@ def test_a_corner_slot_stays_in_the_body_which_grows_only_beyond_the_cut(lines, 
     (slot,) = result.slots
     held = text_box(slot, texts["ref"], HEIGHT, FONT, LIB.grid)
     assert Box.union(slot_box(slot), held) == slot_box(slot)
+    assert Box.union(keepout_box(result, LIB.font), slot_box(slot)) == keepout_box(result, LIB.font)
     placed = orient(result, turn)
     assert body_box(placed) == orient_box(body_box(result), turn)
     assert keepout_box(placed, LIB.font) == body_box(placed)
     turned = placed.slots[0]
     assert turned.position == orient_point(slot.position, turn)
     assert turned.box == slot.box
-    assert slot_box(turned).width == slot_box(slot).width  # a box is never rotated
+    # a box is never rotated (R1592): the size is kept and no containment is asserted when turned
+    assert (slot_box(turned).width, slot_box(turned).height) == (
+        slot_box(slot).width,
+        slot_box(slot).height,
+    )
     assert turned.side is (side if turn is Orientation.R0 else TURNED[side])
 
 
