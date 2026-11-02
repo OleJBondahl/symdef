@@ -2,6 +2,11 @@
 
 What changed in the public surface of each release: a name added, removed or moved, and a type that widened. Every change to `surface.toml` has a line here. The reasons are in [the decisions](DECISIONS.md).
 
+## 0.31.0
+
+- Added: `Corner` (`NE`, `SE`, `SW`, `NW`), a slot side that grows the box both ways from the slot point, its opposite corner; `SlotSide` is `Direction | Centre | Corner`, the data and the JSON schema accept the four names, `orient` turns a corner, and a corner slot grows with the body beyond a stretch cut (D131, D132).
+- Changed: the lint rule `stretch-cut` accepts a cut strictly inside a slot's box even when it lies outside the body; the cut then grows a declared `keepout`, not the body (D133).
+
 ## 0.30.0
 
 - Added: `reference_cell(columns, rows, width, height, point)`, the (column label, row label) of the reference-grid cell holding a point of a page frame's content box, and `ReferenceCellError`, raised for a point outside it with no clamp (D129).

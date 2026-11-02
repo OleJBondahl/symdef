@@ -297,7 +297,7 @@ A symbol whose size is decided at placement time carries a cut line, `[[stretch]
 (`x` or `y`) and `at` (D53). `stretch(symbol, axis, length, offsets=None)` moves every point
 beyond a cut: element points, ports, anchors and slot corners. A line or polyline across a cut gets
 longer; a circle, arc or text across any cut raises `InvalidValueError`, and the lint rule `stretch-cut`
-reports it first (D55). `offsets`
+reports it first (D55). A cut must lie inside the body or strictly inside the box of a slot, so a slot outside the body can be cut and a declared `keepout` that holds it grows (D133). `offsets`
 puts named ports, with their leads and `marking.<port>` slots, at coordinates along the axis. The
 result is an ordinary symbol without that axis's stretch, so `orient` and `to_fragment` come
 after it.
@@ -622,7 +622,7 @@ elements = [
 
 `to_fragment(symbol, texts={...})` and `to_fragment_mm(..., texts={...})` draw the string you pass
 for each slot, by slot id, after the symbol's elements. The slot's `side` sets the alignment
-and a slot with `turn = true` reads bottom-up. A slot side is where text sits, and a port side is where a wire leaves. Keeping `C` out of `Direction` means a port can never be `C`. The side `C` centres the string on the slot point, and its box is centred on it too (D68). symdef never measures, shrinks or wraps a string, but a `\n` in the string starts a new row (D95):
+and a slot with `turn = true` reads bottom-up. A slot side is where text sits, and a port side is where a wire leaves. Keeping `C` out of `Direction` means a port can never be `C`. A corner side, `Corner.NE`, `SE`, `SW` or `NW` (data `side = "SE"`), grows the box both ways from the slot point, its opposite corner: an `SE` box grows east and south, and a multi-line text stacks away from the side (D131). When a cut falls across it, `fitted_symbol` grows it with the body beyond the cut, so a flag-shaped symbol with a slot on its edge keeps the text inside however many rows it has (D132). The side `C` centres the string on the slot point, and its box is centred on it too (D68). symdef never measures, shrinks or wraps a string, but a `\n` in the string starts a new row (D95):
 `to_fragment_mm` draws at your `font_mm`, and `to_fragment` sizes to the box. An empty string draws
 nothing; an id that is no slot raises `UnknownNameError`. `required_slots` (the entries `lint` takes)
 makes a missing string an `InvalidValueError`, and the check runs only when `texts` is given (D63 to D65).
