@@ -6,7 +6,7 @@ from test_font import FONT
 from symdef.boxes import slot_box
 from symdef.errors import InvalidValueError
 from symdef.geometry import Box, Direction, Point
-from symdef.model import Centre, Slot
+from symdef.model import Centre, Corner, Slot
 from symdef.slottext import SIDE_ALIGN, TURNED_ALIGN, TextPlacement, slot_text
 
 HEIGHT = 2  # with FONT the cap height is 1.4 and "ABi" is 2.9 wide
@@ -67,7 +67,7 @@ def test_the_placement_is_a_value():
 
 
 def test_the_tables_cover_every_side():
-    assert set(SIDE_ALIGN) == set(TURNED_ALIGN) == {*Direction, Centre.C}
+    assert set(SIDE_ALIGN) == set(TURNED_ALIGN) == {*Direction, Centre.C, *Corner}
 
 
 def test_a_slot_box_with_no_text_is_the_reserved_box():

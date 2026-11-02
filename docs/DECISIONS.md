@@ -1778,3 +1778,9 @@ Cost if wrong: an additive function and one error subclass; a record that carrie
 Decided: R891 (SY4), amended by R893. New top-level `floor_divisions(grid, mm) -> int` in `units.py`: a length in millimetres rounded DOWN to whole grid divisions, the mirror of `ceil_divisions`, with the same tolerance (a value within 1e-9 below a division counts as that division). R891 first built it rounding up, a second spelling of `ceil_divisions` under a name that says the opposite; R893 refused that. A negative or non-finite length raises `InvalidValueError`; 0 gives 0.
 Why: an application converted a printed text floor in mm to divisions with its own arithmetic.
 Cost if wrong: an additive function; none to remove.
+
+## D131: `Corner`, a slot side that grows to a corner
+
+Decided: R1589 (C1). New public enum `Corner` (`NE`, `SE`, `SW`, `NW`) in `model.py`, exported at the top level, and `SlotSide = Direction | Centre | Corner`. `Direction` is not widened, so a port or an anchor can never be a corner. The value is the unit vector of the growth, with `dx`, `dy` and the two halves `horizontal` and `vertical` as `Direction`s. With a corner side `position` is the box's opposite corner: an `SE` slot grows east and south from its north-west corner (`side_box`). Text anchors by the east or west half and its baseline by the north or south half (`SIDE_ALIGN`, `TURNED_ALIGN`); a block stacks away from the side (`_before`, now `(1 - dx or dy) / 2`, byte-identical for the old sides). `orient` turns a corner by turning its two halves and adding them. The data name is `NE`, `SE`, `SW` or `NW`: `load`, `serialize` and the JSON schema accept it. Every old side keeps its meaning and every old symbol builds to the same bytes.
+Why: a one-axis side centres a multi-line box on the other axis, so it sticks out of a body that grows on one side only.
+Cost if wrong: an additive enum and four data names; a reader of the schema that lists the sides must add them.

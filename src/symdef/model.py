@@ -109,7 +109,40 @@ class Centre(Enum):
     C = "C"
 
 
-type SlotSide = Direction | Centre
+class Corner(Enum):
+    """A slot side that grows to a corner, both ways from `position`, the opposite corner.
+
+    The value is the unit vector of the growth, in SVG axes: `SE` grows east and south, so its
+    `position` is the box's north-west corner. It is not a `Direction`, so a port can never be one.
+    """
+
+    NE = (1, -1)
+    SE = (1, 1)
+    SW = (-1, 1)
+    NW = (-1, -1)
+
+    @property
+    def dx(self) -> int:
+        """Horizontal component of the growth: 1 east, -1 west."""
+        return self.value[0]
+
+    @property
+    def dy(self) -> int:
+        """Vertical component of the growth: 1 south, -1 north."""
+        return self.value[1]
+
+    @property
+    def horizontal(self) -> Direction:
+        """The east or west half of the corner."""
+        return Direction.E if self.dx > 0 else Direction.W
+
+    @property
+    def vertical(self) -> Direction:
+        """The south or north half of the corner."""
+        return Direction.S if self.dy > 0 else Direction.N
+
+
+type SlotSide = Direction | Centre | Corner
 
 
 @dataclass(frozen=True, slots=True)
@@ -118,8 +151,9 @@ class Slot:
 
     Attributes:
         position: The point the box grows from, in module units.
-        side: The direction the box grows towards from `position`, or `Centre.C` for a box centred
-            on it; see `slot_box`.
+        side: The direction the box grows towards from `position`, `Centre.C` for a box centred
+            on it, or a `Corner` for a box that grows both ways from its opposite corner; see
+            `slot_box`.
         box: Width and height in module units, never rotated: the footprint as drawn.
         turn: True when a string in the slot is drawn turned, reading bottom-up, along the height
             of `box`. It is fixed to the page: `orient` never changes it.

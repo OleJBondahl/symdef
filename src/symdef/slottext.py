@@ -8,31 +8,40 @@ from typing import Literal
 
 from symdef.font import FontMetrics, cap_height, text_width
 from symdef.geometry import Box, Direction, Point
-from symdef.model import Centre, Slot
+from symdef.model import Centre, Corner, Slot
 from symdef.units import DEFAULT_GRID, Grid, ceil_divisions, from_divisions
 
 type Anchor = Literal["start", "middle", "end"]
 
+# A corner takes the anchor of its east or west half and the baseline of its north or south half.
 # Per slot side: the text anchor and the baseline below the slot point as a fraction of the cap
 # height. `slot_text` and the SVG output read this one table (D63).
-SIDE_ALIGN: Mapping[Direction | Centre, tuple[Anchor, float]] = MappingProxyType(
+SIDE_ALIGN: Mapping[Direction | Centre | Corner, tuple[Anchor, float]] = MappingProxyType(
     {
         Direction.E: ("start", 0.5),
         Direction.W: ("end", 0.5),
         Direction.N: ("middle", 0.0),
         Direction.S: ("middle", 1.0),
         Centre.C: ("middle", 0.5),
+        Corner.NE: ("start", 0.0),
+        Corner.SE: ("start", 1.0),
+        Corner.SW: ("end", 1.0),
+        Corner.NW: ("end", 0.0),
     }
 )
 # A turned slot reads bottom-up: N starts at the anchor, S ends there, E and W centre the text on
 # it. The second number is how far east of the slot point the baseline sits, in cap heights.
-TURNED_ALIGN: Mapping[Direction | Centre, tuple[Anchor, float]] = MappingProxyType(
+TURNED_ALIGN: Mapping[Direction | Centre | Corner, tuple[Anchor, float]] = MappingProxyType(
     {
         Direction.N: ("start", 0.5),
         Direction.S: ("end", 0.5),
         Direction.E: ("middle", 1.0),
         Direction.W: ("middle", 0.0),
         Centre.C: ("middle", 0.5),
+        Corner.NE: ("start", 1.0),
+        Corner.SE: ("end", 1.0),
+        Corner.SW: ("end", 0.0),
+        Corner.NW: ("start", 0.0),
     }
 )
 
@@ -104,9 +113,9 @@ LINE_PITCH = 1.5
 
 def _before(slot: Slot) -> float:
     """Return the share of a text block before the slot point: it grows away from its side (D95)."""
-    if slot.side is (Direction.W if slot.turn else Direction.N):
-        return 1.0
-    return 0.0 if slot.side is (Direction.E if slot.turn else Direction.S) else 0.5
+    if isinstance(slot.side, Centre):
+        return 0.5
+    return (1 - (slot.side.dx if slot.turn else slot.side.dy)) / 2
 
 
 def stack_shifts(slot: Slot, count: int) -> tuple[float, ...]:
