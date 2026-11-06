@@ -121,26 +121,26 @@ def test_only_ports_of_a_table_row_uses_the_prefixed_id():
     assert [p.id for p in kept.ports] == ["1.a"]
 
 
-PE_POLY = Polyline((Point(2, 0), Point(3, 1), Point(3, 2)), port="pe")
-PE_ARC = Arc(Point(2, 2), 1, 0, 90, port="pe")
+STROKE_POLY = Polyline((Point(2, 0), Point(3, 1), Point(3, 2)), port="s")
+STROKE_ARC = Arc(Point(2, 2), 1, 0, 90, port="s")
 
 
-def earthed() -> Symbol:
+def with_stroke() -> Symbol:
     return replace(
         device(),
-        elements=(BODY, PE_POLY, LABEL),
-        ports=(*device().ports, Port("pe", Point(3, 2), S)),
+        elements=(BODY, STROKE_POLY, LABEL),
+        ports=(*device().ports, Port("s", Point(3, 2), S)),
     )
 
 
-@pytest.mark.parametrize("stroke", [PE_POLY, PE_ARC])
+@pytest.mark.parametrize("stroke", [STROKE_POLY, STROKE_ARC])
 def test_a_bound_polyline_or_arc_goes_with_its_unlisted_port(stroke):
-    sym = replace(earthed(), elements=(BODY, stroke, LABEL))
+    sym = replace(with_stroke(), elements=(BODY, stroke, LABEL))
     assert leads(sym, ("a", "b")).elements == (BODY, LABEL)
     assert only_ports(sym, ("a", "b")).elements == (BODY, LABEL)
-    assert leads(sym, ("pe",)).elements == (BODY, stroke, LABEL)
+    assert leads(sym, ("s",)).elements == (BODY, stroke, LABEL)
 
 
 def test_an_unbound_polyline_stays_when_ports_are_hidden():
     free = Polyline((Point(2, 0), Point(3, 1)))
-    assert leads(replace(earthed(), elements=(free, PE_POLY)), ()).elements == (free,)
+    assert leads(replace(with_stroke(), elements=(free, STROKE_POLY)), ()).elements == (free,)
