@@ -188,3 +188,19 @@ def test_top_and_centre_need_a_font_and_an_unknown_at_raises():
             font_family=FAMILY,
             at="bottom",  # ty: ignore[invalid-argument-type] - a bad value
         )
+
+
+@pytest.mark.parametrize(
+    ("corner", "point", "anchor"),
+    [
+        ("NW", Point(10 + CAP, 20), "end"),
+        ("NE", Point(30, 20), "end"),
+        ("SW", Point(10 + CAP, 24), "start"),
+        ("SE", Point(30, 24), "start"),
+    ],
+)
+def test_a_turned_corner_text_reads_upward_inside_the_corner(corner, point, anchor):
+    got = corner_text(BOX, corner, 2.5, None, turn=True)
+    assert got == TextPlacement(point, anchor, turned=True)
+    out = text_tag("K1", got.point, 2.5, anchor=got.anchor, font_family=FAMILY, turn=True)
+    assert "rotate(-90" in out

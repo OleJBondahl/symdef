@@ -700,9 +700,13 @@ without a grid gives the output it always gave. `Grid(module_mm, divisions_per_m
 `text_tag(content, point, height_mm, *, anchor, font_family, turn=False, weight=Weight.NORMAL,
 tint=None, muted=None)` returns one `<text>` in millimetres at the baseline `point`, aligned by
 `anchor` (`"start"`, `"middle"` or `"end"`); `turn` rotates it -90 degrees about the point and
-`Weight.THICK` makes it bold. `corner_text(box, corner, height, font)` gives the `TextPlacement`
+`Weight.THICK` makes it bold. `corner_text(box, corner, height, font, *, turn=False)` gives the `TextPlacement`
 for a text hung inside `box` on `"NW"`, `"NE"`, `"SW"` or `"SE"`: the capitals touch the north
-edge, or the baseline sits on the south edge (D100).
+edge, or the baseline sits on the south edge (D100). With `turn=True` the text reads bottom-up: it
+starts at the south edge or ends at the north edge, and the capitals touch the west edge or the
+baseline sits on the east edge (D134). `text_footprint(font, text, cap_height_mm, grid, *, turn=False)`
+returns a one-line text's (width, height) in whole divisions; with `turn` the two are exchanged,
+which is the (thickness, reading length) a `turn = true` slot declares as its `box` (D134).
 
 ```python
 from symdef import Box, Point, corner_text, text_tag
