@@ -114,7 +114,7 @@ def text_footprint(
     return (size[1], size[0]) if turn else size
 
 
-def extra_lines(count: int, pitch: float) -> float:
+def extra_lines[T: (int, float)](count: int, pitch: T) -> T:
     """Return the extent a block of `count` lines adds beyond its first line, `pitch` for each."""
     return (count - 1) * pitch
 
