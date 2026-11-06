@@ -96,17 +96,27 @@ def text_footprint(
     The text is set so its capital is `cap_height_mm` tall. Upright it is its widest line by the
     block height, each rounded up. The block height follows the font's `text_block` rule: by "cap"
     one em box plus `LINE_PITCH` cap heights for each further line, by "grid" a whole row of
-    divisions for each line. With `turn`, a turned slot's text that reads bottom-up, the two are
-    exchanged: thickness by reading length, the `box` a `turn = true` slot declares.
+    divisions for each line. The height is the em box plus the extra lines' pitch, so it holds the
+    drawn block (cap plus extra), which is about 0.28 em smaller. With `turn`, a turned slot's text
+    that reads bottom-up, the two are exchanged: thickness by reading length, the `box` a
+    `turn = true` slot declares.
     """
     em = em_height(font, cap_height_mm / grid.module_mm)
     lines = text.split("\n")
     if font is not None and font.text_block == "grid":
-        height = len(lines) * ceil_divisions(grid, em)
+        row = ceil_divisions(grid, em)
+        height = row + extra_lines(len(lines), row)
     else:
-        height = ceil_divisions(grid, em + (len(lines) - 1) * LINE_PITCH * cap_height(font, em))
+        height = ceil_divisions(
+            grid, em + extra_lines(len(lines), LINE_PITCH * cap_height(font, em))
+        )
     size = (ceil_divisions(grid, max(text_width(font, line, em) for line in lines)), height)
     return (size[1], size[0]) if turn else size
+
+
+def extra_lines(count: int, pitch: float) -> float:
+    """Return the extent a block of `count` lines adds beyond its first line, `pitch` for each."""
+    return (count - 1) * pitch
 
 
 def em_height(font: FontMetrics | None, cap: float) -> float:
