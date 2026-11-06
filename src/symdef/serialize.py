@@ -104,7 +104,13 @@ def _element(element: Element) -> dict[str, Any]:
                 data["between"] = True
             return data
         case Polyline(
-            points=points, closed=closed, fill=fill, weight=weight, style=style, between=between
+            points=points,
+            closed=closed,
+            fill=fill,
+            weight=weight,
+            style=style,
+            between=between,
+            port=port,
         ):
             data = {
                 "polyline": [_point(p) for p in points],
@@ -112,6 +118,7 @@ def _element(element: Element) -> dict[str, Any]:
                 "fill": fill.value,
                 "weight": weight.name.lower(),
                 "style": style.value,
+                **({"port": port} if port is not None else {}),
             }
             if between:
                 data["between"] = True
@@ -123,14 +130,15 @@ def _element(element: Element) -> dict[str, Any]:
                 "fill": fill.value,
                 "weight": weight.name.lower(),
             }
-        case Arc(center=center, radius=radius, start_deg=start, end_deg=end, weight=w, style=s):
+        case Arc(center=c, radius=r, start_deg=start, end_deg=end, weight=w, style=s, port=port):
             return {
-                "arc": _point(center),
-                "r": radius,
+                "arc": _point(c),
+                "r": r,
                 "start": start,
                 "end": end,
                 "weight": w.name.lower(),
                 "style": s.value,
+                **({"port": port} if port is not None else {}),
             }
         case Text(content=content, position=at, height=height, weight=weight):
             return {

@@ -8,7 +8,7 @@ from hypothesis import strategies as st
 
 from symdef.boxes import keepout_box
 from symdef.errors import UnknownNameError
-from symdef.geometry import Box, Direction, Line, Point, Text
+from symdef.geometry import Arc, Box, Direction, Line, Point, Polyline, Text
 from symdef.leads import leads, only_ports
 from symdef.model import Port, Reference, Slot, Status, Stretch, Symbol, SymbolKind
 from symdef.stretch import stretch
@@ -119,3 +119,28 @@ def test_only_ports_with_an_unknown_name_names_the_port_and_the_symbol():
 def test_only_ports_of_a_table_row_uses_the_prefixed_id():
     kept = only_ports(table(device(), 2, "y", port_format="{k}.{port}"), ("1.a",))
     assert [p.id for p in kept.ports] == ["1.a"]
+
+
+PE_POLY = Polyline((Point(2, 0), Point(3, 1), Point(3, 2)), port="pe")
+PE_ARC = Arc(Point(2, 2), 1, 0, 90, port="pe")
+
+
+def earthed() -> Symbol:
+    return replace(
+        device(),
+        elements=(BODY, PE_POLY, LABEL),
+        ports=(*device().ports, Port("pe", Point(3, 2), S)),
+    )
+
+
+@pytest.mark.parametrize("stroke", [PE_POLY, PE_ARC])
+def test_a_bound_polyline_or_arc_goes_with_its_unlisted_port(stroke):
+    sym = replace(earthed(), elements=(BODY, stroke, LABEL))
+    assert leads(sym, ("a", "b")).elements == (BODY, LABEL)
+    assert only_ports(sym, ("a", "b")).elements == (BODY, LABEL)
+    assert leads(sym, ("pe",)).elements == (BODY, stroke, LABEL)
+
+
+def test_an_unbound_polyline_stays_when_ports_are_hidden():
+    free = Polyline((Point(2, 0), Point(3, 1)))
+    assert leads(replace(earthed(), elements=(free, PE_POLY)), ()).elements == (free,)

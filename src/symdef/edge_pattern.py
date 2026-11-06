@@ -6,8 +6,9 @@ from itertools import pairwise
 
 from symdef.boxes import body_box
 from symdef.errors import InvalidValueError
-from symdef.geometry import Direction, Element, Line, Point
+from symdef.geometry import Direction, Element, Point, bound_port
 from symdef.model import Port, Slot, Symbol
+from symdef.orient import map_element
 from symdef.repeat import MAX_REPEAT, checked_port_format, pole_port
 from symdef.units import DEFAULT_GRID, Grid, from_divisions
 
@@ -138,12 +139,10 @@ def _expand_leads(
     """Return the elements with the lead bound to `port_id` replaced by one moved copy per shift."""
     out: list[Element] = []
     for element in elements:
-        if isinstance(element, Line) and element.port == port_id:
+        if bound_port(element) == port_id:
             out += [
                 replace(
-                    element,
-                    start=_shift(element.start, axis, d),
-                    end=_shift(element.end, axis, d),
+                    map_element(element, lambda p, d=d: _shift(p, axis, d), lambda a, b: (a, b)),
                     port=pole_port(k, port_id, port_format),
                 )
                 for k, d in shifts

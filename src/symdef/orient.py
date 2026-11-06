@@ -38,7 +38,7 @@ _Turn = Callable[[Direction], Direction]
 _Angles = Callable[[float, float], tuple[float, float]]
 
 
-def _map_element(element: Element, move: _Move, angles: _Angles) -> Element:
+def map_element(element: Element, move: _Move, angles: _Angles) -> Element:
     """Move an element's positions with `move` and an arc's angles with `angles`."""
     match element:
         case Line(start=start, end=end):
@@ -78,7 +78,7 @@ def _map_symbol(symbol: Symbol, move: _Move, turn: _Turn, angles: _Angles) -> Sy
     """
     return replace(
         symbol,
-        elements=tuple(_map_element(e, move, angles) for e in symbol.elements),
+        elements=tuple(map_element(e, move, angles) for e in symbol.elements),
         ports=tuple(
             replace(p, position=move(p.position), direction=turn(p.direction)) for p in symbol.ports
         ),

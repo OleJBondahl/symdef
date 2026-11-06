@@ -199,3 +199,19 @@ _any = st.sampled_from([*_ODD, 0.0, 0.5, 90.0, -3.0, 1e6, 1e-300])
 @given(_any, _any, _any, _any, _any)
 def test_element_box_of_an_arc_is_total_for_any_floats(x, y, r, start, end):
     element_box(Arc(Point(x, y), r, start, end))
+
+
+@pytest.mark.parametrize(
+    "stroke",
+    [
+        Polyline((Point(0, 0), Point(0, 4)), port="pe"),
+        Arc(Point(0, 4), 2, 270, 90, port="pe"),
+    ],
+)
+def test_a_bound_polyline_or_arc_counts_in_the_keepout_and_an_unbound_one_does_not(stroke):
+    body = Polyline((Point(0, 0), Point(2, 0), Point(2, 1)), closed=True)
+    declared = replace(sym(body, stroke), body=box(0, 0, 2, 1))
+    assert keepout_box(declared).max.y > 1
+    assert keepout_box(replace(declared, elements=(body, replace(stroke, port=None)))) == box(
+        0, 0, 2, 1
+    )

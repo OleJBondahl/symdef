@@ -1309,3 +1309,21 @@ class TestRepeatPortFormat:
         top = composite("sym-z-094", f"parts = [{part}]\nports = {{ {exports} }}\n")
         resolution = resolve_library(config, guide_sources() | files(top))
         assert [p.id for p in resolution.symbols["sym-z-094"].ports] == list(names)
+
+
+class TestBoundPolylineThroughComposition:
+    """A bound polyline is namespaced and rewritten like a bound line."""
+
+    def test_a_bound_polyline_follows_the_exported_id(self):
+        poly = TWO_LEADS.replace(
+            '{ line = [[0, -2], [0, -1]], port = "in" }',
+            '{ polyline = [[0, -2], [1, -1]], port = "in" }',
+        )
+        top = composite(
+            "sym-z-054",
+            'parts = [{ as = "c", use = "sym-n" }]\nports = { a = "c.in", b = "c.out" }\n',
+        )
+        resolution = resolve(poly, top)
+        assert resolution.findings == {}
+        bound = [e.port for e in resolution.symbols["sym-z-054"].elements if hasattr(e, "port")]
+        assert bound == ["a", "b"]

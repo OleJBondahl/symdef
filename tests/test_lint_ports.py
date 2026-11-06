@@ -856,3 +856,35 @@ class TestTotalityOfAllRules:
     @settings(max_examples=200, deadline=None)
     def test_lint_never_raises_for_any_floats_and_ports(self, symbol):
         lint(symbol)
+
+
+class TestLeadOffPortOnOtherStrokes:
+    def sym(self, stroke):
+        return plain_symbol(ports=(port("in", 0, -2, N),), elements=(stroke,))
+
+    @pytest.mark.parametrize(
+        "stroke",
+        [
+            Polyline((P(0, -2), P(1, -1), P(1, 0)), port="in"),
+            Polyline((P(1, 0), P(1, -1), P(0, -2)), port="in"),
+            Arc(P(0, -1), 1, 270, 0, port="in"),
+        ],
+    )
+    def test_a_stroke_with_an_end_on_the_port_is_clean_without_an_axis_check(self, stroke):
+        assert lead_off_port(self.sym(stroke)) == ()
+
+    @pytest.mark.parametrize(
+        "stroke",
+        [
+            Polyline((P(0, -3), P(1, -1)), port="in"),
+            Arc(P(0, -1), 1, 0, 90, port="in"),
+        ],
+    )
+    def test_a_stroke_with_no_end_on_the_port_fires(self, stroke):
+        (found,) = lead_off_port(self.sym(stroke))
+        assert "position" in found.message
+        assert "axis" not in found.message
+
+    def test_a_stroke_naming_a_missing_port_fires(self):
+        (found,) = lead_off_port(self.sym(Polyline((P(0, -2), P(1, -1)), port="ghost")))
+        assert "'ghost'" in found.message

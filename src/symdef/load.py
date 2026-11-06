@@ -286,6 +286,7 @@ _POLYLINE = _table(
         "fill": _POLYLINE_FILL,
         "weight": _WEIGHT,
         "style": _STYLE,
+        "port": _string,
         "between": _boolean,
     },
     required=("polyline",),
@@ -325,6 +326,7 @@ _ELEMENTS = {
             "end": _number,
             "weight": _WEIGHT,
             "style": _STYLE,
+            "port": _string,
         },
         required=("arc", "r", "start", "end"),
     ),
@@ -489,6 +491,7 @@ def _element_from_data(item: Mapping[str, Any]) -> Element:
             weight,
             Style(item.get("style", "solid")),
             between=item.get("between", False),
+            port=item.get("port"),
         )
     if "circle" in item:
         return Circle(_point(item["circle"]), item["r"], Fill(item.get("fill", "none")), weight)
@@ -500,6 +503,7 @@ def _element_from_data(item: Mapping[str, Any]) -> Element:
             item["end"],
             weight,
             Style(item.get("style", "solid")),
+            item.get("port"),
         )
     return Text(item["text"], _point(item["at"]), item["height"], weight)
 
