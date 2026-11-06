@@ -11,6 +11,8 @@ from symdef.units import Grid, ceil_divisions
 # What a text measures when a library declares no font: 0.6 em per character, cap height 0.72 em.
 DEFAULT_ADVANCE_EM = 0.6
 DEFAULT_CAP_EM = 0.72
+# Rows of a multi-line text sit this many cap heights apart: one cap height and half of one more.
+LINE_PITCH = 1.5
 
 
 @dataclass(frozen=True, slots=True)
@@ -89,14 +91,21 @@ def cap_height(font: FontMetrics | None, height: float) -> float:
 def text_footprint(
     font: FontMetrics | None, text: str, cap_height_mm: float, grid: Grid, *, turn: bool = False
 ) -> tuple[int, int]:
-    """Return the footprint of a one-line text in whole grid divisions, as (width, height).
+    """Return the footprint of a text of one or more lines in whole grid divisions, as (width, height).
 
-    The text is set so its capital is `cap_height_mm` tall. Upright it is its width by the em box
-    (`text_divisions`), each rounded up. With `turn`, a turned slot's text that reads bottom-up,
-    the two are exchanged: thickness by reading length, the `box` a `turn = true` slot declares.
+    The text is set so its capital is `cap_height_mm` tall. Upright it is its widest line by the
+    block height, each rounded up. The block height follows the font's `text_block` rule: by "cap"
+    one em box plus `LINE_PITCH` cap heights for each further line, by "grid" a whole row of
+    divisions for each line. With `turn`, a turned slot's text that reads bottom-up, the two are
+    exchanged: thickness by reading length, the `box` a `turn = true` slot declares.
     """
     em = em_height(font, cap_height_mm / grid.module_mm)
-    size = (ceil_divisions(grid, text_width(font, text, em)), ceil_divisions(grid, em))
+    lines = text.split("\n")
+    if font is not None and font.text_block == "grid":
+        height = len(lines) * ceil_divisions(grid, em)
+    else:
+        height = ceil_divisions(grid, em + (len(lines) - 1) * LINE_PITCH * cap_height(font, em))
+    size = (ceil_divisions(grid, max(text_width(font, line, em) for line in lines)), height)
     return (size[1], size[0]) if turn else size
 
 

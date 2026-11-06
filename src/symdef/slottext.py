@@ -6,7 +6,7 @@ from dataclasses import dataclass, replace
 from types import MappingProxyType
 from typing import Literal
 
-from symdef.font import FontMetrics, cap_height, text_width
+from symdef.font import LINE_PITCH, FontMetrics, cap_height, text_width
 from symdef.geometry import Box, Direction, Point
 from symdef.model import Centre, Corner, Slot
 from symdef.units import DEFAULT_GRID, Grid, ceil_divisions, from_divisions
@@ -105,10 +105,6 @@ def _span(anchor: Anchor, at: float, length: float) -> tuple[float, float]:
             return at - length / 2, at + length / 2
         case "end":
             return at - length, at
-
-
-# Rows of a multi-line text sit this many cap heights apart: one cap height and half of one more.
-LINE_PITCH = 1.5
 
 
 def _before(slot: Slot) -> float:
