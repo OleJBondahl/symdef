@@ -91,7 +91,7 @@ def cap_height(font: FontMetrics | None, height: float) -> float:
 def text_footprint(
     font: FontMetrics | None, text: str, cap_height_mm: float, grid: Grid, *, turn: bool = False
 ) -> tuple[int, int]:
-    """Return the footprint of a text of one or more lines in whole grid divisions, as (width, height).
+    """Return the footprint of a text of one or more lines in whole divisions, as (width, height).
 
     The text is set so its capital is `cap_height_mm` tall. Upright it is its widest line by the
     block height, each rounded up. The block height follows the font's `text_block` rule: by "cap"

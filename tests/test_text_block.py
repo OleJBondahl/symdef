@@ -97,7 +97,7 @@ def test_footprint_of_one_line_is_its_width_by_one_em_box_under_either_rule():
 
 
 def test_footprint_of_two_lines_is_the_widest_line_by_the_block_height():
-    one_w, one_h = text_footprint(CAP_FONT, "K1", 1.8, GRID)
+    one_h = text_footprint(CAP_FONT, "K1", 1.8, GRID)[1]
     wide_w, _ = text_footprint(CAP_FONT, "K1234", 1.8, GRID)
     cap_w, cap_h = text_footprint(CAP_FONT, "K1234\nK1", 1.8, GRID)
     assert cap_w == wide_w  # the widest line, not the sum
