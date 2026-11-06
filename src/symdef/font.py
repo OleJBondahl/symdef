@@ -86,6 +86,20 @@ def cap_height(font: FontMetrics | None, height: float) -> float:
     return font.cap_height / font.units_per_em * height
 
 
+def text_footprint(
+    font: FontMetrics | None, text: str, cap_height_mm: float, grid: Grid, *, turn: bool = False
+) -> tuple[int, int]:
+    """Return the footprint of a one-line text in whole grid divisions, as (width, height).
+
+    The text is set so its capital is `cap_height_mm` tall. Upright it is its width by the em box
+    (`text_divisions`), each rounded up. With `turn`, a turned slot's text that reads bottom-up,
+    the two are exchanged: thickness by reading length, the `box` a `turn = true` slot declares.
+    """
+    em = em_height(font, cap_height_mm / grid.module_mm)
+    size = (ceil_divisions(grid, text_width(font, text, em)), ceil_divisions(grid, em))
+    return (size[1], size[0]) if turn else size
+
+
 def em_height(font: FontMetrics | None, cap: float) -> float:
     """Return the text height whose capital is `cap` tall: the exact inverse of `cap_height`."""
     if font is None:

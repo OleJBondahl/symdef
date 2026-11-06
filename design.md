@@ -13,7 +13,8 @@ This page holds no design of its own. Each part has one home:
 - Design: the symbol interface spec, `src/symdef/docs/SYMBOL_INTERFACE.html`. It ships as
   package data and is the only design document. It defines extents, overlap, orientations,
   the wire lane, placement, `repeat`, `stretch`, `table`, `wire`, the JSON output format and
-  the public names.
+  the public names. A `turn = true` slot declares its box as (thickness, reading length);
+  `text_footprint(..., turn=True)` measures a turned text to that footprint.
 - Rule set: the lint rules are in the same spec (`symdef.authoring.RULES` lists them). The
   purity gate is `scripts/fp_purity_gate.py`; the project rules (pins, dependencies, coverage,
   gates) are in `CLAUDE.md`, and `just ci` enforces them.

@@ -2,6 +2,11 @@
 
 What changed in the public surface of each release: a name added, removed or moved, and a type that widened. Every change to `surface.toml` has a line here. The reasons are in [the decisions](DECISIONS.md).
 
+## 0.32.0
+
+- Added: `text_footprint(font, text, cap_height_mm, grid, *, turn=False)`, the footprint of a one-line text in whole divisions as (width, height); with `turn` the two are exchanged, the (thickness, reading length) a `turn = true` slot declares as `box` (D134).
+- Added: `corner_text(..., *, turn=False)`, the turned placement: the text reads bottom-up inside the box corner, `turned=True` (D134).
+
 ## 0.31.0
 
 - Added: `Corner` (`NE`, `SE`, `SW`, `NW`), a slot side that grows the box both ways from the slot point, its opposite corner; `SlotSide` is `Direction | Centre | Corner`, the data and the JSON schema accept the four names, `orient` turns a corner, and a corner slot grows with the body beyond a stretch cut (D131, D132).

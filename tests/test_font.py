@@ -11,7 +11,14 @@ import pytest
 from symdef.boxes import body_box, keepout_box
 from symdef.errors import InvalidValueError, LibraryError
 from symdef.files import load_bundle, load_library
-from symdef.font import FontMetrics, cap_height, em_height, text_divisions, text_width
+from symdef.font import (
+    FontMetrics,
+    cap_height,
+    em_height,
+    text_divisions,
+    text_footprint,
+    text_width,
+)
 from symdef.geometry import Box, Direction, Point, Text, Weight
 from symdef.load import library_from_bundle, parse_config, validate_bundle
 from symdef.model import Library, Reference, Slot, Status, Symbol, SymbolKind
@@ -311,3 +318,10 @@ def test_em_height_of_a_known_font():
 def test_text_divisions_rounds_the_em_box_up_to_whole_divisions():
     # 1.6 mm cap = 0.64 module; em 0.64 / 0.72 = 0.8889 module = 7.11 divisions; ceil is 8.
     assert text_divisions(DEFAULT_GRID, None, 1.6) == 8
+
+
+def test_text_footprint_turned_is_the_upright_one_with_width_and_height_exchanged():
+    # "K1" at cap 1.6 mm: 2 chars of 0.6 em, em 0.8889 module, so 1.0667 module = 8.53 -> 9
+    # divisions wide and 8 divisions of em box; turned it is 8 thick by 9 long (D134).
+    assert text_footprint(None, "K1", 1.6, DEFAULT_GRID) == (9, 8)
+    assert text_footprint(None, "K1", 1.6, DEFAULT_GRID, turn=True) == (8, 9)

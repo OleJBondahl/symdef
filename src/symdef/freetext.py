@@ -76,18 +76,29 @@ def text_tag(  # noqa: PLR0913 - one free text tag is these things
     )
 
 
-def corner_text(box: Box, corner: Corner, height: float, font: FontMetrics | None) -> TextPlacement:
+def corner_text(
+    box: Box, corner: Corner, height: float, font: FontMetrics | None, *, turn: bool = False
+) -> TextPlacement:
     """Return where a one-line text of `height` sits at a corner of `box`, as `slot_text` does.
 
     The text hangs inside the box on that corner: `W` corners start at the box's west edge and `E`
     corners end at its east edge; `N` corners put the capitals' top on the north edge, `S` corners
-    put the baseline on the south edge. The result is upright, in the box's own unit. Raises
-    `InvalidValueError` for a corner that is not one of the four.
+    put the baseline on the south edge. The result is upright, in the box's own unit.
+
+    With `turn` the text reads bottom-up, the same rule turned a quarter counter-clockwise: `S`
+    corners start the text at the south edge and `N` corners end it at the north edge; `W` corners
+    put the capitals' top on the west edge and `E` corners the baseline on the east edge.
+
+    Raises `InvalidValueError` for a corner that is not one of the four.
     """
     if corner not in ("NW", "NE", "SW", "SE"):
         msg = f"corner_text: corner {corner!r} is not valid; use 'NW', 'NE', 'SW' or 'SE'"
         raise InvalidValueError(msg)
     north, west = corner[0] == "N", corner[1] == "W"
+    if turn:
+        x = box.min.x + cap_height(font, height) if west else box.max.x
+        y = box.min.y if north else box.max.y
+        return TextPlacement(Point(x, y), "end" if north else "start", turned=True)
     x = box.min.x if west else box.max.x
     y = box.min.y + cap_height(font, height) if north else box.max.y
     return TextPlacement(Point(x, y), _ANCHOR[corner[1]], turned=False)
