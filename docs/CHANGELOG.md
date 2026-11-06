@@ -2,7 +2,7 @@
 
 What changed in the public surface of each release: a name added, removed or moved, and a type that widened. Every change to `surface.toml` has a line here. The reasons are in [the decisions](DECISIONS.md).
 
-## 0.32.1
+## 0.33.0
 
 - Added: `port` on `Polyline` and `Arc` (a trailing field) and in the file, as on `Line`; a `Circle` has none (D135).
 - Changed: `leads`, `only_ports` and `keepout_box` handle every bound stroke; `repeat`, `stretch`, `pattern_ports` and composition carry it; `lead-off-port` checks it (D135).
