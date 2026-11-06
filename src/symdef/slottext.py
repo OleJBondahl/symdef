@@ -6,7 +6,7 @@ from dataclasses import dataclass, replace
 from types import MappingProxyType
 from typing import Literal
 
-from symdef.font import LINE_PITCH, FontMetrics, cap_height, text_width
+from symdef.font import LINE_PITCH, FontMetrics, cap_height, extra_lines, text_width
 from symdef.geometry import Box, Direction, Point
 from symdef.model import Centre, Corner, Slot
 from symdef.units import DEFAULT_GRID, Grid, ceil_divisions, from_divisions
@@ -116,8 +116,8 @@ def _before(slot: Slot) -> float:
 
 def stack_shifts(slot: Slot, count: int) -> tuple[float, ...]:
     """Return each of `count` lines' shift from a single line's baseline, in cap heights (D95)."""
-    before = _before(slot) * (count - 1)
-    return tuple(LINE_PITCH * (i - before) for i in range(count))
+    before = _before(slot) * extra_lines(count, LINE_PITCH)
+    return tuple(LINE_PITCH * i - before for i in range(count))
 
 
 def _grid_block(
@@ -126,7 +126,12 @@ def _grid_block(
     """Return each baseline by the "grid" rule: rows of `height` rounded up, top snapped down."""
     pitch = from_divisions(grid, ceil_divisions(grid, height))
     at = slot.position.x if slot.turn else slot.position.y
-    top = math.floor((at - _before(slot) * count * pitch) / grid.division + 1e-9) * grid.division
+    top = (
+        math.floor(
+            (at - _before(slot) * (pitch + extra_lines(count, pitch))) / grid.division + 1e-9
+        )
+        * grid.division
+    )
     return [top + i * pitch + font.ascent / font.units_per_em * height for i in range(count)]
 
 
