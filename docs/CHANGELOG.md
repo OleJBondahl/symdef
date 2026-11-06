@@ -2,6 +2,10 @@
 
 What changed in the public surface of each release: a name added, removed or moved, and a type that widened. Every change to `surface.toml` has a line here. The reasons are in [the decisions](DECISIONS.md).
 
+## 0.34.0
+
+- Changed: `text_footprint` measures a text of one or more lines: the widest line by the block height under the font's `text_block` rule; one line is unchanged (D136).
+
 ## 0.33.0
 
 - Added: `port` on `Polyline` and `Arc` (a trailing field) and in the file, as on `Line`; a `Circle` has none (D135).
