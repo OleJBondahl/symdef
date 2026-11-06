@@ -204,8 +204,8 @@ def test_element_box_of_an_arc_is_total_for_any_floats(x, y, r, start, end):
 @pytest.mark.parametrize(
     "stroke",
     [
-        Polyline((Point(0, 0), Point(0, 4)), port="pe"),
-        Arc(Point(0, 4), 2, 270, 90, port="pe"),
+        Polyline((Point(0, 0), Point(0, 4)), port="s"),
+        Arc(Point(0, 4), 2, 270, 90, port="s"),
     ],
 )
 def test_a_bound_polyline_or_arc_counts_in_the_keepout_and_an_unbound_one_does_not(stroke):
