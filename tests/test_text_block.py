@@ -8,12 +8,12 @@ from test_font import BOLD
 
 from symdef import Centre, Point, Slot, Weight, slot_lines, slot_text
 from symdef.boxes import slot_box
-from symdef.font import FontMetrics
+from symdef.font import FontMetrics, text_footprint, text_width
 from symdef.load import font_from_data
 from symdef.model import Library
 from symdef.serialize import bundle_to_data
 from symdef.slottext import text_box
-from symdef.units import Grid
+from symdef.units import DEFAULT_GRID, Grid
 
 MODULE_MM = 1.875
 GRID = Grid(module_mm=MODULE_MM, divisions_per_module=8)
@@ -85,3 +85,27 @@ def test_the_bundle_carries_a_grid_rule_and_leaves_the_cap_default_out():
             "font"
         ]
     )
+
+
+def test_footprint_of_one_line_is_its_width_by_one_em_box_under_either_rule():
+    em_divisions = math.ceil(HEIGHT * 8 - 1e-9)
+    for font in (CAP_FONT, GRID_FONT):
+        width, height = text_footprint(font, "K1", 1.8, GRID)
+        assert height == em_divisions
+        assert width == math.ceil(text_width(font, "K1", HEIGHT) * 8 - 1e-9)
+    assert text_footprint(None, "K1", 1.6, DEFAULT_GRID) == (9, 8)
+
+
+def test_footprint_of_two_lines_is_the_widest_line_by_the_block_height():
+    one_w, one_h = text_footprint(CAP_FONT, "K1", 1.8, GRID)
+    wide_w, _ = text_footprint(CAP_FONT, "K1234", 1.8, GRID)
+    cap_w, cap_h = text_footprint(CAP_FONT, "K1234\nK1", 1.8, GRID)
+    assert cap_w == wide_w  # the widest line, not the sum
+    # an em box plus 1.5 cap heights, at 8 divisions per module
+    em = HEIGHT
+    assert cap_h == math.ceil((em + 1.5 * 1.8 / MODULE_MM) * 8 - 1e-9)
+    grid_w, grid_h = text_footprint(GRID_FONT, "K1234\nK1", 1.8, GRID)
+    assert grid_w == wide_w
+    assert grid_h == 2 * one_h
+    assert cap_h > one_h
+    assert text_footprint(CAP_FONT, "K1234\nK1", 1.8, GRID, turn=True) == (cap_h, cap_w)
