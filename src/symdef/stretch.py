@@ -7,8 +7,20 @@ from typing import Literal
 
 from symdef.boxes import body_box, element_box
 from symdef.errors import InvalidValueError
-from symdef.geometry import Arc, Box, Circle, Direction, Element, Line, Point, Polyline, Text
+from symdef.geometry import (
+    Arc,
+    Box,
+    Circle,
+    Direction,
+    Element,
+    Line,
+    Point,
+    Polyline,
+    Text,
+    bound_port,
+)
 from symdef.model import Slot, Stretch, Symbol
+from symdef.orient import map_element
 from symdef.stretch_slot import stretch_slot
 from symdef.units import Grid
 
@@ -132,12 +144,10 @@ def _move_offsets(symbol: Symbol, axis: Axis, offsets: Mapping[str, float]) -> S
     }
 
     def lead(element: Element) -> Element:
-        if isinstance(element, Line) and element.port in shift:
-            d = shift[element.port]
-            return replace(
-                element, start=_add(element.start, axis, d), end=_add(element.end, axis, d)
-            )
-        return element
+        port = bound_port(element)
+        if port not in shift:
+            return element
+        return map_element(element, lambda p: _add(p, axis, shift[port]), lambda a, b: (a, b))
 
     def slot(s: Slot) -> Slot:
         d = shift.get(s.id.removeprefix(_MARKING), 0) if s.id.startswith(_MARKING) else 0

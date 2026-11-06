@@ -168,6 +168,7 @@ class Polyline:
         fill: Whether a closed polyline is filled.
         between: True for a tick that `table` draws in every row but the last; outside a table
             it is drawn as authored.
+        port: The id of the port this polyline is the lead of, or None for an ordinary one.
     """
 
     points: tuple[Point, ...]
@@ -176,6 +177,7 @@ class Polyline:
     weight: Weight = Weight.NORMAL
     style: Style = Style.SOLID
     between: bool = False
+    port: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -194,6 +196,9 @@ class Arc:
 
     Angles are in degrees, measured clockwise on screen from +x (so 90 points down). Equal
     angles make a full circle.
+
+    Attributes:
+        port: The id of the port this arc is the lead of, or None for an ordinary arc.
     """
 
     center: Point
@@ -202,6 +207,7 @@ class Arc:
     end_deg: float
     weight: Weight = Weight.NORMAL
     style: Style = Style.SOLID
+    port: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -219,6 +225,12 @@ class Text:
 
 
 Element = Line | Polyline | Circle | Arc | Text
+
+
+def bound_port(element: Element) -> str | None:
+    """Return the port id an element is the lead of: a `Line`, `Polyline` or `Arc` can bind one."""
+    return element.port if isinstance(element, Line | Polyline | Arc) else None
+
 
 _RIGHT_ANGLE_COS_SIN = {0: (1.0, 0.0), 90: (0.0, 1.0), 180: (-1.0, 0.0), 270: (0.0, -1.0)}
 

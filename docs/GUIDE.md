@@ -548,7 +548,7 @@ assert 'fill="#cfe8ff"' in to_fragment(tinted, tint="#cfe8ff")
 
 ## Bound leads and muted symbols
 
-A symbol's leads are the lines bound to a port with `port = "..."`. `leads(symbol, ports)` keeps
+A symbol's leads are the strokes (lines, polylines and arcs, not circles) bound to a port with `port = "..."`. A stroke may bind a port with `port`, so a lead drawn as a polyline hides with its port. `leads(symbol, ports)` keeps
 the leads of the ports you name and drops the rest, so an unwired port draws no stub. An id the
 symbol does not hold raises `UnknownNameError`; after `table` or `repeat` the ids carry their prefix
 (`1.a`). The toolkit knows no net: you decide which ports are wired (D59).

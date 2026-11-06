@@ -9,7 +9,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from typing import Any
 
-from symdef.geometry import Element, Line, Orientation, Point, Style, Weight
+from symdef.geometry import Element, Line, Orientation, Point, Style, Weight, bound_port
 from symdef.lint.exemptions import exempt
 from symdef.lint.file import metadata_findings, part_id_findings
 from symdef.lint.ports import port_off_pitch
@@ -211,8 +211,7 @@ def _place(
 def _namespace_leads(elements: tuple[Element, ...], name: str) -> tuple[Element, ...]:
     """Prefix a bound lead's `port` with `<part>.`, matching `_export_ports`'s `part.port` keys."""
     return tuple(
-        replace(e, port=f"{name}.{e.port}") if isinstance(e, Line) and e.port is not None else e
-        for e in elements
+        replace(e, port=f"{name}.{port}") if (port := bound_port(e)) else e for e in elements
     )
 
 
@@ -295,9 +294,7 @@ def _export_leads(
     the choice only decides which one a lead's metadata names, not where either draws.
     """
     return tuple(
-        replace(e, port=exported[e.port][0])
-        if isinstance(e, Line) and e.port is not None and e.port in exported
-        else e
+        replace(e, port=exported[port][0]) if (port := bound_port(e)) and port in exported else e
         for e in elements
     )
 

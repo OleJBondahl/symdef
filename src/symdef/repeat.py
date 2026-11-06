@@ -5,7 +5,7 @@ from dataclasses import replace
 from string import Formatter
 
 from symdef.errors import InvalidValueError
-from symdef.geometry import Box, Element, Line, Point, Style, Weight
+from symdef.geometry import Box, Element, Line, Point, Style, Weight, bound_port
 from symdef.model import Node, Path, Port, Slot, Symbol, nodes_of
 from symdef.orient import translate
 
@@ -56,9 +56,7 @@ def checked_port_format(port_format: object) -> str:
 def pole_elements(elements: tuple[Element, ...], k: int, port_format: str) -> tuple[Element, ...]:
     """Return pole `k`'s elements, a bound lead's `port` renamed by `port_format` like its port."""
     return tuple(
-        replace(e, port=pole_port(k, e.port, port_format))
-        if isinstance(e, Line) and e.port is not None
-        else e
+        replace(e, port=pole_port(k, port, port_format)) if (port := bound_port(e)) else e
         for e in elements
     )
 

@@ -1,7 +1,16 @@
 """Ports-group rules: the wiring contract at each port (guide section 8, points 1 to 3 and 5)."""
 
 from symdef.boxes import body_box, keepout_box, slot_box
-from symdef.geometry import Box, Direction, Line, Point
+from symdef.geometry import (
+    Arc,
+    Box,
+    Direction,
+    Line,
+    Point,
+    Polyline,
+    arc_point,
+    bound_port,
+)
 from symdef.lint.geometry import point_on_geometry
 from symdef.lint.overlap import boxes_overlap, overlaps_rect, wire_lane
 from symdef.lint.registry import quote, rule_finding
@@ -230,25 +239,37 @@ def _along_port_axis(line: Line, direction: Direction) -> bool:
     return line.start.y == line.end.y
 
 
-def lead_off_port(symbol: Symbol) -> tuple[Finding, ...]:
-    """Report every line element whose `port` binding is broken (spec TL1).
+def _ends(element: Line | Polyline | Arc) -> tuple[Point, Point]:
+    """Return a stroke's two ends: a line's, a polyline's first and last point, an arc's."""
+    match element:
+        case Line(start=start, end=end):
+            return start, end
+        case Polyline(points=points):
+            return points[0], points[-1]
+        case Arc():
+            return arc_point(element, element.start_deg), arc_point(element, element.end_deg)
 
-    Fires when the named port does not exist; when it does, fires when neither end of the line is
-    at the port's position, when the line does not lie along the port's facing axis, or both. One
-    finding per offending line, at `elements[i]`.
+
+def lead_off_port(symbol: Symbol) -> tuple[Finding, ...]:
+    """Report every stroke whose `port` binding is broken (spec TL1).
+
+    Fires when the named port does not exist; when it does, fires when neither end of the stroke
+    is at the port's position and, for a `Line`, when it does not lie along the port's facing
+    axis, or both. One finding per offending stroke, at `elements[i]`.
     """
     by_id = {port.id: port for port in symbol.ports}
     found: list[Finding] = []
     for index, element in enumerate(symbol.elements):
-        if not isinstance(element, Line) or element.port is None:
+        name = bound_port(element)
+        if name is None or not isinstance(element, Line | Polyline | Arc):
             continue
-        port = by_id.get(element.port)
+        port = by_id.get(name)
         if port is None:
-            message = f"the lead names the port {quote(element.port)}, which does not exist"
+            message = f"the lead names the port {quote(name)}, which does not exist"
             found.append(rule_finding("lead-off-port", message, f"elements[{index}]"))
             continue
-        reaches = port.position in (element.start, element.end)
-        along_axis = _along_port_axis(element, port.direction)
+        reaches = port.position in _ends(element)
+        along_axis = not isinstance(element, Line) or _along_port_axis(element, port.direction)
         if reaches and along_axis:
             continue
         problems = [
