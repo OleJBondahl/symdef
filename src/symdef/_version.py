@@ -1,3 +1,3 @@
 """The package version, written by scripts/build.py. Do not edit."""
 
-LIBRARY_VERSION = "0.32.1"
+LIBRARY_VERSION = "0.33.0"
