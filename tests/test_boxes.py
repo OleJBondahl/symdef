@@ -5,7 +5,8 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from symdef.boxes import body_box, element_box, keepout_box, slot_box
+from symdef.boxes import InkBoxes, body_box, element_box, ink_boxes, keepout_box, slot_box
+from symdef.errors import InvalidValueError, UnknownNameError
 from symdef.geometry import (
     Arc,
     Box,
@@ -215,3 +216,44 @@ def test_a_bound_polyline_or_arc_counts_in_the_keepout_and_an_unbound_one_does_n
     assert keepout_box(replace(declared, elements=(body, replace(stroke, port=None)))) == box(
         0, 0, 2, 1
     )
+
+
+def ink_symbol(slots=()):
+    body = Polyline((Point(0, 0), Point(4, 0), Point(4, 2), Point(0, 2)), closed=True)
+    lead = Line(Point(4, 1), Point(6, 1), port="out")
+    return replace(
+        sym(body, lead, slots=slots),
+        body=box(-1, -1, 5, 3),
+        keepout=box(-3, -3, 9, 5),
+    )
+
+
+def test_ink_boxes_give_the_body_and_each_lead_without_a_declared_margin():
+    ink = ink_boxes(ink_symbol())
+    assert ink == InkBoxes(body=box(0, 0, 4, 2), leads=(box(4, 1, 6, 1),), texts={})
+    assert ink.body != body_box(ink_symbol())
+    assert ink.body != keepout_box(ink_symbol())
+
+
+def test_ink_boxes_of_a_body_without_ink_is_none():
+    assert ink_boxes(sym(Line(Point(0, 0), Point(1, 0), port="p"))).body is None
+
+
+def test_ink_boxes_give_a_slot_text_without_its_reserved_box():
+    slot = Slot("tag", Point(0, -1), Direction.E, (10, 4))
+    ink = ink_boxes(ink_symbol((slot,)), {"tag": "AB"}, 2)
+    assert ink.texts["tag"] == box(0, -1.72, 2.4, -0.28)
+    assert ink.texts["tag"] != slot_box(slot, "AB", 2)
+
+
+def test_a_slot_without_text_has_no_ink_box():
+    slot = Slot("tag", Point(0, -1), Direction.E, (10, 4))
+    assert ink_boxes(ink_symbol((slot,)), {}).texts == {}
+
+
+def test_ink_boxes_refuse_a_text_without_height_or_slot():
+    slot = Slot("tag", Point(0, -1), Direction.E, (10, 4))
+    with pytest.raises(InvalidValueError, match="height"):
+        ink_boxes(ink_symbol((slot,)), {"tag": "AB"})
+    with pytest.raises(UnknownNameError, match="nope"):
+        ink_boxes(ink_symbol((slot,)), {"nope": "AB"}, 2)

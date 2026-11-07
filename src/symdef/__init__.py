@@ -1,7 +1,7 @@
 """Standard-agnostic core for graphical symbols."""
 
 from symdef._version import LIBRARY_VERSION
-from symdef.boxes import body_box, keepout_box, slot_box, slots_box
+from symdef.boxes import InkBoxes, body_box, ink_boxes, keepout_box, slot_box, slots_box
 from symdef.edge_pattern import pattern_ports
 from symdef.errors import (
     InvalidValueError,
@@ -101,6 +101,7 @@ __all__ = [
     "GridBox",
     "GridPoint",
     "GridPort",
+    "InkBoxes",
     "InvalidValueError",
     "Library",
     "LibraryError",
@@ -140,6 +141,7 @@ __all__ = [
     "floor_divisions",
     "from_divisions",
     "group_mm",
+    "ink_boxes",
     "keepout_box",
     "leads",
     "line_mm",

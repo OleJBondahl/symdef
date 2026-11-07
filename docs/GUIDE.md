@@ -239,7 +239,7 @@ group = to_fragment(breaker)
 whose viewBox is in module units. `annotate=True` adds the keep-out box, port labels, anchors,
 slots and wire lanes; `texts` maps slot ids to sample text. `to_fragment(symbol)` returns a
 placeable `<g>` fragment instead of a document (D39). Both are total: any input renders (D32).
-`body_box`, `keepout_box` and `slot_box` give the boxes (`slots_box` the slots without the body), and `on_grid(v, tol, grid)` and `snap(v, grid)` the grid (the default grid when none is given).
+`body_box`, `keepout_box` and `slot_box` give the boxes (`slots_box` the slots without the body; `ink_boxes` the drawn ink with no margin, one box for the body, one per bound lead and one per given slot text, D137), and `on_grid(v, tol, grid)` and `snap(v, grid)` the grid (the default grid when none is given).
 
 `to_fragment_mm` (D52) returns the same fragment with every size in millimetres and no scale
 transform. Coordinates and radii are multiplied by `module_mm`. Stroke widths come from
