@@ -1,8 +1,11 @@
-"""The body, slot and keep-out boxes of a symbol."""
+"""The body, slot, keep-out and ink boxes of a symbol."""
 
 import math
+from collections.abc import Mapping
+from dataclasses import dataclass
+from types import MappingProxyType
 
-from symdef.errors import InvalidValueError
+from symdef.errors import InvalidValueError, UnknownNameError
 from symdef.font import FontMetrics, text_width
 from symdef.geometry import (
     Arc,
@@ -173,3 +176,56 @@ def keepout_box(symbol: Symbol, font: FontMetrics | None = None) -> Box:
         return symbol.keepout
     leads = (element_box(e) for e in symbol.elements if bound_port(e) is not None)
     return Box.union(body_box(symbol, font), *leads)
+
+
+@dataclass(frozen=True, slots=True)
+class InkBoxes:
+    """The drawn ink of a symbol, one box per group, with no margin.
+
+    Attributes:
+        body: The union of the elements that bind no port, or None when there are none.
+        leads: One box per bound lead, in element order.
+        texts: The box of each given slot string, by slot id.
+    """
+
+    body: Box | None
+    leads: tuple[Box, ...]
+    texts: Mapping[str, Box]
+
+
+def ink_boxes(
+    symbol: Symbol,
+    texts: Mapping[str, str] | None = None,
+    height: float | None = None,
+    font: FontMetrics | None = None,
+    grid: Grid = DEFAULT_GRID,
+) -> InkBoxes:
+    """Return the ink of the symbol as separate boxes: its body, each bound lead and each slot text.
+
+    Unlike `keepout_box` and `body_box` no declared `body` or `keepout` and no slot reservation
+    enlarges a box: each is the extent of what is drawn, as `element_box` measures it (`font`
+    measures text elements). `texts` maps slot ids to the strings drawn there at text height
+    `height`; each gets the extent of the string where `slot_text` places it, as `slot_box`
+    measures it, without the slot's reserved box. A slot with no entry has no box.
+
+    Raises:
+        InvalidValueError: If `texts` is given without a height.
+        UnknownNameError: If `texts` names a slot the symbol does not have.
+    """
+    bound = tuple(e for e in symbol.elements if bound_port(e) is not None)
+    rest = tuple(e for e in symbol.elements if bound_port(e) is None)
+    slots = {slot.id: slot for slot in symbol.slots}
+    boxes: dict[str, Box] = {}
+    for slot_id, text in (texts or {}).items():
+        if height is None:
+            msg = "ink_boxes needs a height to measure a text"
+            raise InvalidValueError(msg)
+        if slot_id not in slots:
+            msg = f"symbol {symbol.name!r} has no slot {slot_id!r}; its slots are {sorted(slots)}"
+            raise UnknownNameError(msg)
+        boxes[slot_id] = text_box(slots[slot_id], text, height, font, grid)
+    return InkBoxes(
+        body=elements_box(rest, font) if rest else None,
+        leads=tuple(element_box(e) for e in bound),
+        texts=MappingProxyType(boxes),
+    )

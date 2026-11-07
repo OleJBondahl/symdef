@@ -14,7 +14,7 @@ This page holds no design of its own. Each part has one home:
   package data and is the only design document. It defines extents, overlap, orientations,
   the wire lane, placement, `repeat`, `stretch`, `table`, `wire`, the JSON output format and
   the public names. A `turn = true` slot declares its box as (thickness, reading length);
-  `text_footprint(..., turn=True)` measures a turned text to that footprint.
+  `text_footprint(..., turn=True)` measures a turned text to that footprint. `ink_boxes` gives the drawn ink with no margin, one box per group (body, each lead, each slot text), beside `keepout_box`.
 - Rule set: the lint rules are in the same spec (`symdef.authoring.RULES` lists them). The
   purity gate is `scripts/fp_purity_gate.py`; the project rules (pins, dependencies, coverage,
   gates) are in `CLAUDE.md`, and `just ci` enforces them.
