@@ -41,6 +41,7 @@ with a dated entry in the change list below and in <code>docs/DECISIONS.md</code
 <h2 id="changes">Change list</h2>
 <table>
 <tr><th>Date</th><th>Version</th><th>Change</th></tr>
+<tr><td>2026-11-07</td><td>0.35.0</td><td>New <code>ink_boxes(symbol, texts=None, height=None, font=None, grid=DEFAULT_GRID)</code> returns <code>InkBoxes(body, leads, texts)</code>: the drawn ink with no declared margin, one box for the body's unbound elements (<code>None</code> when it has none), one per bound lead and one per slot text given. A declared <code>body</code>, <code>keepout</code> or slot <code>box</code> enlarges none of them (D137).</td></tr>
 <tr><td>2026-11-06</td><td>0.34.0</td><td><code>text_footprint</code> measures a text of one or more lines: the widest line by the block height under the font's <code>text_block</code> rule (D136).</td></tr>
 <tr><td>2026-11-06</td><td>0.33.0</td><td><code>port</code> is optional on <code>polyline</code> and <code>arc</code> as on <code>line</code> (a circle has none). <code>leads</code>, <code>only_ports</code>, <code>keepout_box</code>, <code>repeat</code>, <code>stretch</code>, <code>pattern_ports</code> and composition treat every bound stroke as a bound line; <code>lead-off-port</code> requires an end of a bound polyline or arc at the port's position, with no axis check (D135).</td></tr>
 <tr><td>2026-11-06</td><td>0.32.0</td><td>New <code>text_footprint(font, text, cap_height_mm, grid, *, turn=False)</code>: a one-line text's footprint in whole divisions, the width and height exchanged when <code>turn</code> is set. <code>corner_text</code> takes <code>turn</code> and places the text reading bottom-up in the box corner. A <code>turn = true</code> slot declares <code>box</code> as (thickness, reading length); no reader swaps it (D134).</td></tr>
@@ -390,7 +391,7 @@ trace which switch states complete a circuit, and know that a terminal's or junc
 <p><strong>Orientation.</strong> <code>at</code> transforms as a point and <code>side</code> as a direction; <code>C</code> has no direction and stays, and a corner turns as the sum of its east or west half and its north or south half (<code>SE</code> turned a quarter clockwise is <code>SW</code>). <code>box</code> stays <code>[w, h]</code>, because the text stays upright. So one declaration covers all 8 orientations,
 and because the box does not rotate with the symbol, slot rules must be linted in every orientation, not just the base one.</p>
 <p><strong>Two boxes for layout engines.</strong> <code>body_box</code> is the extent of the elements. <code>keepout_box</code> is the body box united with the bound leads (D101); slots stay text slots and do not enlarge it, so a layout engine reads <code>slot_box</code> for the room of a label.
-A layout engine that keeps keep-out boxes apart keeps the bodies and leads apart; the label room is its own to keep clear.</p>
+A layout engine that keeps keep-out boxes apart keeps the bodies and leads apart; the label room is its own to keep clear. <code>ink_boxes</code> gives the drawn ink alone (body, each lead, each slot text), with no declared margin, for an engine that places a label beside its own symbol but off its leads and texts (D137).</p>
 <p><strong>Consumer duty.</strong> The box is a maximum extent. A consumer that draws text larger than the box has broken the contract on its side; it should shrink or report, never overflow silently.</p>
 
 <h2 id="s7">7. Composition</h2>
@@ -550,6 +551,7 @@ table(row, n, axis, head=None, *, port_format, grid=None, gaps=None, positions=N
 leads(symbol, ports) -&gt; Symbol    section 7
 wire(library, style_id, points) -&gt; Symbol    the wire styles of library.toml
 body_box(symbol) -&gt; Box    keepout_box(symbol) -&gt; Box    slot_box(slot) -&gt; Box
+ink_boxes(symbol, texts=None, height=None, font=None, grid=DEFAULT_GRID) -&gt; InkBoxes    the drawn ink, no margin
 lint(symbol, required_slots=()) -&gt; tuple[Finding, ...]
 to_svg(symbol, *, module_mm=2.5, annotate=False, texts=None, tint=None) -&gt; str
 write_build(library, root) -&gt; tuple[Path, ...]    writes build/ and the bundle
