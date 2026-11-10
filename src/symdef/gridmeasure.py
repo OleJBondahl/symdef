@@ -7,13 +7,13 @@ from types import MappingProxyType
 from symdef.boxes import body_box, keepout_box, side_box, slot_box
 from symdef.errors import InvalidValueError
 from symdef.geometry import Box, Direction
-from symdef.gridtypes import GridBox, GridPoint, GridPort
+from symdef.gridtypes import GridBox, GridPort, round_out
 from symdef.model import Library, Slot, Symbol
 from symdef.orient import Orientation, orient
 from symdef.stretch import Axis
 from symdef.stretch import stretch as stretch_symbol
 from symdef.svg import check_texts
-from symdef.units import ceil_divisions, to_divisions
+from symdef.units import to_divisions
 
 
 @dataclass(frozen=True, slots=True)
@@ -36,15 +36,6 @@ class Measure:
         """Make `slots` and `ports` read-only, so the value cannot change after it is built."""
         object.__setattr__(self, "slots", MappingProxyType(dict(self.slots)))
         object.__setattr__(self, "ports", MappingProxyType(dict(self.ports)))
-
-
-def _extent(library: Library, box: Box) -> GridBox:
-    """Round a box outward to whole divisions: the min down, the max up."""
-    grid = library.grid
-    return GridBox(
-        GridPoint(-ceil_divisions(grid, -box.min.x), -ceil_divisions(grid, -box.min.y)),
-        GridPoint(ceil_divisions(grid, box.max.x), ceil_divisions(grid, box.max.y)),
-    )
 
 
 def _port(library: Library, port_id: str, x: float, y: float, direction: Direction) -> GridPort:
@@ -115,9 +106,9 @@ def measure(  # noqa: PLR0913 - the ruled signature: symbol, view, library and t
     check_texts(symbol, texts)
     check_texts(symbol, dict.fromkeys(attach or {}, ""))
     turned = orient(_stretched(symbol, stretch, library), orientation)
-    body = _extent(library, body_box(turned, library.font))
+    body = round_out(library.grid, body_box(turned, library.font))
     slots = {
-        s.id: _extent(library, _slot_with_attached(s, texts, text_height, library, attach))
+        s.id: round_out(library.grid, _slot_with_attached(s, texts, text_height, library, attach))
         for s in turned.slots
     }
     ports = {
