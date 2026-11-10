@@ -2,6 +2,10 @@
 
 What changed in the public surface of each release: a name added, removed or moved, and a type that widened. Every change to `surface.toml` has a line here. The reasons are in [the decisions](DECISIONS.md).
 
+## 0.36.0
+
+- Added: `on_grid` on `ink_boxes(symbol, texts=None, height=None, font=None, grid=DEFAULT_GRID, *, on_grid=False)`: set, every box is a `GridBox` rounded outward as `measure` rounds (min down, max up); `InkBoxes` is generic over its box type; floats stay the default (D138).
+
 ## 0.35.0
 
 - Added: `ink_boxes(symbol, texts=None, height=None, font=None, grid=DEFAULT_GRID)` and `InkBoxes`, the drawn ink with no margin as one box per group: the body (the elements that bind no port), each bound lead and each given slot text; a declared `body` or `keepout` and a slot's reserved box enlarge none (D137).

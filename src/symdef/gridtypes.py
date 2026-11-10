@@ -3,7 +3,8 @@
 from dataclasses import dataclass
 
 from symdef.errors import InvalidValueError
-from symdef.geometry import Direction
+from symdef.geometry import Box, Direction
+from symdef.units import Grid, ceil_divisions
 
 
 def _check_whole(owner: str, field: str, value: object) -> None:
@@ -72,3 +73,11 @@ class GridPort:
         """Reject a coordinate that is not a whole number."""
         _check_whole("GridPort", "x", self.x)
         _check_whole("GridPort", "y", self.y)
+
+
+def round_out(grid: Grid, box: Box) -> GridBox:
+    """Round a box outward to whole divisions: the min down, the max up."""
+    return GridBox(
+        GridPoint(-ceil_divisions(grid, -box.min.x), -ceil_divisions(grid, -box.min.y)),
+        GridPoint(ceil_divisions(grid, box.max.x), ceil_divisions(grid, box.max.y)),
+    )

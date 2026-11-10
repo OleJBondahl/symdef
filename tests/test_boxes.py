@@ -18,8 +18,10 @@ from symdef.geometry import (
     Polyline,
     Text,
 )
+from symdef.gridtypes import GridBox, GridPoint, round_out
 from symdef.model import Reference, Slot, Status, Symbol, SymbolKind
 from symdef.orient import orient
+from symdef.units import DEFAULT_GRID
 
 
 def sym(*elements, slots=()):
@@ -257,3 +259,27 @@ def test_ink_boxes_refuse_a_text_without_height_or_slot():
         ink_boxes(ink_symbol((slot,)), {"tag": "AB"})
     with pytest.raises(UnknownNameError, match="nope"):
         ink_boxes(ink_symbol((slot,)), {"nope": "AB"}, 2)
+
+
+def test_ink_boxes_on_grid_round_every_box_outward_negatives_included():
+    slot = Slot("tag", Point(0, -1), Direction.E, (10, 4))
+    ink = ink_boxes(ink_symbol((slot,)), {"tag": "AB"}, 2, None, DEFAULT_GRID, on_grid=True)
+    assert ink.body == GridBox(GridPoint(0, 0), GridPoint(32, 16))
+    assert ink.leads == (GridBox(GridPoint(32, 8), GridPoint(48, 8)),)
+    assert ink.texts["tag"] == GridBox(GridPoint(0, -14), GridPoint(20, -2))
+
+
+def test_ink_boxes_on_grid_equal_measure_rounding_of_the_float_boxes():
+    slot = Slot("tag", Point(0, -1), Direction.E, (10, 4))
+    floats = ink_boxes(ink_symbol((slot,)), {"tag": "AB"}, 2)
+    cells = ink_boxes(ink_symbol((slot,)), {"tag": "AB"}, 2, on_grid=True)
+    assert cells.texts["tag"] == round_out(DEFAULT_GRID, floats.texts["tag"])
+    assert cells.body is not None
+    assert floats.body is not None
+    assert cells.body == round_out(DEFAULT_GRID, floats.body)
+
+
+def test_ink_boxes_on_grid_of_a_body_without_ink_is_none_and_default_stays_floats():
+    lead_only = sym(Line(Point(0, 0), Point(1, 0), port="p"))
+    assert ink_boxes(lead_only, on_grid=True).body is None
+    assert isinstance(ink_boxes(ink_symbol()).body, Box)
