@@ -1,12 +1,25 @@
 """`[font] text_block`: "grid" sets a block as render does, "cap" keeps symdef's (D95)."""
 
+import itertools
 import math
 from dataclasses import replace
 
 import pytest
 from test_font import BOLD
 
-from symdef import Centre, Point, Slot, Weight, slot_lines, slot_text
+from symdef import (
+    Centre,
+    Corner,
+    Direction,
+    InvalidValueError,
+    Point,
+    Slot,
+    Weight,
+    slot_lines,
+    slot_text,
+    slottext,
+    text_boxes_prefix,
+)
 from symdef.boxes import slot_box
 from symdef.font import FontMetrics, text_footprint, text_width
 from symdef.load import font_from_data
@@ -109,3 +122,41 @@ def test_footprint_of_two_lines_is_the_widest_line_by_the_block_height():
     assert grid_h == 2 * one_h
     assert cap_h > one_h
     assert text_footprint(CAP_FONT, "K1234\nK1", 1.8, GRID, turn=True) == (cap_h, cap_w)
+
+
+SIDES = (Centre.C, Direction.N, Direction.E, Corner.SW)
+
+
+def prefix_cases():
+    """Every list of up to three lines over a two-string alphabet, with a repeat among them."""
+    for size in range(1, 4):
+        yield from itertools.product(("AB", "CDE"), repeat=size)
+
+
+@pytest.mark.parametrize("font", [None, CAP_FONT, GRID_FONT])
+@pytest.mark.parametrize("turn", [False, True])
+@pytest.mark.parametrize("side", SIDES)
+def test_the_kth_prefix_box_is_text_box_of_the_first_k_lines(side, turn, font):
+    slot = Slot("c", Point(67 / 16, BOX_G / 16), side, (4, 1), turn)
+    for lines in prefix_cases():
+        boxes = text_boxes_prefix(slot, lines, HEIGHT, font, GRID)
+        assert len(boxes) == len(lines)
+        for k, box in enumerate(boxes, 1):
+            assert box == text_box(slot, "\n".join(lines[:k]), HEIGHT, font, GRID)
+
+
+def test_a_text_box_measures_each_distinct_line_once(monkeypatch):
+    calls = []
+    real = slottext.text_width
+    monkeypatch.setattr(slottext, "text_width", lambda *a: calls.append(a[1]) or real(*a))
+    text_box(star_slot(), "\n".join(["AB", "CDE"] * 24), HEIGHT, GRID_FONT, GRID)
+    assert sorted(calls) == ["AB", "CDE"]
+    calls.clear()
+    text_boxes_prefix(star_slot(), ["AB", "CDE"] * 24, HEIGHT, GRID_FONT, GRID)
+    assert sorted(calls) == ["AB", "CDE"]
+
+
+def test_no_lines_give_no_prefix_boxes_and_a_newline_in_a_line_is_refused():
+    assert text_boxes_prefix(star_slot(), [], HEIGHT, GRID_FONT, GRID) == ()
+    with pytest.raises(InvalidValueError, match="one row per entry"):
+        text_boxes_prefix(star_slot(), ["A\nB"], HEIGHT, GRID_FONT, GRID)

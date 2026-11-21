@@ -60,7 +60,7 @@ from symdef.refgrid import reference_cell
 from symdef.repeat import pole_pitch, pole_port, repeat
 from symdef.shapes_mm import group_mm, line_mm, outline_mm, rect_mm
 from symdef.sheet_svg import bold_layer, sheet_svg
-from symdef.slottext import TextPlacement, slot_lines, slot_text
+from symdef.slottext import TextPlacement, slot_lines, slot_text, text_boxes_prefix
 from symdef.stretch import stretch
 from symdef.stretch_ports import stretch_to_ports
 from symdef.svg import to_fragment, to_svg
@@ -173,6 +173,7 @@ __all__ = [
     "stretch_to_ports",
     "table",
     "tag_roots",
+    "text_boxes_prefix",
     "text_divisions",
     "text_footprint",
     "text_tag",
