@@ -41,6 +41,7 @@ with a dated entry in the change list below and in <code>docs/DECISIONS.md</code
 <h2 id="changes">Change list</h2>
 <table>
 <tr><th>Date</th><th>Version</th><th>Change</th></tr>
+<tr><td>2026-11-21</td><td>0.37.0</td><td>New <code>text_boxes_prefix(slot, lines, height, font, grid=DEFAULT_GRID)</code> returns the box of each prefix of a line list, the k-th equal to the box of the first k lines as one text; each distinct line is measured once (D139).</td></tr>
 <tr><td>2026-11-10</td><td>0.36.0</td><td>New keyword <code>on_grid=False</code> on <code>ink_boxes</code>: set, every box is a <code>GridBox</code> rounded outward as <code>measure</code> rounds (min down, max up); <code>InkBoxes</code> is generic over its box type (D138).</td></tr>
 <tr><td>2026-11-07</td><td>0.35.0</td><td>New <code>ink_boxes(symbol, texts=None, height=None, font=None, grid=DEFAULT_GRID)</code> returns <code>InkBoxes(body, leads, texts)</code>: the drawn ink with no declared margin, one box for the body's unbound elements (<code>None</code> when it has none), one per bound lead and one per slot text given. A declared <code>body</code>, <code>keepout</code> or slot <code>box</code> enlarges none of them (D137).</td></tr>
 <tr><td>2026-11-06</td><td>0.34.0</td><td><code>text_footprint</code> measures a text of one or more lines: the widest line by the block height under the font's <code>text_block</code> rule (D136).</td></tr>
@@ -553,6 +554,7 @@ leads(symbol, ports) -&gt; Symbol    section 7
 wire(library, style_id, points) -&gt; Symbol    the wire styles of library.toml
 body_box(symbol) -&gt; Box    keepout_box(symbol) -&gt; Box    slot_box(slot) -&gt; Box
 ink_boxes(symbol, texts=None, height=None, font=None, grid=DEFAULT_GRID, *, on_grid=False) -&gt; InkBoxes    the drawn ink, no margin; on_grid: GridBox
+text_boxes_prefix(slot, lines, height, font, grid=DEFAULT_GRID) -&gt; tuple[Box, ...]    the box of each prefix of a line list
 lint(symbol, required_slots=()) -&gt; tuple[Finding, ...]
 to_svg(symbol, *, module_mm=2.5, annotate=False, texts=None, tint=None) -&gt; str
 write_build(library, root) -&gt; tuple[Path, ...]    writes build/ and the bundle

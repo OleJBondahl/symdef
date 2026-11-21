@@ -640,7 +640,7 @@ except InvalidValueError as error:
 
 A string with `\n` draws one `<text>` per line. `slot_lines(slot, text, height, font)` gives one
 `TextPlacement` per line, `LINE_PITCH` (1.5) cap heights apart, and `text_box` returns the box of the
-whole block. The block is centred on the slot point for `C`, `E` and `W`; `N` grows up from the point
+whole block; `text_boxes_prefix(slot, lines, height, font)` gives the box of each prefix of a line list, measuring each distinct line once (D139). The block is centred on the slot point for `C`, `E` and `W`; `N` grows up from the point
 and `S` down. A turned slot stacks its lines west to east, `turn` set on each, and grows west for `W`
 and east for `E`. A one-line string is placed exactly as before.
 
