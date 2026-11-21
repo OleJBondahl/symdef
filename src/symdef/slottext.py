@@ -1,11 +1,12 @@
 """Where a string drawn in a slot sits, and the room it takes there."""
 
 import math
-from collections.abc import Mapping
-from dataclasses import dataclass, replace
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Literal
 
+from symdef.errors import InvalidValueError
 from symdef.font import LINE_PITCH, FontMetrics, cap_height, extra_lines, text_width
 from symdef.geometry import Box, Direction, Point
 from symdef.model import Centre, Corner, Slot
@@ -143,6 +144,22 @@ def _grid_centre(slot: Slot, grid: Grid) -> float:
     return at - length / 2 + from_divisions(grid, whole)
 
 
+def _rows(
+    slot: Slot, count: int, height: float, font: FontMetrics | None, grid: Grid
+) -> tuple[TextPlacement, list[float]]:
+    """Return the first line's placement and each of `count` rows' coordinate along the stack."""
+    first = _base(slot, height, font)
+    if font is not None and font.text_block == "grid":
+        rows = _grid_block(slot, count, height, font, grid)
+        if first.anchor == "middle":
+            at = _grid_centre(slot, grid)
+            point = Point(first.point.x, at) if first.turned else Point(at, first.point.y)
+            first = TextPlacement(point, first.anchor, first.turned)
+        return first, rows
+    start = first.point.x if first.turned else first.point.y
+    return first, [start + shift * cap_height(font, height) for shift in stack_shifts(slot, count)]
+
+
 def slot_lines(
     slot: Slot, text: str, height: float, font: FontMetrics | None, grid: Grid = DEFAULT_GRID
 ) -> tuple[TextPlacement, ...]:
@@ -151,32 +168,51 @@ def slot_lines(
     The font's `text_block` rule sets the rows: "cap" puts them `LINE_PITCH` cap heights apart,
     "grid" a whole number of `grid` divisions apart.
     """
-    first = _base(slot, height, font)
-    count, turned = len(text.split("\n")), first.turned
-    if font is not None and font.text_block == "grid":
-        rows = _grid_block(slot, count, height, font, grid)
-        if first.anchor == "middle":
-            at = _grid_centre(slot, grid)
-            first = replace(
-                first, point=Point(first.point.x, at) if turned else Point(at, first.point.y)
-            )
-    else:
-        start = first.point.x if turned else first.point.y
-        rows = [start + shift * cap_height(font, height) for shift in stack_shifts(slot, count)]
+    first, rows = _rows(slot, len(text.split("\n")), height, font, grid)
+    turned = first.turned
     return tuple(
-        replace(first, point=Point(r, first.point.y) if turned else Point(first.point.x, r))
+        TextPlacement(
+            Point(r, first.point.y) if turned else Point(first.point.x, r), first.anchor, turned
+        )
         for r in rows
     )
 
 
-def _line_box(placement: TextPlacement, width: float, back: float, ahead: float) -> Box:
-    """Return the box of one line drawn at its placement, `back` behind its baseline."""
-    x, y = placement.point.x, placement.point.y
-    if placement.turned:
-        low, high = _span(placement.anchor, -y, width)
-        return Box(Point(x - back, -high), Point(x + ahead, -low))
-    left, right = _span(placement.anchor, x, width)
-    return Box(Point(left, y - back), Point(right, y + ahead))
+def _line_box(first: TextPlacement, row: float, width: float, back: float, ahead: float) -> Box:
+    """Return the box of one line at row `row` of a stack that starts at `first`.
+
+    It lies `back` behind its baseline and `ahead` in front of it.
+    """
+    if first.turned:
+        low, high = _span(first.anchor, -first.point.y, width)
+        return Box(Point(row - back, -high), Point(row + ahead, -low))
+    left, right = _span(first.anchor, first.point.x, width)
+    return Box(Point(left, row - back), Point(right, row + ahead))
+
+
+def _depths(font: FontMetrics | None, height: float, grid: Grid) -> tuple[float, float]:
+    """Return how far a line's box lies behind and ahead of its baseline."""
+    if font is not None and font.text_block == "grid":
+        back = font.ascent / font.units_per_em * height
+        return back, from_divisions(grid, ceil_divisions(grid, height)) - back
+    return cap_height(font, height), 0.0
+
+
+def _widths(lines: Sequence[str], height: float, font: FontMetrics | None) -> list[float]:
+    """Return each line's width, measuring each distinct string once."""
+    measured = {line: text_width(font, line, height) for line in dict.fromkeys(lines)}
+    return [measured[line] for line in lines]
+
+
+def _block_box(
+    slot: Slot, widths: Sequence[float], height: float, font: FontMetrics | None, grid: Grid
+) -> Box:
+    """Return the union of the boxes of a stack of lines of these widths."""
+    first, rows = _rows(slot, len(widths), height, font, grid)
+    back, ahead = _depths(font, height, grid)
+    return Box.union(
+        *(_line_box(first, r, w, back, ahead) for r, w in zip(rows, widths, strict=True))
+    )
 
 
 def text_box(
@@ -185,16 +221,25 @@ def text_box(
     """Return the extent of a string drawn in a slot: the union of its lines' boxes.
 
     By "cap" a line is its width by one cap height; by "grid" a whole row, an ascent behind the
-    baseline and the rest ahead.
+    baseline and the rest ahead. Each distinct line is measured once.
     """
-    back, ahead = cap_height(font, height), 0.0
-    if font is not None and font.text_block == "grid":
-        back = font.ascent / font.units_per_em * height
-        ahead = from_divisions(grid, ceil_divisions(grid, height)) - back
-    placed = slot_lines(slot, text, height, font, grid)
-    return Box.union(
-        *(
-            _line_box(p, text_width(font, t, height), back, ahead)
-            for p, t in zip(placed, text.split("\n"), strict=True)
-        )
-    )
+    return _block_box(slot, _widths(text.split("\n"), height, font), height, font, grid)
+
+
+def text_boxes_prefix(
+    slot: Slot,
+    lines: Sequence[str],
+    height: float,
+    font: FontMetrics | None,
+    grid: Grid = DEFAULT_GRID,
+) -> tuple[Box, ...]:
+    """Return the box of each prefix of `lines`: the k-th is `text_box` of the first k lines.
+
+    Each distinct line is measured once for all prefixes. No lines give no boxes. A line holding
+    a newline raises `InvalidValueError`: give each row as its own entry.
+    """
+    if any("\n" in line for line in lines):
+        msg = "text_boxes_prefix takes one row per entry; split the text at its newlines first"
+        raise InvalidValueError(msg)
+    widths = _widths(lines, height, font)
+    return tuple(_block_box(slot, widths[:k], height, font, grid) for k in range(1, len(lines) + 1))
