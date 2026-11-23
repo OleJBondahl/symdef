@@ -4,7 +4,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
 
-from symdef.boxes import body_box, keepout_box, side_box, slot_box
+from symdef.boxes import body_box, elements_box, ink_boxes, keepout_box, side_box, slot_box
 from symdef.errors import InvalidValueError
 from symdef.geometry import Box, Direction
 from symdef.gridtypes import GridBox, GridPort, round_out
@@ -23,6 +23,7 @@ class Measure:
     Attributes:
         body: The body box. A box's `max` is the extent rounded up, its `min` rounded down.
         keepout: The body united with every slot box.
+        ink: The drawn ink alone: the body, the leads and the given texts, with no slot reservation.
         slots: Slot id to its box, with the text measured when `measure` was given one.
         ports: Port id to its position and its direction after the turn.
     """
@@ -31,6 +32,7 @@ class Measure:
     keepout: GridBox
     slots: Mapping[str, GridBox]
     ports: Mapping[str, GridPort]
+    ink: GridBox
 
     def __post_init__(self) -> None:
         """Make `slots` and `ports` read-only, so the value cannot change after it is built."""
@@ -49,6 +51,14 @@ def _port(library: Library, port_id: str, x: float, y: float, direction: Directi
         raise InvalidValueError(msg) from error
 
 
+def _attached_box(slot: Slot, attach: Mapping[str, Symbol] | None, library: Library) -> Box | None:
+    """Return the box of the symbol attached to `slot`, placed at its point and side, or None."""
+    if not attach or slot.id not in attach:
+        return None
+    inner = keepout_box(attach[slot.id], library.font)
+    return side_box(slot.position, slot.side, inner.max.x - inner.min.x, inner.max.y - inner.min.y)
+
+
 def _slot_with_attached(
     slot: Slot,
     texts: Mapping[str, str] | None,
@@ -58,13 +68,25 @@ def _slot_with_attached(
 ) -> Box:
     """Return the slot's box, grown to hold the symbol attached to it, if any."""
     box = slot_box(slot, (texts or {}).get(slot.id), text_height, library.font, library.grid)
-    if not attach or slot.id not in attach:
-        return box
-    inner = keepout_box(attach[slot.id], library.font)
-    placed = side_box(
-        slot.position, slot.side, inner.max.x - inner.min.x, inner.max.y - inner.min.y
-    )
-    return Box.union(box, placed)
+    placed = _attached_box(slot, attach, library)
+    return box if placed is None else Box.union(box, placed)
+
+
+def _ink(
+    turned: Symbol,
+    texts: Mapping[str, str] | None,
+    text_height: float | None,
+    library: Library,
+    attach: Mapping[str, Symbol] | None,
+) -> GridBox:
+    """Return the union of the body, lead and given-text ink and the attached boxes (D140)."""
+    ink = ink_boxes(turned, texts, text_height, library.font, library.grid, on_grid=True)
+    boxes = [*ink.leads, *ink.texts.values()]
+    if ink.body is not None:
+        boxes.append(ink.body)
+    placed = (_attached_box(slot, attach, library) for slot in turned.slots)
+    boxes.extend(round_out(library.grid, box) for box in placed if box is not None)
+    return GridBox.union(*boxes) if boxes else round_out(library.grid, elements_box(()))
 
 
 def _stretched(symbol: Symbol, lengths: Mapping[Axis, float] | None, library: Library) -> Symbol:
@@ -91,7 +113,9 @@ def measure(  # noqa: PLR0913 - the ruled signature: symbol, view, library and t
     `library.font`: the body's own text, and a slot's string when `texts` has one for its id
     (at `text_height`). A slot with no string is its reserved box. A symbol in `attach` under a
     slot id has its keep-out box placed at the turned slot's point and side, as a slot's reserved
-    box is, and united with that slot's box, so `slots[id]` and `keepout` hold it. The attached
+    box is, and united with that slot's box, so `slots[id]` and `keepout` hold it; `ink` holds it
+    too. `ink` is the body, the leads and the given strings alone, so an empty slot adds nothing
+    to it and a symbol with no ink has the origin box (D140). The attached
     box is never rotated, as a slot's box is not. `stretch` maps an axis to a body length: the
     symbol is stretched so (`grid=library.grid`) before it is turned (D111).
 
@@ -114,4 +138,5 @@ def measure(  # noqa: PLR0913 - the ruled signature: symbol, view, library and t
     ports = {
         p.id: _port(library, p.id, p.position.x, p.position.y, p.direction) for p in turned.ports
     }
-    return Measure(body, GridBox.union(body, *slots.values()), slots, ports)
+    ink = _ink(turned, texts, text_height, library, attach)
+    return Measure(body, GridBox.union(body, *slots.values()), slots, ports, ink)

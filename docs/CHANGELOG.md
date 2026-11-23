@@ -2,6 +2,10 @@
 
 What changed in the public surface of each release: a name added, removed or moved, and a type that widened. Every change to `surface.toml` has a line here. The reasons are in [the decisions](DECISIONS.md).
 
+## 0.38.0
+
+- Added: `Measure.ink: GridBox`, the union of the body ink, the leads, the given texts and any attached box, on the grid; an empty slot adds nothing and `keepout` is unchanged (D140).
+
 ## 0.37.0
 
 - Added: `text_boxes_prefix(slot, lines, height, font, grid=DEFAULT_GRID) -> tuple[Box, ...]`: the box of each prefix of a line list, the k-th equal to `text_box` of the first k lines; each distinct line is measured once (D139).

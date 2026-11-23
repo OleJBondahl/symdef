@@ -259,3 +259,41 @@ def test_measure_with_a_stretch_raises_what_stretch_raises():
         measure(FRAME, Orientation.R0, EIGHT, stretch={"x": 2})
     with pytest.raises(InvalidValueError):
         measure(WIDE, Orientation.R0, EIGHT, stretch={"x": 20})
+
+
+# A device shape: a body line, a lead bound to a port and an empty tag slot reserving a wide box.
+FUSE = build(
+    Line(Point(-1, 0), Point(1, 0)),
+    Line(Point(-3, 0), Point(-1, 0), port="a"),
+    slots=(Slot("tag", Point(-3, 0), Direction.W, (6, 1)),),
+    ports=(Port("a", Point(-3, 0), Direction.W),),
+)
+
+
+def test_the_ink_leaves_out_an_empty_slots_box_that_the_keepout_holds():
+    result = measure(FUSE, Orientation.R0, EIGHT)
+    assert result.keepout.min.x == -72  # the reserved box: x -9..-3
+    assert result.ink == grid_box(Box(Point(-3, 0), Point(1, 0)), 8)
+    assert result.ink.min.x == -24
+
+
+def test_the_ink_holds_a_given_text_where_it_is_drawn():
+    bare = measure(FUSE, Orientation.R0, EIGHT)
+    wide = measure(FUSE, Orientation.R0, EIGHT, {"tag": "ABiABABiAB"}, HEIGHT)  # 10 wide, over 6
+    assert wide.ink.min.x == wide.slots["tag"].min.x < bare.keepout.min.x
+    assert wide.ink.max.x == bare.ink.max.x
+
+
+def test_a_symbol_with_no_ink_has_the_origin_box_for_its_ink():
+    empty = build(slots=(Slot("tag", Point(0, 0), Direction.E, (3, 1)),))
+    assert measure(empty, Orientation.R0, EIGHT).ink == GridBox(GridPoint(0, 0), GridPoint(0, 0))
+
+
+@pytest.mark.parametrize("orientation", list(ATTACHED_SLOT_BOX))
+def test_the_ink_holds_an_attached_box_as_the_slot_does(orientation):
+    result = measure(
+        COIL, orientation, EIGHT, attach={"table": table(ROW, 2, "y", port_format="{k}.{port}")}
+    )
+    assert result.ink == GridBox.union(
+        grid_box(body_box(orient(COIL, orientation), FONT), 8), ATTACHED_SLOT_BOX[orientation]
+    )
