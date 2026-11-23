@@ -4,6 +4,9 @@ What changed in the public surface of each release: a name added, removed or mov
 
 ## 0.38.0
 
+This release also carries the content of 0.37.0 (D139).
+
+- Added: `text_boxes_prefix(slot, lines, height, font, grid=DEFAULT_GRID) -> tuple[Box, ...]` and the one-measure `text_box` (D139, see 0.37.0).
 - Added: `Measure.ink: GridBox`, the union of the body ink, the leads, the given texts and any attached box, on the grid; an empty slot adds nothing and `keepout` is unchanged (D140).
 - Changed: `sheet_svg` writes its numbers as the shapes do: at most four decimals, a whole number of mm without `.0` (D141).
 
