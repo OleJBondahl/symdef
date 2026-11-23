@@ -5,6 +5,7 @@ What changed in the public surface of each release: a name added, removed or mov
 ## 0.38.0
 
 - Added: `Measure.ink: GridBox`, the union of the body ink, the leads, the given texts and any attached box, on the grid; an empty slot adds nothing and `keepout` is unchanged (D140).
+- Changed: `sheet_svg` writes its numbers as the shapes do: at most four decimals, a whole number of mm without `.0` (D141).
 
 ## 0.37.0
 

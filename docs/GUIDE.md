@@ -741,7 +741,7 @@ is printed with at most four decimals (half-even), by symdef alone (D117, D118).
 `<svg>` root of a page `width_mm` by `height_mm`. A margin `m` widens the page by `m` on every side
 (the viewBox starts at `-m -m`); a margin of 0 is the plain page. `margin_mm` is required: symdef
 holds no margin default. `bold_layer(fragment)` puts a fragment in one `<g font-weight="bold">`
-(D122). Both write their numbers as Python prints them.
+(D122). `sheet_svg` writes its numbers as the shapes do, a whole number of mm without `.0` (D141).
 
 ```python
 import xml.etree.ElementTree as ET

@@ -27,7 +27,17 @@ def test_a_margin_shifts_the_view_box_and_widens_the_page_on_every_side():
 
 def test_a_float_zero_margin_is_the_plain_page():
     assert sheet_svg(10.0, 20.0, _BODY, margin_mm=0.0) == sheet_svg(10.0, 20.0, _BODY, margin_mm=0)
-    assert 'viewBox="0 0 10.0 20.0"' in sheet_svg(10.0, 20.0, _BODY, margin_mm=0.0)
+    assert 'viewBox="0 0 10 20"' in sheet_svg(10.0, 20.0, _BODY, margin_mm=0.0)
+
+
+def test_a_whole_number_of_mm_prints_without_a_decimal_point():
+    page = sheet_svg(420.0, 297.0, _BODY, margin_mm=5.0)
+    assert 'width="430mm" height="307mm" viewBox="-5 -5 430 307"' in page
+    assert ".0" not in page
+
+
+def test_a_fraction_keeps_at_most_four_decimals():
+    assert 'width="10.3333mm"' in sheet_svg(10.33333333, 20, _BODY, margin_mm=0)
 
 
 def test_the_margin_is_required():
