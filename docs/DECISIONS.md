@@ -48,7 +48,7 @@ Decided: for `port-off-geometry`, "on a circle" includes any point of a filled c
 Why: the guide's `connection-point` symbol has its ports at the centre of a filled dot and is stated
 to pass `port-off-geometry` without an exemption.
 Cost if wrong: `connection-point` would need one more `lint_allow` entry.
-Amended: ids renamed to descriptive keys (R843): ids equal to a closed database's reference numbers point readers at it.
+Amended: ids renamed to descriptive keys: ids equal to a closed database's reference numbers point readers at it.
 
 ## D6. `lint` takes a base-orientation symbol and evaluates 8 orientations itself
 
@@ -99,7 +99,7 @@ it but does not define it, so its geometry is ours). A test compares each verbat
 code block in the guide. `tests/fixtures/broken/<rule-id>/` holds one broken mini library per lint
 rule (`symbols/sym-a.toml` is the failing file); `tests/fixtures/broken/library.toml` is the
 default library config.
-Amended: ids renamed to descriptive keys (R843): ids equal to a closed database's reference numbers point readers at it.
+Amended: ids renamed to descriptive keys: ids equal to a closed database's reference numbers point readers at it.
 Why: `metadata` needs a file stem that matches a number pattern, and composition rules need
 sibling files, so one directory per rule is uniform.
 Cost if wrong: renames.
@@ -134,7 +134,7 @@ The guide says the five examples "must load and lint clean" and that only the fo
 machine-checked. Implemented as written; the guide-verbatim fixture is expected to produce exactly
 that one finding, and a variant with `pole_pitch = 8` is clean. Owner to decide: add `pole_pitch = 8`
 to the example, or shorten the link.
-Amended: ids renamed to descriptive keys (R843): ids equal to a closed database's reference numbers point readers at it.
+Amended: ids renamed to descriptive keys: ids equal to a closed database's reference numbers point readers at it.
 
 ## D13. Box and angle edge cases the guide leaves open
 
@@ -924,7 +924,7 @@ example: original drawings, `unverified`. Both workflows run on `ubuntu-24.04` w
 version.
 Why: the site must cover everything a newcomer needs, with no other repository to read.
 Cost if wrong: Zensical is pre-1.0; the staged Markdown also builds with MkDocs.
-Amended: ids renamed to descriptive keys (R843): ids equal to a closed database's reference numbers point readers at it.
+Amended: ids renamed to descriptive keys: ids equal to a closed database's reference numbers point readers at it.
 
 ## D51. The interface spec is amended in place for 0.5.0 (SYMDEF SD14)
 
@@ -1610,56 +1610,56 @@ Cost if wrong: a later release adds them; nothing here blocks it.
 ## D104: an edge port pattern: `Port.pattern`, `pattern_ports`, rule `port-pattern`
 
 Decided: a port table may say `pattern = true` (`Port.pattern: bool = False`; the bundle writes the key only when true, so every other output is byte-identical). It is one port that stands for n along its edge. `pattern_ports(symbol, edge, n, *, grid=DEFAULT_GRID)` (new module `edge_pattern.py`) replaces it by n copies, copy k at the first coordinate plus (k-1) wire pitches along the edge's axis (x for N and S, y for E and W), id `pole_port(k, id)` (`k.<id>`, as `repeat` numbers poles), each with its bound lead and its `marking.k.<id>` slot; n runs 1 to `MAX_REPEAT`. The order is `stretch_to_ports`, `stretch`, `pattern_ports`: bound leads count in `body_box`, so expanding first would widen the natural extent and shorten the growth without any error. `pattern_ports` raises `InvalidValueError` if the last copy lies past the body's high side. `stretch_to_ports` on an edge with a pattern port takes n up to `MAX_REPEAT` and returns `{id: first}` and the length natural plus (n-1) pitches; other edges are unchanged. New lint rule `port-pattern` (ERROR, Ports; 37 rules): the pattern port is the only port on its edge, the symbol has a cut on the edge's axis, and no node or path names it. `port-isolated` skips a pattern port, since it is wired as its copies. `repeat` and `table` carry the flag through `replace` and are not otherwise changed. The spec's section 9 and change list carry the rule and the key.
-Why: designer ruling R134 (2026-10-19): a block box needs n ports per edge, n given at the call, not 16 or 24 declared per edge.
+Why: designer ruling (2026-10-19): a block box needs n ports per edge, n given at the call, not 16 or 24 declared per edge.
 Cost if wrong: additive. A pattern with other ports on its edge, and nodes or paths on a pattern port, are refused and could be allowed later by a further decision. The body-too-short check uses the high side only; a pattern whose first port lies left of the body is not checked.
 
 ## D105: the 0.23 release scope
 
 Decided: symdef 0.23.0 holds D104 (edge port pattern) and nothing else.
-Why: work order SYMDEF-0-23, ruling R134.
+Why: work order SYMDEF-0-23.
 Cost if wrong: a later release adds more; nothing here blocks it.
 
 ## D106: `repeat` of a symbol with no through path
 
 Decided: `repeat` (and the composite file's `repeat` key) no longer refuses a symbol with no through path. Pole 1's path keeps `through` only if it had it, so a symbol with none gives poles with none. The `schema` finding "repeat needs a part with a through path" (D17) goes.
-Why: designer ruling R153 item 7; the limit sat in symdef (`repeat.py`, `resolve.py`), not only in a consumer.
+Why: designer ruling item 7; the limit sat in symdef (`repeat.py`, `resolve.py`), not only in a consumer.
 Cost if wrong: a repeat of a symbol meant to carry a through path no longer warns; lint `through-missing` still reports a kind = symbol file that lacks one.
 
 ## D107: `pitch` and `positions` for a pattern port
 
 Decided: `pattern_ports` and `stretch_to_ports` take keyword-only `pitch` (module units, a whole multiple of the wire pitch, at least one) or `positions` (n coordinates along the edge, strictly increasing, each gap a whole multiple of the wire pitch, inside the body). Both together raise. Copy k then stands at the first coordinate plus (k-1) pitches, or at `positions[k-1]`; its lead and marking slot move with it. `stretch_to_ports` grows the length by the last coordinate less the declared one. The default is the wire pitch, so every call that gives neither is unchanged. Positions replace stretch offsets for the copies: the order stays `stretch_to_ports`, `stretch`, `pattern_ports`.
-Why: designer ruling R153 item 1 (marking text between neighbours, spreading to meet columns).
+Why: designer ruling item 1 (marking text between neighbours, spreading to meet columns).
 Cost if wrong: additive keywords. Positions off the wire-pitch multiple are refused; a finer pitch would be a further option.
 
 ## D108: named ports and one pattern port on an edge
 
 Decided: lint `port-pattern` allows named ports on the pattern port's edge and instead reports two pattern ports on one edge. `stretch_to_ports` on such an edge counts only pattern copies and returns offsets for all of the edge's ports: left of the pattern port they keep their coordinate, right of it they move by the run's growth. `pattern_ports` raises if a copy is less than one wire pitch from a named port of the edge.
-Why: designer ruling R153 item 2 (a supply's plus, minus and sig beside a run of outputs).
+Why: designer ruling item 2 (a supply's plus, minus and sig beside a run of outputs).
 Cost if wrong: the 0.23 rule text changes; a symbol that relied on the old refusal now lints clean.
 
 ## D109: tables of unlike rows, gaps, alignment and a step that fits its text
 
 Decided: `table` takes a symbol or a sequence of n rows (each placed with its body low edge at a running cursor and stepped by its own extent; equal rows give exactly today's offsets), keyword-only `gaps` (n-1 extra spaces) or `positions` (each row's low edge, not overlapping; never both) and `head_align` ("start", "center", "end": the narrower of head and rows sits in the wider; a head wider than the rows is not stretched then). Rows keep their ports numbered `k.<id>` as `pole_port` numbers poles. `fitted_table` takes `fit`: "cross" is unchanged; "step" grows the rows along the stepping axis to their widest text and fits the head's texts along both axes, so a table whose texts run along the stepping axis has marking boxes that never overlap. The implementation sits in `table_rows.py`.
-Why: designer ruling R153 item 6; cable and connector drawings.
+Why: designer ruling item 6; cable and connector drawings.
 Cost if wrong: additive keywords. A turned (orient) table is fitted before it is turned; slot text boxes do not turn, so the step is fitted in the unturned frame.
 
 ## D110: the 0.24 release scope
 
-Decided: symdef 0.24.0 holds D106 to D109 (R153 items 7, 1, 2, 6) and nothing else. Items 3, 4, 5 and 8 of R153 are the second half and are not in this release.
-Why: work order SYMDEF-0-24, R153: the first half is released when ready.
+Decided: symdef 0.24.0 holds D106 to D109 (items 7, 1, 2, 6) and nothing else. Items 3, 4, 5 and 8 of the ruling are the second half and are not in this release.
+Why: work order SYMDEF-0-24: the first half is released when ready.
 Also in 0.24.0: lint rule `port-pattern` ignores a node that is only the pattern port itself, the implicit single-port node a built bundle writes, so `symdef check` passes on its reload; a node or path naming it with another port is still refused.
 Cost if wrong: a later release adds the rest.
 
 ## D111: `measure` takes a stretch
 
 Decided: `measure` gains keyword-only `stretch`, a mapping from an axis to a body length in module units. Each axis is stretched as `stretch(symbol, axis, length, grid=library.grid)` does, then the symbol is turned and measured, so the result equals measuring the stretched symbol. The order of the axes does not change the result (a test holds both orders). It takes no `offsets`: a caller who must place ports calls `stretch`. No new public name.
-Why: work order STRETCH-MEASURE, designer rulings R450 and R450.3: a consumer that only sizes a stretched symbol should not build a drawn symbol.
+Why: work order STRETCH-MEASURE, designer rulings: a consumer that only sizes a stretched symbol should not build a drawn symbol.
 Cost if wrong: an additive keyword; a later `offsets` would be a further option.
 
 ## D112: no file names an application that uses the toolkit
 
 Decided: no tracked file (code, tests, docs, README, DECISIONS, CLAUDE.md) names an application that uses symdef; a consumer is "a consumer". `tests/test_standalone.py` lowercases every word of every tracked file and fails on a word whose SHA-256 is in its list of application-name hashes (both names, plural forms; a possessive splits into the name and "s"). The test spells neither name. Git history is unchanged. No package data changes, so no release.
-Why: designer ruling R459 (owner 2026-10-22): the toolkit is shared standalone, and the application keeps its name to itself.
+Why: designer ruling (owner 2026-10-22): the toolkit is shared standalone, and the application keeps its name to itself.
 Cost if wrong: a new application name needs its hash in the test's list.
 
 ## D113: `tag_roots` and `TextRoot`
@@ -1673,7 +1673,7 @@ Decided: new `tag_roots(symbol, orientation, library, *, gap, marking_height)` r
 - A top port with no `marking.<port>` slot gives y at the body's top edge, `h = "right"`.
 - A `tag` slot (its measured box) wholly inside the body gives its own root in all four entries: x at its box's start edge (the max x for side W, with `h = "right"`; the min x otherwise, with `h = "left"`) and y at the baseline `slot_text` gives it at `marking_height`, `v = "baseline"`.
 - No `tag` slot raises `UnknownNameError` naming the symbol; a negative `gap` or a `marking_height` not above zero raises `InvalidValueError`.
-Why: designer rulings R464 and its amendments of 2026-10-23: a consumer needs the root of a tag as data of the symbol, so it does no arithmetic on pins and slots itself.
+Why: designer rulings and its amendments of 2026-10-23: a consumer needs the root of a tag as data of the symbol, so it does no arithmetic on pins and slots itself.
 Cost if wrong: additive; a later keyword can change a rounding or the tag-slot rule, which moves the roots a consumer reads.
 
 ## D114: `em_height`, the inverse of the capital height
@@ -1685,56 +1685,56 @@ Cost if wrong: additive; a font with `cap_height` 0 cannot occur (a `[font]` tab
 ## D115: line weights and dashes are library data
 
 Decided: `Weight` gains `RULE = 0.072` (0.18 mm at the 2.5 mm module; `to_fragment` is the only reader of `Weight.value`). `[lines]` takes `normal`, `thick` and `rule`; a `[[wire]]` weight may be `rule`, a symbol element's weight stays `normal` or `thick` (the schema and the validator are unchanged). New `[dash]` table: a name maps to lengths in mm, an even count of at least 2, each above zero, read into `LibraryConfig.dash` and `Library.dash` (read-only, tuples). The keys `dashed` (exactly 2 lengths) and `dash_dot` (exactly 4) are the patterns the closed `Style` enum needs; any other key is free data for a consumer. A library with a symbol element or wire style in the style `dashed` or `dash_dot` and no such key fails to load (`LibraryError`, a `schema` finding at `/dash` naming the key); an empty or absent `[dash]` is legal when nothing is dashed, and there is no fallback for an old library. A bad pattern is a finding at `/dash/<name>`. The bundle gains an optional `dash` object of arrays, written only when non-empty and checked the same way; the bundle `schema` number stays 1 (an older loader rejects the unknown key, as `_table` rejects every unknown key). `Library.with_settings(dash=)` replaces the whole table after the same checks and raises `InvalidValueError`; `None` keeps it. The per-weight `advances` tables stay per text weight: one constant, `TEXT_WEIGHTS = (NORMAL, THICK)`, drives every loop over them, so the bundle's `font.advances` is byte-identical.
-Why: designer spec SYMDEF-0.26 (L1, L2, L5) and rulings R483 and R485; owner 2026-10-23: "should not symdef handle wires as well? ... easier for us to set global settings for symdef, that we also can present to consumers ... to change the symbols and wires and tables line thickness and stuff". Text never prints at RULE, so a text weight table for it would be dead data.
+Why: designer spec SYMDEF-0.26 (L1, L2, L5) and rulings; owner 2026-10-23: "should not symdef handle wires as well?... easier for us to set global settings for symdef, that we also can present to consumers... to change the symbols and wires and tables line thickness and stuff". Text never prints at RULE, so a text weight table for it would be dead data.
 Cost if wrong: the `rule` value and the two key names are guesses a consumer's data repeats; a renamed key is a breaking change to every library. `tests/fixtures/guide`, `docs/tutorial-set` and `tests/fixtures/broken` gained a `[dash]` table and `stretch_0_9/tutorial.bundle.json` its `dash` object.
 
 ## D116: drawing calls read the library
 
 Decided: `to_fragment_mm` gains the keyword-only `library: Library | None = None`. `weights_mm` and `dash_mm` become optional. Per call, an argument that is given wins, whole; else `library.lines` (widths), `library.dash["dashed"]` and `library.dash["dash_dot"]`; else an error naming the missing weight or key and both ways to give it: `UnknownNameError` for a weight or `dashed`, and `InvalidValueError` for `dash_dot` as before, since a 0.8.0 test pins that type. An explicit call is byte-identical to 0.25.0. A muted symbol takes its dash from the normal width, from whichever source gave the widths. `to_fragment`, `to_svg` and `to_placed_fragment` draw in module units with the code weights (`Weight.value`) and stay out of scope: a consumer cannot set them. `wire`, `table` and `fitted_table` return `Symbol`s with a `Weight` per line and need no change; their width reaches the SVG through `to_fragment_mm`. `Library` has `__len__`, so an empty library is falsy; the code tests `library is not None`.
-Why: designer rulings R485 (a) and the spec's L2: one home for a line width, the library.
+Why: designer rulings (a) and the spec's L2: one home for a line width, the library.
 Cost if wrong: additive keyword; a module-unit call that a consumer needs configurable is a further keyword on it.
 
 ## D117: the shapes and the text are written from values
 
 Decided: new top-level `rect_mm`, `outline_mm` and `line_mm` in `shapes_mm.py`, all pure, all returning `str` in mm on an absolute sheet, all taking `library=`. `weight` is required on each, with no default; its width is `library.lines[weight]` (`UnknownNameError` naming what the library has). `dash` is a key of `library.dash` or `None` (`UnknownNameError` naming the key and "pass a library with that [dash] key"); the pattern prints space-separated (`4 1`). `stroke` is required on each and `fill` on `rect_mm`: each is written as given after the `#rgb`, `#rrggbb` or colour-name check (`InvalidValueError`), and the shapes lean on no stylesheet rule. `outline_mm` has no fill: solid it is one `<rect fill="none">`, dashed it is four `<line>` edges in the order top, bottom, left, right, each from its left or top end, so facing dashes start at the same corner. `classes` is an optional `class` attribute, escaped by `quoteattr` and left out when empty. A negative width or height raises `InvalidValueError`. Every drawn number goes through `_num`: at most four decimals, half-even on the binary float (0.15625 prints as 0.1562, 0.46875 as 0.4688); the consumer's shortest-decimal printer is not needed and the difference is below a micron. `text_tag` gains keyword-only `classes=""`, `at="baseline"` and `font=None`. `at="top"` takes the point as the top of the em box (baseline = point + `ascent / units_per_em x height`, along y, or along x when `turn`); `at="centre"` takes it as the middle (that less half the height), which is the upward-centred form with `turn=True`. It is its own formula, not `TURNED_ALIGN` (that shifts by the cap height and differs by about 0.1 mm at 3.4 mm). `top` and `centre` need `font` (`InvalidValueError`), and so does an `at` that is not one of the three. `corner_text` is not used for the consumer's text, since its cap-top placement would move every text. The defaults of `text_tag` and `slot_text_tag` leave their output byte-identical. The 0.27 output is not byte-identical to a consumer's own writer (inline widths, fill and font attributes, `4 1` dashes); the bar is visual identity, shown by a PNG pair: one block drawn both ways rendered to the same pixels (a cairosvg render at 12 px per mm: 0 of 301716 pixels differ).
-Why: designer spec SYMDEF-0.26-LINES L4, R489 and R491, R490 (c) and (d): symdef formats every drawn number and writes the stroke widths, from the library; colours and fills arrive as values. The module is 2.5 mm (a grid unit 0.3125 mm), so a half grid is 0.15625 mm.
+Why: designer spec SYMDEF-0.26-LINES L4, (c) and (d): symdef formats every drawn number and writes the stroke widths, from the library; colours and fills arrive as values. The module is 2.5 mm (a grid unit 0.3125 mm), so a half grid is 0.15625 mm.
 Cost if wrong: additive. A shape keyword or a fourth `at` value is a further keyword; a renamed call is a break for the one consumer pinned to 0.27.0.
 
 ## D118: no sized svg call and no polyline call
 
 Decided: symdef adds no `sized_svg_mm`: the `<svg>` root, its size and its margin come from the consumer's sheet code, `margin_mm` a required value there, and symdef holds no margin default. It adds no `polyline_mm`: a polyline wire is `wire(library, style_id, points)` drawn by `to_fragment_mm(..., library=)`, the one spelling, and a cable's line styles are `[[wire]]` styles of the library (weight and `solid` or `dashed`). The wire's `<g>` writes `fill="none" stroke="#000"`; a wire of another colour needs a later change.
-Why: R491: one spelling for a wire; the sheet root is the sheet's.
+Why: one spelling for a wire; the sheet root is the sheet's.
 Cost if wrong: additive; a consumer that needs a coloured wire or a class on a wire asks for a keyword on `to_fragment_mm`.
 
 
 ## D119: each face carries its own default advance
 
 Decided: `FontMetrics.default_advance` is a `Mapping[Weight, float]`, one number per text weight, required for every weight in `TEXT_WEIGHTS` like `advances` (a missing weight raises `InvalidValueError` naming it). `library.toml` takes `[font.default_advance]` with `normal` and `thick` (numbers above zero, both required); a single number is a schema finding at `/font/default_advance`. The bundle's `font.default_advance` is an object with the same two keys. `measure_font` derives each from its own face: the largest advance of that face's table (1843 regular and 2033 bold for the house face). `text_width(..., weight=Weight.THICK)` charges the bold default for a character its bold table does not list. This supersedes the "stays one number for both" line of D73 and D87's regular-only default.
-Why: R590: a bold face is not a scaled regular face (D73), so one shared default under-measured every unlisted bold glyph (33 diffs, all bold unknown glyphs, in a consumer's text-measure check).
+Why: a bold face is not a scaled regular face (D73), so one shared default under-measured every unlisted bold glyph (33 diffs, all bold unknown glyphs, in a consumer's text-measure check).
 Cost if wrong: a breaking change to the font format and to `FontMetrics(...)` construction: every library with a literal `[font]` and every caller building `FontMetrics` by hand writes the default per weight. The files form needs no change.
 
 ## D120: the unit-outline margin is a grid value
 
 Decided: no value in the library data fits. The `unit-outline` symbol declares no `body` or `keepout` (it is a stretchable frame), its label slot sits 0.25 module inside a corner (a label inset, not a gap to enclosed content), and `[lines]`, `[dash]` and `[font]` size nothing between a frame and its contents. So `[grid]` gains the optional `outline_margin`, a whole number of divisions, 0 or more, with no default (a library that declares none has `Grid.declared_outline_margin = None`, as D118 holds no margin default), and `Grid.outline_margin` reads it: that property raises `InvalidValueError` naming `outline_margin`, `[grid]` and `library.toml` when none is declared, so no caller can use a missing margin by accident. It is how far a unit outline stands off the boxes it encloses, on all four sides. The bundle writes it only when it is set; a bad value is a schema finding at `/grid/outline_margin` and a `Grid(...)` raises `InvalidValueError`.
-Why: R520 B2: the outline drawn on a page needs its margin from library data, not a constant in an application; the grid is where on-grid distances (the pitches) already live, and divisions keep the value exact.
+Why: B2: the outline drawn on a page needs its margin from library data, not a constant in an application; the grid is where on-grid distances (the pitches) already live, and divisions keep the value exact.
 Cost if wrong: additive (a field `declared_outline_margin` after `stretch_split`, `None`, and the raising property `outline_margin`); the value a consumer sets is its own and unchecked against what it draws; a margin per outline kind, or one in millimetres, is a further key.
 
 ## D121: `repeat` takes its pole-prefix format from its caller
 
 Decided: `repeat(symbol, n, *, port_format)` renames each port, node and path end, bound lead and marking slot (`marking.` plus the formatted id) by `port_format`, a template with exactly the fields `{k}` (the pole, from 1) and `{port}`. It is required: `None`, a non-string, a malformed template or other fields raise `InvalidValueError` naming `port_format` and an example; there is no fallback spelling. The part-file data op takes it from the library (D123, which replaces the per-entry key this entry first gave it). `table`, `fitted_table`, `edge_pattern` and `pole_port(k, port_id)` keep `<k>.` (rows and copies, not poles; `ROW_PORT_FORMAT`), and gate 3 repeats with the same spelling because lint accepts a prefixed port only as `<n>.<id>`.
-Why: R591.3: a pole prefix is an electrical convention, so symdef holds none for poles; the caller states it.
+Why: a pole prefix is an electrical convention, so symdef holds none for poles; the caller states it.
 Cost if wrong: breaking for every `repeat(...)` call and every part file with `repeat`. A library-wide format (a `library.toml` key) would remove the repeated value from each part; it is a further key, and lint's `<n>.` rule would then need the format too.
 
 ## D122: the sheet wrapper and the bold group live in symdef
 
 Decided: new top-level `sheet_svg(width_mm, height_mm, body, *, margin_mm) -> str` and `bold_layer(fragment) -> str` in `sheet_svg.py`, pure. `sheet_svg` writes the `<svg>` root in millimetres around `body`, the page widened by `margin_mm` on every side; `margin_mm` is required and symdef holds no margin default. `bold_layer` wraps a fragment in one `<g font-weight="bold">`. Both write their numbers as Python prints them, which is what the code they replace did, so a consumer's output stays byte-identical. This supersedes the "no `sized_svg_mm`" half of D118: the root and its margin are no longer the consumer's to write, the margin value still is.
-Why: R591.4: the wrapper and the bold group carry nothing electrical, and a drawn thing is symdef's, not an application's.
+Why: the wrapper and the bold group carry nothing electrical, and a drawn thing is symdef's, not an application's.
 Cost if wrong: additive; a number format the shapes use (four decimals) would be a change to these two, and so a break for the page bytes.
 
 ## D123: `port_format` is one library-wide key
 
 Decided: `library.toml` takes a top-level `port_format`, the template of D121 (a string with exactly the fields `{k}` and `{port}`; any other value is a schema finding at `/port_format`), carried as `LibraryConfig.port_format` and `Library.port_format` (last field, `None` when undeclared). `repeat`, `table`, `fitted_table`, `pattern_ports` and `pole_port` all require the format as a value with no default (`table` and `pattern_ports` rename a row's or copy's ports, bound leads and slots by it; `pole_port(k, port_id, port_format)` is the one function that fills it in, and `format_port` and `ROW_PORT_FORMAT` are gone); every caller passes `library.port_format`, and no `"{k}.{port}"` literal is left in the code. A part's `repeat = N` passes it to `repeat`. A part entry has no `port_format` key (unknown key, as any other). A library that uses `repeat` and declares no key fails to load: a `schema` finding at `/parts/<i>/repeat` naming `port_format`, `library.toml` and an example. Gate 3 repeats with it and is skipped when the library declares none. The bundle carries it as the optional `port_format` string, checked as in `library.toml`, so a library loaded from a bundle repeats and tables the same way.
-Why: R604, R607.2 and R613 B2: the format is the library's one electrical convention, stated once like `[font]` and `[grid]`, not on every part and not twice (rows and copies had a second, fixed spelling).
+Why: B2: the format is the library's one electrical convention, stated once like `[font]` and `[grid]`, not on every part and not twice (rows and copies had a second, fixed spelling).
 Cost if wrong: a further library.toml key; lint's `<n>.` rule does not follow a custom format.
 
 ## D124: a library has a font
@@ -1757,55 +1757,55 @@ Cost if wrong: an additive member of an enum; none to remove.
 
 ## D127: `port_format` is required for every library
 
-Decided: R856. `library.toml` without the top-level `port_format` is refused by `parse_config` with a `schema` finding at the root that names the key and the fix ("add port_format to library.toml"), and a bundle without it is invalid. `LibraryConfig.port_format` and `Library.port_format` are `str`, declared `field(kw_only=True)` with no default, so the positional order of the other fields stays; `bundle_to_data` always writes the key, `library_from_bundle` reads it. The `port_format is None` branches in `resolve` (the `repeat` finding) and `project` (the through-repeat gate) are deleted. The starter set, the tutorial set and the fixtures declare the key.
-Why: R856 asks for validation whenever a library has repeat or table symbols. D124 settled the same choice for the font: an application holding a `Library` should not branch on a missing value, and a library that uses `repeat` today (D123) failed at the first part, not at load. The precedent chose "required for every library" over a named error on access: a dataclass field cannot hold an optional value behind a `str` accessor without a second private field, and the accessor would still raise at the point of use, far from the file. A table symbol is built by a function call, not a data key, so the file cannot say which libraries will use one; requiring the key everywhere is the only check that covers it. The error names the library file; it cannot name a symbol, since the check runs before any symbol is read.
+Decided: `library.toml` without the top-level `port_format` is refused by `parse_config` with a `schema` finding at the root that names the key and the fix ("add port_format to library.toml"), and a bundle without it is invalid. `LibraryConfig.port_format` and `Library.port_format` are `str`, declared `field(kw_only=True)` with no default, so the positional order of the other fields stays; `bundle_to_data` always writes the key, `library_from_bundle` reads it. The `port_format is None` branches in `resolve` (the `repeat` finding) and `project` (the through-repeat gate) are deleted. The starter set, the tutorial set and the fixtures declare the key.
+Why: a ruling asks for validation whenever a library has repeat or table symbols. D124 settled the same choice for the font: an application holding a `Library` should not branch on a missing value, and a library that uses `repeat` today (D123) failed at the first part, not at load. The precedent chose "required for every library" over a named error on access: a dataclass field cannot hold an optional value behind a `str` accessor without a second private field, and the accessor would still raise at the point of use, far from the file. A table symbol is built by a function call, not a data key, so the file cannot say which libraries will use one; requiring the key everywhere is the only check that covers it. The error names the library file; it cannot name a symbol, since the check runs before any symbol is read.
 Cost if wrong: breaking for every `library.toml` without the key and every `Library(...)` or `LibraryConfig(...)` call without `port_format`; a library that never repeats still declares a template.
 
 ## D128: `text_divisions`
 
-Decided: R871. New top-level `text_divisions(grid, font, cap_height_mm) -> int` in `font.py`: the em box of a text whose capital is `cap_height_mm` tall, in whole grid divisions, `ceil_divisions(grid, em_height(font, cap_height_mm / grid.module_mm))`. It measures the em box, not the capital's ink. No symdef code composed the two calls before, so nothing else changed.
+Decided: New top-level `text_divisions(grid, font, cap_height_mm) -> int` in `font.py`: the em box of a text whose capital is `cap_height_mm` tall, in whole grid divisions, `ceil_divisions(grid, em_height(font, cap_height_mm / grid.module_mm))`. It measures the em box, not the capital's ink. No symdef code composed the two calls before, so nothing else changed.
 Why: an application stating text sizes in capital heights in mm repeated the same three-step conversion to get a grid size.
 Cost if wrong: an additive function; none to remove.
 
 ## D129: `reference_cell`
 
-Decided: R891 (SY4). New top-level `reference_cell(columns, rows, width, height, point) -> tuple[str, str]` in `refgrid.py`, and `ReferenceCellError(InvalidValueError)` in `errors.py`. The page frame's reference grid is the content box (`width` by `height` whole grid divisions, origin at its min corner) cut evenly into one cell per label; `columns` run left to right, `rows` top to bottom (smallest y first). It returns the labels of the cell holding `point` (a `GridPoint`), as given. symdef holds no page-frame record, so the frame passes its own data as plain values: the labels, which stay the frame's (letters, numbers or a printed form), and the extent. A shared edge belongs to the cell on its max side and the far edge of the box to the last cell, so a point on the border of a sheet has a cell. A point outside the box raises `ReferenceCellError` naming the point and the grid; there is no clamp. An empty label list or an extent below one raises `InvalidValueError`. Cell index is `min(at * count // extent, count - 1)` per axis. Nothing is drawn.
+Decided: (SY4). New top-level `reference_cell(columns, rows, width, height, point) -> tuple[str, str]` in `refgrid.py`, and `ReferenceCellError(InvalidValueError)` in `errors.py`. The page frame's reference grid is the content box (`width` by `height` whole grid divisions, origin at its min corner) cut evenly into one cell per label; `columns` run left to right, `rows` top to bottom (smallest y first). It returns the labels of the cell holding `point` (a `GridPoint`), as given. symdef holds no page-frame record, so the frame passes its own data as plain values: the labels, which stay the frame's (letters, numbers or a printed form), and the extent. A shared edge belongs to the cell on its max side and the far edge of the box to the last cell, so a point on the border of a sheet has a cell. A point outside the box raises `ReferenceCellError` naming the point and the grid; there is no clamp. An empty label list or an extent below one raises `InvalidValueError`. Cell index is `min(at * count // extent, count - 1)` per axis. Nothing is drawn.
 Why: an application stored the cell of a point with its own arithmetic that clamped silently; the arithmetic is the frame's.
 Cost if wrong: an additive function and one error subclass; a record that carried the frame's labels and extent would be a later keyword-compatible wrapper.
 
 ## D130: `floor_divisions`
 
-Decided: R891 (SY4), amended by R893. New top-level `floor_divisions(grid, mm) -> int` in `units.py`: a length in millimetres rounded DOWN to whole grid divisions, the mirror of `ceil_divisions`, with the same tolerance (a value within 1e-9 below a division counts as that division). R891 first built it rounding up, a second spelling of `ceil_divisions` under a name that says the opposite; R893 refused that. A negative or non-finite length raises `InvalidValueError`; 0 gives 0.
+Decided: (SY4), amended by a later ruling. New top-level `floor_divisions(grid, mm) -> int` in `units.py`: a length in millimetres rounded DOWN to whole grid divisions, the mirror of `ceil_divisions`, with the same tolerance (a value within 1e-9 below a division counts as that division). first built it rounding up, a second spelling of `ceil_divisions` under a name that says the opposite; refused that. A negative or non-finite length raises `InvalidValueError`; 0 gives 0.
 Why: an application converted a printed text floor in mm to divisions with its own arithmetic.
 Cost if wrong: an additive function; none to remove.
 
 ## D131: `Corner`, a slot side that grows to a corner
 
-Decided: R1589 (C1). New public enum `Corner` (`NE`, `SE`, `SW`, `NW`) in `model.py`, exported at the top level, and `SlotSide = Direction | Centre | Corner`. `Direction` is not widened, so a port or an anchor can never be a corner. The value is the unit vector of the growth, with `dx`, `dy` and the two halves `horizontal` and `vertical` as `Direction`s. With a corner side `position` is the box's opposite corner: an `SE` slot grows east and south from its north-west corner (`side_box`). Text anchors by the east or west half and its baseline by the north or south half (`SIDE_ALIGN`, `TURNED_ALIGN`); a block stacks away from the side (`_before`, now `(1 - dx or dy) / 2`, byte-identical for the old sides). `orient` turns a corner by turning its two halves and adding them. The data name is `NE`, `SE`, `SW` or `NW`: `load`, `serialize` and the JSON schema accept it. Every old side keeps its meaning and every old symbol builds to the same bytes.
+Decided: (C1). New public enum `Corner` (`NE`, `SE`, `SW`, `NW`) in `model.py`, exported at the top level, and `SlotSide = Direction | Centre | Corner`. `Direction` is not widened, so a port or an anchor can never be a corner. The value is the unit vector of the growth, with `dx`, `dy` and the two halves `horizontal` and `vertical` as `Direction`s. With a corner side `position` is the box's opposite corner: an `SE` slot grows east and south from its north-west corner (`side_box`). Text anchors by the east or west half and its baseline by the north or south half (`SIDE_ALIGN`, `TURNED_ALIGN`); a block stacks away from the side (`_before`, now `(1 - dx or dy) / 2`, byte-identical for the old sides). `orient` turns a corner by turning its two halves and adding them. The data name is `NE`, `SE`, `SW` or `NW`: `load`, `serialize` and the JSON schema accept it. Every old side keeps its meaning and every old symbol builds to the same bytes.
 Why: a one-axis side centres a multi-line box on the other axis, so it sticks out of a body that grows on one side only.
 Cost if wrong: an additive enum and four data names; a reader of the schema that lists the sides must add them.
 
 ## D132: a corner slot grows with the body
 
-Decided: R1589 (C2, C4). `fitted_symbol` needs no corner branch: it reads a slot's box through `slot_box` and moves it through `stretch_slot`, and both take the edges from `side_box`, so a corner slot is grown by the one rule every slot follows. A cut across the box moves each edge by the shift of its coordinate, the edge beyond the cut by the growth and the other not at all; the position moves with its own edge. An `SE` slot with its point above the cut therefore grows down, and the body below the cut moves down by the same amount, so the box stays inside the body and the tip is unmoved. An `NE` slot grows the same way (down), its point being the edge that moves. The text block is placed by the corner (D131), so it fills the grown box. A turned view is the unturned fit passed through `orient` (the corner turns with it); a slot with `turn = True` grows along its height as before. No code of `fitted.py` or `stretch_slot.py` changes: the property tests in `tests/test_slot_corner.py` (1 to 8 lines, four corners, `R0` and `R90`) prove the rule.
+Decided: (C2, C4). `fitted_symbol` needs no corner branch: it reads a slot's box through `slot_box` and moves it through `stretch_slot`, and both take the edges from `side_box`, so a corner slot is grown by the one rule every slot follows. A cut across the box moves each edge by the shift of its coordinate, the edge beyond the cut by the growth and the other not at all; the position moves with its own edge. An `SE` slot with its point above the cut therefore grows down, and the body below the cut moves down by the same amount, so the box stays inside the body and the tip is unmoved. An `NE` slot grows the same way (down), its point being the edge that moves. The text block is placed by the corner (D131), so it fills the grown box. A turned view is the unturned fit passed through `orient` (the corner turns with it); a slot with `turn = True` grows along its height as before. No code of `fitted.py` or `stretch_slot.py` changes: the property tests in `tests/test_slot_corner.py` (1 to 8 lines, four corners, `R0` and `R90`) prove the rule.
 Why: a second growth rule beside `side_box` would be a second place for one geometry, and could drift from it.
 Cost if wrong: none to remove; a later wish for a corner slot to grow towards its own side against the body would need its own rule.
 
 ## D133: a stretch cut may cross a slot outside the body
 
-Decided: R1589 (C3). The `stretch-cut` placement check in `lint/geometry.py` (`_cut_placement`) is replaced, not joined by a second check: a cut is placed when `body_min <= at < body_max` on its axis or when `at` lies strictly inside the box of some slot on that axis (the same strict test `fitted_symbol` uses to find the cut across a slot). The finding for a cut that is neither says so and names the fix. `stretch` itself never refused such a cut, so nothing else changes: the points beyond the cut move, a declared `keepout` has the edge beyond the cut moved and so grows, and the body, lying wholly beyond the cut, moves without growing. A cut that crosses the body and a slot does both.
+Decided: (C3). The `stretch-cut` placement check in `lint/geometry.py` (`_cut_placement`) is replaced, not joined by a second check: a cut is placed when `body_min <= at < body_max` on its axis or when `at` lies strictly inside the box of some slot on that axis (the same strict test `fitted_symbol` uses to find the cut across a slot). The finding for a cut that is neither says so and names the fix. `stretch` itself never refused such a cut, so nothing else changes: the points beyond the cut move, a declared `keepout` has the edge beyond the cut moved and so grows, and the body, lying wholly beyond the cut, moves without growing. A cut that crosses the body and a slot does both.
 Why: a slot outside the body (a tag above a terminal) must be able to grow, and a keepout that holds it grows with it.
 Cost if wrong: a symbol that relied on the lint refusing a cut off the body but across a slot now passes; the cut moves the slot's far edge as intended.
 
 ## D134: `text_footprint`, and a turned `corner_text`
 
-Decided: R1814 (amends R1813). A `turn = true` slot keeps `box` as the footprint as drawn, so it declares (thickness, reading length) and no reader swaps it; `slot_box`, `side_box`, `measure` and the render are unchanged. Two additions give a caller that footprint. New top-level `text_footprint(font, text, cap_height_mm, grid, *, turn=False) -> (width, height)` in `font.py`: the width of the one-line text and its em box (`text_divisions`), each in whole divisions; with `turn` the two are exchanged. `corner_text` gains the keyword `turn=False` (as `text_tag` has), not a second function or a corner value; turned, it is the same rule rotated a quarter counter-clockwise: `S` corners start the text at the south edge, `N` corners end it at the north edge, `W` corners put the capitals' top on the west edge and `E` corners the baseline on the east edge, with `turned=True`.
+Decided: (amends an earlier ruling). A `turn = true` slot keeps `box` as the footprint as drawn, so it declares (thickness, reading length) and no reader swaps it; `slot_box`, `side_box`, `measure` and the render are unchanged. Two additions give a caller that footprint. New top-level `text_footprint(font, text, cap_height_mm, grid, *, turn=False) -> (width, height)` in `font.py`: the width of the one-line text and its em box (`text_divisions`), each in whole divisions; with `turn` the two are exchanged. `corner_text` gains the keyword `turn=False` (as `text_tag` has), not a second function or a corner value; turned, it is the same rule rotated a quarter counter-clockwise: `S` corners start the text at the south edge, `N` corners end it at the north edge, `W` corners put the capitals' top on the west edge and `E` corners the baseline on the east edge, with `turned=True`.
 Why: a consumer sized a turned tag slot with the upright measure and got the box turned the wrong way; the spec's box is already the footprint, so the fix is a measure that returns it.
 Cost if wrong: two additive changes; `text_footprint` is a new public name (no one-line measure of both extents existed to extend).
 
 ## D135: a `Polyline` or `Arc` may bind a port
 
-Decided: R1832. `port: str | None = None` is a trailing field on `Polyline` and `Arc`, and the file key `port` is accepted on polyline and arc; a `Circle` has none and the key is refused by the schema. `Line`, `Polyline` and `Arc` share no base class, so one function, `geometry.bound_port(element)`, reads the port of any element, and every site that tested `isinstance(e, Line) and e.port` calls it: `leads`, `keepout_box`, `repeat`, composition (namespace, export), `stretch` offsets and `pattern_ports`. The last two move a stroke with `orient.map_element` (now public), so a polyline or arc moves every point. `pattern_ports` copies a bound stroke per pole with its port renamed, one rule for every bound stroke. `lead-off-port` requires one end of a bound polyline (first or last point) or arc (an end of its sweep) at the port's position and makes no axis check; a `Line` keeps both checks.
+Decided: `port: str | None = None` is a trailing field on `Polyline` and `Arc`, and the file key `port` is accepted on polyline and arc; a `Circle` has none and the key is refused by the schema. `Line`, `Polyline` and `Arc` share no base class, so one function, `geometry.bound_port(element)`, reads the port of any element, and every site that tested `isinstance(e, Line) and e.port` calls it: `leads`, `keepout_box`, `repeat`, composition (namespace, export), `stretch` offsets and `pattern_ports`. The last two move a stroke with `orient.map_element` (now public), so a polyline or arc moves every point. `pattern_ports` copies a bound stroke per pole with its port renamed, one rule for every bound stroke. `lead-off-port` requires one end of a bound polyline (first or last point) or arc (an end of its sweep) at the port's position and makes no axis check; a `Line` keeps both checks.
 Why: a lead drawn as a polyline could not be hidden with its port, so a hidden port left its ink and its body extent.
 Cost if wrong: additive, minor 0.33.0; no shipped symbol binds a non-line, so no existing data changes. Binding a closed polyline or a full arc is allowed and reaches the port only through its end points.
 
@@ -1817,30 +1817,48 @@ Cost if wrong: behaviour widened for a text holding `\n`, minor 0.34.0; a text w
 
 ## D137: `ink_boxes`, the drawn ink as one box per group
 
-Decided: R1898. `ink_boxes(symbol, texts=None, height=None, font=None, grid=DEFAULT_GRID)` returns `InkBoxes(body, leads, texts)`. `body` is `elements_box` of the elements that bind no port (None when there are none), `leads` is `element_box` of each bound element in element order, and `texts` maps each slot id given in `texts` to the extent of that string where `slot_text` places it, without the slot's reserved box (the `text_box` of `slot_box`). Nothing declared enlarges a box: not `body`, not `keepout`, not a slot's `box`. A text without a height raises `InvalidValueError`; a slot id the symbol lacks raises `UnknownNameError`.
+Decided: `ink_boxes(symbol, texts=None, height=None, font=None, grid=DEFAULT_GRID)` returns `InkBoxes(body, leads, texts)`. `body` is `elements_box` of the elements that bind no port (None when there are none), `leads` is `element_box` of each bound element in element order, and `texts` maps each slot id given in `texts` to the extent of that string where `slot_text` places it, without the slot's reserved box (the `text_box` of `slot_box`). Nothing declared enlarges a box: not `body`, not `keepout`, not a slot's `box`. A text without a height raises `InvalidValueError`; a slot id the symbol lacks raises `UnknownNameError`.
 Why: `keepout_box` is one box and may be larger than the ink, and `body_box` is the declared `body` when set; no existing name gives the ink of each group, and `text_box` is not public. A caller that keeps a label off a lead or a slot text but lets it stand beside the body needs the groups apart.
 Cost if wrong: additive, minor 0.35.0; two new names.
 
 ## D138: `ink_boxes(..., on_grid=True)` returns `GridBox` rounded outward
 
-Decided: R2213. `ink_boxes` takes one keyword-only option, `on_grid: bool = False`. Set, the body, each lead and each slot text is a `GridBox` of `grid`, rounded outward (min down, max up) by `gridtypes.round_out`, the function `measure` uses for its body and slot boxes (it was `gridmeasure._extent`, moved, not copied). `InkBoxes` is generic over its box type (`InkBoxes[Box]` or `InkBoxes[GridBox]`) and `ink_boxes` is overloaded on `on_grid`, so a caller's type checker sees which. Unset, the result is unchanged. A body with no ink stays None.
+Decided: `ink_boxes` takes one keyword-only option, `on_grid: bool = False`. Set, the body, each lead and each slot text is a `GridBox` of `grid`, rounded outward (min down, max up) by `gridtypes.round_out`, the function `measure` uses for its body and slot boxes (it was `gridmeasure._extent`, moved, not copied). `InkBoxes` is generic over its box type (`InkBoxes[Box]` or `InkBoxes[GridBox]`) and `ink_boxes` is overloaded on `on_grid`, so a caller's type checker sees which. Unset, the result is unchanged. A body with no ink stays None.
 Why: a caller that keeps boxes apart on the grid had to round the float boxes itself, a second copy of the rounding that can drift from `measure`'s, and a text's float ink can sit off the grid.
 Cost if wrong: additive keyword, minor 0.36.0 (D135, D137 precedent); `InkBoxes` gains a type parameter, which breaks no call.
 
 ## D139: `text_boxes_prefix`, and `text_box` measures each distinct line once
 
-Decided: R3333 (S1, S2). `text_box` measures each distinct line string once per call, in a dict local to the call (no module state, so the purity gate holds); `slot_lines` builds its placements without a `replace` per line. A new public `text_boxes_prefix(slot, lines, height, font, grid=DEFAULT_GRID) -> tuple[Box, ...]` returns, for each k from 1 to `len(lines)`, the box `text_box` gives the first k lines joined by newlines, measuring each distinct line once for all of them. A line holding a newline raises `InvalidValueError`; no lines give `()`. The results are byte-identical to the old `text_box`: the whole suite passes unchanged and a test compares each prefix with `text_box` over every list of up to three lines, in the cap and grid rules, upright and turned.
+Decided: (S1, S2). `text_box` measures each distinct line string once per call, in a dict local to the call (no module state, so the purity gate holds); `slot_lines` builds its placements without a `replace` per line. A new public `text_boxes_prefix(slot, lines, height, font, grid=DEFAULT_GRID) -> tuple[Box,...]` returns, for each k from 1 to `len(lines)`, the box `text_box` gives the first k lines joined by newlines, measuring each distinct line once for all of them. A line holding a newline raises `InvalidValueError`; no lines give `()`. The results are byte-identical to the old `text_box`: the whole suite passes unchanged and a test compares each prefix with `text_box` over every list of up to three lines, in the cap and grid rules, upright and turned.
 Why: a caller that sizes a stack of lines one line at a time measured every prefix again, so the cost grew with the square of the stack. The size rule for stacked text is symdef's, so the caller should not copy it.
 Cost if wrong: additive name, minor 0.37.0. The per-call memo does not help a caller that calls `text_box` once per prefix; that caller uses `text_boxes_prefix`.
 
 ## D140: `Measure.ink`, the drawn ink of a measured symbol
 
-Decided: R3662 (K1, K3). `Measure` gains a last field `ink: GridBox`, set by `measure`: the `GridBox.union` of `ink_boxes(turned, texts, text_height, font, grid, on_grid=True)`, so the body (if it has any ink), each bound lead and each given text, each rounded outward. An empty slot adds nothing and a slot's reserved `box` reserves nothing. A symbol in `attach` under a slot id adds its box placed at the turned slot's point and side, rounded outward, as `slots[id]` holds it. With no ink at all `ink` is the origin box that `body_box` gives a symbol with no elements. A declared `body` does not enlarge it. `keepout`, `body` and `slots` are unchanged. The attached box is placed by one function that `slots` and `ink` both call.
+Decided: (K1, K3). `Measure` gains a last field `ink: GridBox`, set by `measure`: the `GridBox.union` of `ink_boxes(turned, texts, text_height, font, grid, on_grid=True)`, so the body (if it has any ink), each bound lead and each given text, each rounded outward. An empty slot adds nothing and a slot's reserved `box` reserves nothing. A symbol in `attach` under a slot id adds its box placed at the turned slot's point and side, rounded outward, as `slots[id]` holds it. With no ink at all `ink` is the origin box that `body_box` gives a symbol with no elements. A declared `body` does not enlarge it. `keepout`, `body` and `slots` are unchanged. The attached box is placed by one function that `slots` and `ink` both call.
 Why: `keepout` holds every reserved slot box, which is room a caller may not want to give to a string that is not drawn there; the ink was only available as separate float boxes from `ink_boxes`, so a caller rounded and united them itself.
 Cost if wrong: additive field, minor 0.38.0; `Measure` is built by `measure` alone, and a caller that constructs one by hand adds the field.
 
 ## D141: `sheet_svg` writes its numbers as the shapes do
 
-Decided: R3635. `sheet_svg` formats the width, height, viewBox origin and the widened sizes with the number formatter the shapes use (`svg._num`: at most four decimals, no trailing zeros, no negative zero), so `sheet_svg(420.0, 297.0, body, margin_mm=5.0)` gives `width="430mm"` and `viewBox="-5 -5 430 307"` where it gave `430.0mm` and `-5.0 -5.0 430.0 307.0`. No new name and no second formatter: `sheet_svg` is the function a caller uses, so it writes the root and no f-string is needed. This supersedes D122's "numbers as Python prints them". `bold_layer` writes no number.
+Decided: `sheet_svg` formats the width, height, viewBox origin and the widened sizes with the number formatter the shapes use (`svg._num`: at most four decimals, no trailing zeros, no negative zero), so `sheet_svg(420.0, 297.0, body, margin_mm=5.0)` gives `width="430mm"` and `viewBox="-5 -5 430 307"` where it gave `430.0mm` and `-5.0 -5.0 430.0 307.0`. No new name and no second formatter: `sheet_svg` is the function a caller uses, so it writes the root and no f-string is needed. This supersedes D122's "numbers as Python prints them". `bold_layer` writes no number.
 Why: the root's integer mm values printed as floats, so a caller that wanted the shapes' spelling wrote the root itself.
 Cost if wrong: the page bytes change for a float input (`5.0` becomes `5`, a value past four decimals is rounded); an integer input is unchanged.
+
+## D142: `to_fragment_mm` takes `cap_ratio` from the library's font when none is given
+
+Decided: (Q4b). `cap_ratio` becomes an optional keyword of `to_fragment_mm`. None takes `library.font.cap_height / library.font.units_per_em`; a value given wins, as `weights_mm` and `dash_mm` do (D116); neither a value nor a library raises `InvalidValueError` naming `cap_ratio` and `library`.
+Why: a caller that already passes the library computed the same ratio from the same font to hand it back.
+Cost if wrong: no new name, minor 0.39.0. Every call that gives `cap_ratio` draws the same bytes as before; a call that gave neither was a `TypeError` and is now an `InvalidValueError`.
+
+## D143: `reference_labels`, the labels of a reference grid
+
+Decided: (C8.1). A function beside `reference_cell` returns the column labels and the row labels of a frame of n by m cells: each kind is `"letters"` (A to Z) or `"numbers"` (1, 2,...), the rows counted `"top_down"` or `"bottom_up"` (the top row then carries the highest). The kinds and the order are closed `Literal` values, refused with `InvalidValueError` naming the known ones; more than 26 letters, or a count below 1, raises the same.
+Why: `reference_cell` returns labels as given and made none, so each caller wrote the same letters-and-numbers rule.
+Cost if wrong: additive name, minor 0.39.0. No type is added for the kinds; a caller passes the strings, and a third kind is a new decision.
+
+## D144: `reference_origin`, the inverse of `reference_cell`
+
+Decided: (C8.2). `reference_origin(columns, rows, width, height, cell)` takes the grid `reference_cell` takes and `cell`, a (column label, row label) pair, and returns the cell's min corner as a `GridPoint`: the first whole division that `reference_cell` places in the cell (`ceil(index * extent / count)` per axis), so `reference_cell(..., reference_origin(..., c, r)) == (c, r)` for every cell. An unknown label raises `InvalidValueError` listing the known ones; a grid with more labels than divisions on an axis raises it too, since such a cell holds no whole division.
+Why: a caller that links to a cell needs its corner and computed it again from the same cell rule, off the grid.
+Cost if wrong: additive name, minor 0.39.0. The corner is on the grid, rounded up; a caller that wants the exact fractional corner of a cell divides the box itself.

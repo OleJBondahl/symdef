@@ -18,6 +18,7 @@ from symdef import (
     Style,
     Symbol,
     SymbolKind,
+    Text,
     Weight,
     table,
     to_fragment_mm,
@@ -186,3 +187,29 @@ def test_a_missing_dash_dot_pattern_names_the_key_and_the_argument():
 def test_a_muted_symbol_takes_its_dash_from_the_librarys_normal_width():
     svg = draw(DASHED, LIBRARY.with_settings(lines=dict.fromkeys(Weight, 0.4)), muted="#999")
     assert 'stroke-dasharray="0.4 0.4"' in svg
+
+
+def _caps(**given):
+    texted = sym(Text("A", Point(3, 2), height=0.8))
+    return to_fragment_mm(
+        texted,
+        module_mm=2.5,
+        weights_mm={Weight.NORMAL: 0.3},
+        font_family="F",
+        font_mm=2.0,
+        **given,
+    )
+
+
+def test_a_missing_cap_ratio_is_the_librarys_font_cap_over_em():
+    assert _caps(library=LIBRARY) == _caps(cap_ratio=720 / 1000)
+
+
+def test_a_given_cap_ratio_beats_the_librarys():
+    assert _caps(library=LIBRARY, cap_ratio=0.5) == _caps(cap_ratio=0.5)
+    assert _caps(library=LIBRARY, cap_ratio=0.5) != _caps(library=LIBRARY)
+
+
+def test_neither_cap_ratio_nor_library_names_both():
+    with pytest.raises(InvalidValueError, match=r"cap_ratio.*library"):
+        _caps()

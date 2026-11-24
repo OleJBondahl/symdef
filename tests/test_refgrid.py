@@ -6,7 +6,7 @@ import pytest
 
 from symdef.errors import InvalidValueError, ReferenceCellError
 from symdef.gridtypes import GridPoint
-from symdef.refgrid import reference_cell
+from symdef.refgrid import reference_cell, reference_labels, reference_origin
 from symdef.units import DEFAULT_GRID, Grid, floor_divisions
 
 COLUMNS = ("A", "B", "C", "D", "E", "F")
@@ -85,3 +85,83 @@ def test_floor_divisions_rounds_down():
 def test_floor_divisions_refuses_a_floor_that_is_not_a_length(bad):
     with pytest.raises(InvalidValueError, match="not a length"):
         floor_divisions(DEFAULT_GRID, bad)
+
+
+def _rule(kind, i):
+    return chr(ord("A") + i) if kind == "letters" else str(i + 1)
+
+
+@pytest.mark.parametrize("order", ["top_down", "bottom_up"])
+@pytest.mark.parametrize("kinds", [("letters", "numbers"), ("numbers", "letters")])
+def test_the_labels_follow_the_frame_rule_for_every_size_up_to_26(kinds, order):
+    column_kind, row_kind = kinds
+    for n in range(1, 27):
+        for m in (1, 2, 5, 26):
+            rows = [_rule(row_kind, i) for i in range(m)]
+            if order == "bottom_up":
+                rows.reverse()
+            got = reference_labels(
+                n, m, column_kind=column_kind, row_kind=row_kind, row_order=order
+            )
+            assert got == (tuple(_rule(column_kind, i) for i in range(n)), tuple(rows))
+
+
+def test_the_labels_fit_reference_cell():
+    columns, rows = reference_labels(3, 2, row_order="bottom_up")
+    assert rows == ("2", "1")
+    assert reference_cell(columns, rows, 30, 20, GridPoint(0, 0)) == ("A", "2")
+
+
+@pytest.mark.parametrize(
+    ("call", "match"),
+    [
+        ({"columns": 27, "rows": 1}, "27 columns do not fit the letters A to Z"),
+        ({"columns": 1, "rows": 27, "row_kind": "letters"}, "27 rows do not fit"),
+        ({"columns": 0, "rows": 1}, "at least one column"),
+        ({"columns": 1, "rows": 0}, "at least one row"),
+        ({"columns": 1, "rows": 1, "column_kind": "roman"}, 'known: "letters", "numbers"'),
+        ({"columns": 1, "rows": 1, "row_order": "up"}, 'known: "top_down", "bottom_up"'),
+    ],
+)
+def test_unusable_labels_are_refused(call, match):
+    with pytest.raises(InvalidValueError, match=match):
+        reference_labels(**call)
+
+
+SHAPES = [(6, 4, 60, 40), (7, 3, 100, 31), (26, 26, 26, 53)]
+
+
+@pytest.mark.parametrize(("n", "m", "width", "height"), SHAPES)
+def test_the_origin_of_every_cell_is_inside_it(n, m, width, height):
+    columns, rows = reference_labels(n, m)
+    for c in columns:
+        for r in rows:
+            origin = reference_origin(columns, rows, width, height, (c, r))
+            assert reference_cell(columns, rows, width, height, origin) == (c, r)
+            if origin.x > 0:
+                before = GridPoint(origin.x - 1, origin.y)
+                assert reference_cell(columns, rows, width, height, before)[0] != c
+
+
+def test_the_origin_is_the_min_corner_in_divisions():
+    assert reference_origin(COLUMNS, ROWS, WIDTH, HEIGHT, ("C", "2")) == GridPoint(20, 10)
+
+
+def test_an_unknown_label_names_the_known_ones():
+    with pytest.raises(InvalidValueError, match=r'no column "Z".*known: A, B, C'):
+        reference_origin(COLUMNS, ROWS, WIDTH, HEIGHT, ("Z", "1"))
+    with pytest.raises(InvalidValueError, match=r'no row "9".*known: 1, 2, 3, 4'):
+        reference_origin(COLUMNS, ROWS, WIDTH, HEIGHT, ("A", "9"))
+
+
+@pytest.mark.parametrize(
+    ("columns", "rows", "width", "height", "match"),
+    [
+        ((), ROWS, WIDTH, HEIGHT, "at least one column label"),
+        (COLUMNS, ROWS, 0, HEIGHT, "0 by 40 divisions"),
+        (COLUMNS, ROWS, 5, HEIGHT, "do not fit 5 by 40"),
+    ],
+)
+def test_an_unusable_grid_has_no_origin(columns, rows, width, height, match):
+    with pytest.raises(InvalidValueError, match=match):
+        reference_origin(columns, rows, width, height, ("A", "1"))
