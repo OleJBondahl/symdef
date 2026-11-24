@@ -236,7 +236,7 @@ def to_fragment_mm(  # noqa: PLR0913 - one physical size per keyword
         font_family: CSS font family of the text, escaped here for the attribute.
         font_mm: Font size in mm of every text element.
         cap_ratio: Capital height as a fraction of the font size; the baseline sits half of it
-            below the text position. None takes `library.font.cap_height / library.font.units_per_em`.
+            below the text position. None takes the library font's `cap_height / units_per_em`.
         tint: Fill colour of the tinted closed polylines: `#rgb`, `#rrggbb` or a colour name.
             None draws them unfilled. Checked even when no element is tinted.
         muted: The colour a muted symbol is drawn in, or None. As in `to_fragment`, with the dash
@@ -263,7 +263,8 @@ def to_fragment_mm(  # noqa: PLR0913 - one physical size per keyword
             dashed element is drawn and neither `dash_mm` nor `library.dash["dashed"]` is there.
             Also a key of `texts` that is not a slot id
             of the symbol, checked before anything is drawn, also for an empty string.
-        InvalidValueError: `cap_ratio` and `library` are both None; the message names both. The tint or the muted colour is not a hex colour or a colour name, a
+        InvalidValueError: `cap_ratio` and `library` are both None, naming both. The tint or
+            the muted colour is not a hex colour or a colour name, a
             dash-dot element is drawn and `dash_dot_mm` is None, or `texts` is given and misses a
             required slot; the message names it and the symbol.
     """
