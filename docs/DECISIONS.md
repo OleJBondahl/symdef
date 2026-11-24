@@ -1856,3 +1856,9 @@ Cost if wrong: no new name, minor 0.39.0. Every call that gives `cap_ratio` draw
 Decided: R3821 (C8.1). A function beside `reference_cell` returns the column labels and the row labels of a frame of n by m cells: each kind is `"letters"` (A to Z) or `"numbers"` (1, 2, ...), the rows counted `"top_down"` or `"bottom_up"` (the top row then carries the highest). The kinds and the order are closed `Literal` values, refused with `InvalidValueError` naming the known ones; more than 26 letters, or a count below 1, raises the same.
 Why: `reference_cell` returns labels as given and made none, so each caller wrote the same letters-and-numbers rule.
 Cost if wrong: additive name, minor 0.39.0. No type is added for the kinds; a caller passes the strings, and a third kind is a new decision.
+
+## D144: `reference_origin`, the inverse of `reference_cell`
+
+Decided: R3821 (C8.2). `reference_origin(columns, rows, width, height, column, row)` takes the grid `reference_cell` takes and a label pair, and returns the cell's min corner as a `GridPoint`: the first whole division that `reference_cell` places in the cell (`ceil(index * extent / count)` per axis), so `reference_cell(..., reference_origin(..., c, r)) == (c, r)` for every cell. An unknown label raises `InvalidValueError` listing the known ones; a grid with more labels than divisions on an axis raises it too, since such a cell holds no whole division.
+Why: a caller that links to a cell needs its corner and computed it again from the same cell rule, off the grid.
+Cost if wrong: additive name, minor 0.39.0. The corner is on the grid, rounded up; a caller that wants the exact fractional corner of a cell divides the box itself.

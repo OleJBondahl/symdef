@@ -56,7 +56,7 @@ from symdef.model import (
     nodes_of,
 )
 from symdef.orient import orient, orient_box, orient_direction, orient_point, translate
-from symdef.refgrid import reference_cell, reference_labels
+from symdef.refgrid import reference_cell, reference_labels, reference_origin
 from symdef.repeat import pole_pitch, pole_port, repeat
 from symdef.shapes_mm import group_mm, line_mm, outline_mm, rect_mm
 from symdef.sheet_svg import bold_layer, sheet_svg
@@ -163,6 +163,7 @@ __all__ = [
     "rect_mm",
     "reference_cell",
     "reference_labels",
+    "reference_origin",
     "repeat",
     "sheet_svg",
     "slot_box",

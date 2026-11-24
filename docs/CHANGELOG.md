@@ -5,6 +5,7 @@ What changed in the public surface of each release: a name added, removed or mov
 ## 0.39.0
 
 - Added: `reference_labels(columns, rows, *, column_kind="letters", row_kind="numbers", row_order="top_down") -> (column labels, row labels)`, the labels of a reference grid, letters A to Z or numbers, rows counted top down or bottom up (D143).
+- Added: `reference_origin(columns, rows, width, height, column, row) -> GridPoint`, the min corner of a reference-grid cell in divisions, the inverse of `reference_cell` (D144).
 - Changed: `to_fragment_mm(..., cap_ratio=None)`: `cap_ratio` is optional and defaults to the library font's `cap_height / units_per_em`; neither it nor `library` raises `InvalidValueError` (D142).
 
 ## 0.38.0

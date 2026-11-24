@@ -95,3 +95,45 @@ def reference_labels(
     if row_order == "bottom_up":
         row_labels = row_labels[::-1]
     return _labels("column", column_kind, columns), row_labels
+
+
+def reference_origin(
+    columns: Sequence[str],
+    rows: Sequence[str],
+    width: int,
+    height: int,
+    column: str,
+    row: str,
+) -> GridPoint:
+    """Return the min corner of the cell `column`, `row` of a reference grid, the inverse of `reference_cell`.
+
+    The grid is the one `reference_cell` takes. The origin is the first whole division that
+    `reference_cell` places in the cell, so `reference_cell(..., reference_origin(..., c, r))`
+    gives `(c, r)` for every cell. A cell narrower than one division has no such point.
+
+    Raises:
+        InvalidValueError: A label is not in `columns` or `rows` (the message lists the known
+            ones), the grid is unusable as in `reference_cell`, or a label count exceeds its
+            divisions.
+    """
+    if not columns or not rows:
+        msg = "a reference grid needs at least one column label and one row label; give both"
+        raise InvalidValueError(msg)
+    if width < 1 or height < 1:
+        msg = f"the reference grid box is {width} by {height} divisions; give both above zero"
+        raise InvalidValueError(msg)
+    if len(columns) > width or len(rows) > height:
+        msg = (
+            f"{len(columns)} columns by {len(rows)} rows do not fit {width} by {height} "
+            "divisions; give at least one division per cell"
+        )
+        raise InvalidValueError(msg)
+    return GridPoint(_origin("column", columns, width, column), _origin("row", rows, height, row))
+
+
+def _origin(axis: str, labels: Sequence[str], extent: int, label: str) -> int:
+    """Return the first division of the cell `label` on one axis; an unknown label raises."""
+    if label not in labels:
+        msg = f'no {axis} "{label}" in the reference grid; known: {", ".join(labels)}'
+        raise InvalidValueError(msg)
+    return -(-labels.index(label) * extent // len(labels))
