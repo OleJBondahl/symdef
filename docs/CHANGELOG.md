@@ -2,6 +2,10 @@
 
 What changed in the public surface of each release: a name added, removed or moved, and a type that widened. Every change to `surface.toml` has a line here. The reasons are in [the decisions](DECISIONS.md).
 
+## 0.39.0
+
+- Changed: `to_fragment_mm(..., cap_ratio=None)`: `cap_ratio` is optional and defaults to the library font's `cap_height / units_per_em`; neither it nor `library` raises `InvalidValueError` (D142).
+
 ## 0.38.0
 
 This release also carries the content of 0.37.0 (D139).

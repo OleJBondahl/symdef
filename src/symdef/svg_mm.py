@@ -190,6 +190,14 @@ def _element(mm: _Mm, element: Element, tint: str | None) -> str:
             return _text(mm, text)
 
 
+def _library_cap_ratio(library: Library | None) -> float:
+    """Return the library font's capital height as a fraction of its em; no library raises."""
+    if library is None:
+        msg = "no cap_ratio for the text; pass cap_ratio or a library whose font gives it"
+        raise InvalidValueError(msg)
+    return library.font.cap_height / library.font.units_per_em
+
+
 def to_fragment_mm(  # noqa: PLR0913 - one physical size per keyword
     symbol: Symbol,
     *,
@@ -199,7 +207,7 @@ def to_fragment_mm(  # noqa: PLR0913 - one physical size per keyword
     dash_dot_mm: tuple[float, float, float, float] | None = None,
     font_family: str,
     font_mm: float,
-    cap_ratio: float,
+    cap_ratio: float | None = None,
     tint: str | None = None,
     muted: str | None = None,
     texts: Mapping[str, str] | None = None,
@@ -228,7 +236,7 @@ def to_fragment_mm(  # noqa: PLR0913 - one physical size per keyword
         font_family: CSS font family of the text, escaped here for the attribute.
         font_mm: Font size in mm of every text element.
         cap_ratio: Capital height as a fraction of the font size; the baseline sits half of it
-            below the text position.
+            below the text position. None takes `library.font.cap_height / library.font.units_per_em`.
         tint: Fill colour of the tinted closed polylines: `#rgb`, `#rrggbb` or a colour name.
             None draws them unfilled. Checked even when no element is tinted.
         muted: The colour a muted symbol is drawn in, or None. As in `to_fragment`, with the dash
@@ -255,13 +263,15 @@ def to_fragment_mm(  # noqa: PLR0913 - one physical size per keyword
             dashed element is drawn and neither `dash_mm` nor `library.dash["dashed"]` is there.
             Also a key of `texts` that is not a slot id
             of the symbol, checked before anything is drawn, also for an empty string.
-        InvalidValueError: The tint or the muted colour is not a hex colour or a colour name, a
+        InvalidValueError: `cap_ratio` and `library` are both None; the message names both. The tint or the muted colour is not a hex colour or a colour name, a
             dash-dot element is drawn and `dash_dot_mm` is None, or `texts` is given and misses a
             required slot; the message names it and the symbol.
     """
     check_tint(tint)
     check_colour("muted", muted)
     check_texts(symbol, texts, required_slots)
+    if cap_ratio is None:
+        cap_ratio = _library_cap_ratio(library)
     own_widths = {} if library is None else library.lines
     dash = {} if library is None else library.dash
     mm = _Mm(

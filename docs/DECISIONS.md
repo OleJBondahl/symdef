@@ -1844,3 +1844,9 @@ Cost if wrong: additive field, minor 0.38.0; `Measure` is built by `measure` alo
 Decided: R3635. `sheet_svg` formats the width, height, viewBox origin and the widened sizes with the number formatter the shapes use (`svg._num`: at most four decimals, no trailing zeros, no negative zero), so `sheet_svg(420.0, 297.0, body, margin_mm=5.0)` gives `width="430mm"` and `viewBox="-5 -5 430 307"` where it gave `430.0mm` and `-5.0 -5.0 430.0 307.0`. No new name and no second formatter: `sheet_svg` is the function a caller uses, so it writes the root and no f-string is needed. This supersedes D122's "numbers as Python prints them". `bold_layer` writes no number.
 Why: the root's integer mm values printed as floats, so a caller that wanted the shapes' spelling wrote the root itself.
 Cost if wrong: the page bytes change for a float input (`5.0` becomes `5`, a value past four decimals is rounded); an integer input is unchanged.
+
+## D142: `to_fragment_mm` takes `cap_ratio` from the library's font when none is given
+
+Decided: R3821 (Q4b). `cap_ratio` becomes an optional keyword of `to_fragment_mm`. None takes `library.font.cap_height / library.font.units_per_em`; a value given wins, as `weights_mm` and `dash_mm` do (D116); neither a value nor a library raises `InvalidValueError` naming `cap_ratio` and `library`.
+Why: a caller that already passes the library computed the same ratio from the same font to hand it back.
+Cost if wrong: no new name, minor 0.39.0. Every call that gives `cap_ratio` draws the same bytes as before; a call that gave neither was a `TypeError` and is now an `InvalidValueError`.

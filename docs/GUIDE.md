@@ -266,7 +266,7 @@ svg = to_fragment_mm(
 assert 'stroke-width="0.13"' in svg
 ```
 
-A width or pattern you pass wins over the library's. `to_fragment` and `to_svg` keep their fixed
+A width, pattern or `cap_ratio` you pass wins over the library's; with a `library` and no `cap_ratio`, the ratio is the library font's `cap_height / units_per_em` (D142). `to_fragment` and `to_svg` keep their fixed
 weights.
 
 ## Declaring the body
