@@ -136,7 +136,7 @@ def test_the_origin_of_every_cell_is_inside_it(n, m, width, height):
     columns, rows = reference_labels(n, m)
     for c in columns:
         for r in rows:
-            origin = reference_origin(columns, rows, width, height, c, r)
+            origin = reference_origin(columns, rows, width, height, (c, r))
             assert reference_cell(columns, rows, width, height, origin) == (c, r)
             if origin.x > 0:
                 before = GridPoint(origin.x - 1, origin.y)
@@ -144,14 +144,14 @@ def test_the_origin_of_every_cell_is_inside_it(n, m, width, height):
 
 
 def test_the_origin_is_the_min_corner_in_divisions():
-    assert reference_origin(COLUMNS, ROWS, WIDTH, HEIGHT, "C", "2") == GridPoint(20, 10)
+    assert reference_origin(COLUMNS, ROWS, WIDTH, HEIGHT, ("C", "2")) == GridPoint(20, 10)
 
 
 def test_an_unknown_label_names_the_known_ones():
-    with pytest.raises(InvalidValueError, match='no column "Z".*known: A, B, C'):
-        reference_origin(COLUMNS, ROWS, WIDTH, HEIGHT, "Z", "1")
-    with pytest.raises(InvalidValueError, match='no row "9".*known: 1, 2, 3, 4'):
-        reference_origin(COLUMNS, ROWS, WIDTH, HEIGHT, "A", "9")
+    with pytest.raises(InvalidValueError, match=r'no column "Z".*known: A, B, C'):
+        reference_origin(COLUMNS, ROWS, WIDTH, HEIGHT, ("Z", "1"))
+    with pytest.raises(InvalidValueError, match=r'no row "9".*known: 1, 2, 3, 4'):
+        reference_origin(COLUMNS, ROWS, WIDTH, HEIGHT, ("A", "9"))
 
 
 @pytest.mark.parametrize(
@@ -164,4 +164,4 @@ def test_an_unknown_label_names_the_known_ones():
 )
 def test_an_unusable_grid_has_no_origin(columns, rows, width, height, match):
     with pytest.raises(InvalidValueError, match=match):
-        reference_origin(columns, rows, width, height, "A", "1")
+        reference_origin(columns, rows, width, height, ("A", "1"))

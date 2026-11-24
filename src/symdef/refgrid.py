@@ -102,10 +102,9 @@ def reference_origin(
     rows: Sequence[str],
     width: int,
     height: int,
-    column: str,
-    row: str,
+    cell: tuple[str, str],
 ) -> GridPoint:
-    """Return the min corner of the cell `column`, `row` of a reference grid, the inverse of `reference_cell`.
+    """Return the min corner of `cell`, a (column label, row label); `reference_cell` inverted.
 
     The grid is the one `reference_cell` takes. The origin is the first whole division that
     `reference_cell` places in the cell, so `reference_cell(..., reference_origin(..., c, r))`
@@ -128,7 +127,9 @@ def reference_origin(
             "divisions; give at least one division per cell"
         )
         raise InvalidValueError(msg)
-    return GridPoint(_origin("column", columns, width, column), _origin("row", rows, height, row))
+    return GridPoint(
+        _origin("column", columns, width, cell[0]), _origin("row", rows, height, cell[1])
+    )
 
 
 def _origin(axis: str, labels: Sequence[str], extent: int, label: str) -> int:
