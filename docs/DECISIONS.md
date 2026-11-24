@@ -1850,3 +1850,9 @@ Cost if wrong: the page bytes change for a float input (`5.0` becomes `5`, a val
 Decided: R3821 (Q4b). `cap_ratio` becomes an optional keyword of `to_fragment_mm`. None takes `library.font.cap_height / library.font.units_per_em`; a value given wins, as `weights_mm` and `dash_mm` do (D116); neither a value nor a library raises `InvalidValueError` naming `cap_ratio` and `library`.
 Why: a caller that already passes the library computed the same ratio from the same font to hand it back.
 Cost if wrong: no new name, minor 0.39.0. Every call that gives `cap_ratio` draws the same bytes as before; a call that gave neither was a `TypeError` and is now an `InvalidValueError`.
+
+## D143: `reference_labels`, the labels of a reference grid
+
+Decided: R3821 (C8.1). A function beside `reference_cell` returns the column labels and the row labels of a frame of n by m cells: each kind is `"letters"` (A to Z) or `"numbers"` (1, 2, ...), the rows counted `"top_down"` or `"bottom_up"` (the top row then carries the highest). The kinds and the order are closed `Literal` values, refused with `InvalidValueError` naming the known ones; more than 26 letters, or a count below 1, raises the same.
+Why: `reference_cell` returns labels as given and made none, so each caller wrote the same letters-and-numbers rule.
+Cost if wrong: additive name, minor 0.39.0. No type is added for the kinds; a caller passes the strings, and a third kind is a new decision.
