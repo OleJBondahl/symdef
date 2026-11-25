@@ -31,6 +31,9 @@ dev = [
     "zensical==0.0.70",
 ]
 
+[tool.hatch.build.targets.sdist]
+exclude = ["CLAUDE.md"]
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/symdef"]
 
