@@ -201,7 +201,7 @@ def test_a_corner_slot_stays_in_the_body_at_r0_and_keeps_its_box_size_when_turne
     turned = placed.slots[0]
     assert turned.position == orient_point(slot.position, turn)
     assert turned.box == slot.box
-    # a box is never rotated (R1592): the size is kept and no containment is asserted when turned
+    # a box is never rotated: the size is kept and no containment is asserted when turned
     assert (slot_box(turned).width, slot_box(turned).height) == (
         slot_box(slot).width,
         slot_box(slot).height,

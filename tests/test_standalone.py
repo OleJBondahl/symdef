@@ -1,4 +1,4 @@
-"""No tracked file names an application that uses the toolkit (R459, D112).
+"""No tracked file names an application that uses the toolkit (D112).
 
 Every word of every tracked text file is lowercased and hashed; a word whose SHA-256 is
 listed is a failure. The hashes stand for two application names and their plural forms,

@@ -1,4 +1,4 @@
-"""R461: the words about `tag_roots` are general; no electrical or project word is in them."""
+"""The words about `tag_roots` are general; no electrical or project word is in them."""
 
 import inspect
 import re
